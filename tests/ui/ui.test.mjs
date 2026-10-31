@@ -48,7 +48,7 @@ await shot("1a-zugeklappt.png");
 await sr(`h.querySelector('[data-a="sec"][data-v="g:g01"]').click();`);
 await sr(`h.querySelector('[data-a="sec"][data-v="g:g15"]').click();`);
 check("Aufklappen zeigt Posten, Pausierte grau + abgehakt", await sr(`const r = [...h.querySelectorAll('.item.paused')]; return !!h.querySelector('[data-a="paid"][data-id="p1"]') && r.length === 1 && /Zeitschrift/.test(r[0].textContent) && r[0].classList.contains('done');`));
-check("Aufgeklappt wird gemerkt", await p.evaluate(() => JSON.parse(localStorage.getItem("fixkosten_offen")).includes("g:g01")));
+check("Aufgeklappt wird nicht gemerkt", await p.evaluate(() => localStorage.getItem("fixkosten_offen") === null));
 await shot("1-uebersicht.png");
 
 // 💳 Ausgabe über Schnellknopf

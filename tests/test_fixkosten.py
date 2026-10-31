@@ -250,3 +250,40 @@ async def test_app_files(hass, setup, hass_client_no_auth):
         assert r.headers["Content-Type"].startswith(ctype)
     assert (await client.get("/fixkosten/app/../manager.py")).status == 404
     assert (await client.get("/fixkosten/app/icon.svg")).status == 404
+
+
+async def test_order_restore_and_day(hass, setup):
+    """⠿ Verschieben (auch in andere Gruppe), ↩️ Rückgängig und 📅 fester Tag."""
+    m = mgr(hass)
+    m.import_csv(CSV)
+    ids = [p["id"] for p in m.data["posten"]]
+    miete, strom, handy = (m.find("posten", n)["id"] for n in ("Miete", "Strom", "Handyvertrag"))
+    m.apply([{"type": "order", "kind": "posten", "ids": [handy, strom, miete], "groups": {miete: "g15", strom: "kaputt"}}])
+    order = [p["id"] for p in m.data["posten"]]
+    assert order[:3] == [handy, strom, miete] and len(order) == len(ids)  # Unbekannte bleiben hinten
+    assert m.find("posten", "Miete")["group"] == "g15"
+    assert m.find("posten", "Strom")["group"] == "g01"  # unbekannte Gruppe wird ignoriert
+    assert not m.apply([{"type": "order", "kind": "gruppe", "ids": []}])[0]["ok"]
+
+    topf = dict(m.find("topf", "Sparkonto"))
+    m.apply([{"type": "topf_delete", "id": topf["id"]}])
+    assert m.find("topf", "Sparkonto") is None
+    m.apply([{"type": "restore", "kind": "topf", "item": topf, "index": 0}])
+    assert m.data["toepfe"][0]["name"] == "Sparkonto" and m.data["toepfe"][0]["amount"] == 1000
+    m.apply([{"type": "restore", "kind": "topf", "item": topf, "index": 0}])  # doppelt = nichts passiert
+    assert sum(t["id"] == topf["id"] for t in m.data["toepfe"]) == 1
+    res = m.apply([{"type": "restore", "kind": "gruppe", "item": {"id": "x"}}])
+    assert not res[0]["ok"]
+
+    m.apply([{"type": "booking_add", "op_id": "b9", "name": "Bäckerei", "amount": 3}])
+    b = dict(m.data["bookings"][0])
+    m.apply([{"type": "booking_delete", "id": "b9"}])
+    m.apply([{"type": "restore", "kind": "booking", "item": b}])
+    assert m.data["bookings"][0]["id"] == "b9"
+
+    m.apply([{"type": "posten_save", "item": {"id": miete, "day": 5}}])
+    assert m.find("posten", "Miete")["day"] == 5
+    m.apply([{"type": "posten_save", "item": {"id": miete, "day": None}}])
+    assert m.find("posten", "Miete")["day"] is None
+    assert not m.apply([{"type": "posten_save", "item": {"id": miete, "day": 40}}])[0]["ok"]
+    assert m.snapshot()["app_url"] is None  # ohne https-Adresse keine App-Adresse

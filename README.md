@@ -15,11 +15,12 @@
 ## ✨ Was kann das Ding?
 
 - 💰 **Verfügbar** = Kontostand − offene Fixkosten − Kartenzahlungen, die noch nicht abgebucht sind.
-- 📋 **Fixkosten in Gruppen** wie „ab dem 1.“ und „ab dem 15.“ – abhaken, wenn abgebucht.
+- 📋 **Fixkosten in Gruppen** wie „ab dem 1.“ und „ab dem 15.“ – zum Aufklappen, abhaken, wenn abgebucht.
 - 💳 **Kartenzahlungen** per Schnellknopf („Bäckerei 5,75“) – sofort abgezogen.
 - 🧮 **Taschenrechner** oben in der Karte, Ergebnis direkt als Zahlung oder Kontostand.
 - 🐷 **Töpfe**, 🧾 **offene Stände**, 🏦 **IBAN-Liste** zum Kopieren, 💵 **Einnahmen** als Info.
 - 📱 **Offline-App** mit Fingerabdruck-Sperre und 🔒 **PIN-Sperre** für Einstellungen.
+- ⠿ **Alles verschiebbar** (auch in eine andere Gruppe), ↩️ **Rückgängig** nach dem Löschen.
 - 📊 **Rückblick** über bis zu 3 Jahre, 📥 **CSV** einlesen und sichern.
 
 <details><summary>📋 Alle Funktionen im Detail</summary>
@@ -27,7 +28,9 @@
 | | |
 | --- | --- |
 | 💰 **Verfügbar** | Kontostand − offene Fixkosten − Kartenzahlungen, die noch nicht abgebucht sind = was du wirklich ausgeben kannst. Grün, gelb oder rot je nach Warngrenze |
-| 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“. Die Karte zeigt „jetzt fällig“ oder „kommt noch“. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder pausiert |
+| 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“, standardmäßig zugeklappt (Summe und „2 / 4“ stehen im Kopf). Freiwillig ein **fester Tag** (z. B. am 5.) – dann gibt es oben einen Hinweis auf die nächste Abbuchung. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder **pausiert** (steht grau und abgehakt drin, zählt nicht mit) |
+| ⠿ **Verschieben** | Posten, Töpfe, Einnahmen, offene Stände und Konten per Griff ziehen oder mit ▲▼. Posten auch in eine andere Gruppe |
+| ↩️ **Rückgängig** | Nach Löschen, „beglichen“ oder „abgebucht“ steht 8 Sekunden lang „Rückgängig“ unten in der Karte |
 | 💳 **Kartenzahlungen** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: „✓ abgebucht“ |
 | 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Kartenzahlung, Kontostand oder kopieren. Rechnet selbst, ohne `eval` |
 | 💵 **Einnahmen** | Nur zur Info (Lohn, Nebenjob …). Zeigt, was nach den Fixkosten übrig bleibt |
@@ -70,10 +73,11 @@ Den Ordner `custom_components/fixkosten` nach `/config/custom_components/fixkost
 <details><summary>Kontostand, abhaken, Kartenzahlungen, Rechner und Bearbeiten – <i>aufklappen</i></summary>
 
 1. **Kontostand eintragen:** Kachel „Konto“ antippen, Stand aus der Bank-App eingeben.
-2. **Abhaken:** Ist eine Fixkoste abgebucht, den Kreis antippen ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️).
+2. **Abhaken:** Gruppe aufklappen (Tipp auf die Überschrift). Ist ein Posten abgebucht, den Kreis antippen ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️).
 3. **Mit Karte bezahlt?** Schnellknopf (z. B. „Bäckerei“), Betrag, **＋**. Sofort abgezogen. Später bei „✓ abgebucht“ tippen.
 4. **Rechnen:** Oben auf 🧮. Ergebnis per Tipp als Kartenzahlung, Kontostand oder kopieren.
-5. **Anlegen und ändern:** Reiter **„Bearbeiten“** → ＋ Neu oder Eintrag antippen.
+5. **Anlegen und ändern:** Reiter **„Bearbeiten“** → ＋ Neu oder Eintrag antippen. Reihenfolge per Griff ⠿ oder ▲▼.
+6. **Versehentlich gelöscht?** Unten auf **„↩️ Rückgängig“** tippen.
 
 Alles Weitere steht in der Karte unter **📖 Anleitung** – einfach aufklappen.
 
@@ -104,12 +108,13 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 
 <details><summary>Zahnrad in der Karte, Seitenleiste, PIN-Sperre und PIN zurücksetzen – <i>aufklappen</i></summary>
 
-**In der Karte (⚙️):**
-- Haken am Monatsanfang automatisch zurücksetzen (Standard an)
-- Offene Stände von „Verfügbar“ abziehen (Standard aus)
-- Warngrenze für „Verfügbar“ und die Schnellknöpfe für Kartenzahlungen
-- CSV einlesen und sichern (nur Admins)
-- 🔒 **PIN-Sperre** (4–8 Ziffern): Dann fragen ⚙️ und „Bearbeiten“ nach der PIN. Das 🔓 oben sperrt sofort wieder, sonst nach 10 Minuten Ruhe. 5× falsch = 1 Minute Pause.
+**In der Karte (⚙️)** – Kacheln in Kategorien, jede öffnet ein eigenes Fenster:
+- 🧮 **Rechnen & Warnung:** Haken am Monatsanfang automatisch zurücksetzen (Standard an), offene Stände von „Verfügbar“ abziehen (Standard aus), Warngrenze, vorgemerkte Umsätze
+- ⚡ **Schnellknöpfe** für Kartenzahlungen, einer pro Zeile
+- 📥 **Daten (CSV):** einlesen und sichern (nur Admins)
+- 📱 **Offline-App:** Anleitung und deine eigene App-Adresse mit „Kopieren“
+- 🔒 **Schutz (PIN)** (4–8 Ziffern): Dann fragen ⚙️ und „Bearbeiten“ nach der PIN. Das 🔓 oben sperrt sofort wieder, sonst nach 10 Minuten Ruhe. 5× falsch = 1 Minute Pause.
+- 🛡️ Datenschutz und 💙 Credits & Spenden
 
 **In Home Assistant** (Einstellungen → Geräte & Dienste → Fixkosten → **Konfigurieren**):
 - **In der Seitenleiste anzeigen** – Fixkosten als eigener Eintrag links, ganz ohne Dashboard.

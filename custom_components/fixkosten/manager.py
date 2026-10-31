@@ -30,6 +30,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    APP_URL,
     DEFAULT_GROUPS,
     DEFAULT_SETTINGS,
     MAX_BOOKINGS_DAYS,
@@ -268,7 +269,22 @@ class FixkostenManager:
         out = {k: v for k, v in self.data.items() if k not in ("seen", "pin")}
         out["pin"] = bool(self.data.get("pin"))
         out["summary"] = self.summary()
+        out["app_url"] = self._app_url()
         return out
+
+    def _app_url(self) -> str | None:
+        """📱 Adresse der Offline-App von unterwegs (Nabu Casa bzw. externe https-Adresse) – wie bei der Einkaufsliste."""
+        try:
+            from homeassistant.helpers.network import NoURLAvailableError, get_url  # noqa: PLC0415
+        except ImportError:  # pragma: no cover
+            return None
+        try:
+            base = get_url(self.hass, allow_internal=False, allow_ip=False, require_ssl=True, prefer_cloud=True)
+        except NoURLAvailableError:
+            return None
+        except Exception:  # noqa: BLE001 – lieber keine Adresse als ein Fehler
+            return None
+        return base.rstrip("/") + APP_URL
 
     # ------------------------------------------------------------------ 🔒 PIN (wie bei der Einkaufsliste)
     @staticmethod
@@ -402,6 +418,28 @@ class FixkostenManager:
                     b["cleared"] = bool(op.get("value", True))
         elif t == "booking_delete":
             d["bookings"] = [b for b in d["bookings"] if b["id"] != op["id"]]
+        elif t == "restore":  # ↩️ Rückgängig nach dem Löschen: Eintrag kommt an seinen alten Platz zurück
+            kind = op.get("kind")
+            key = "bookings" if kind == "booking" else LIST_KINDS.get(kind)
+            item = op.get("item") or {}
+            if not key or kind == "gruppe" or not isinstance(item, dict) or not item.get("id"):
+                raise HomeAssistantError("Das kann man nicht zurückholen")
+            if not any(x["id"] == item["id"] for x in d[key]):
+                idx = max(0, min(int(op.get("index", len(d[key]))), len(d[key])))
+                d[key].insert(idx, dict(item))
+        elif t == "order":  # ⠿ Reihenfolge per Ziehen (Posten auch in eine andere Gruppe)
+            kind = op.get("kind")
+            if kind not in LIST_KINDS or kind == "gruppe":
+                raise HomeAssistantError("Diese Liste kann man nicht sortieren")
+            key = LIST_KINDS[kind]
+            pos = {str(i): n for n, i in enumerate(op.get("ids") or [])}
+            d[key].sort(key=lambda x: pos.get(x["id"], len(pos)))  # Unbekannte bleiben hinten, in alter Reihenfolge
+            if kind == "posten":
+                known = {g["id"] for g in d["groups"]}
+                for it in d[key]:
+                    gid = (op.get("groups") or {}).get(it["id"])
+                    if gid in known:
+                        it["group"] = gid
         elif t == "settings":
             s = op.get("settings") or {}
             if "reset_checks" in s:
@@ -458,6 +496,11 @@ class FixkostenManager:
                     target["months"] = sorted({int(m) for m in months if 1 <= int(m) <= 12})
                 if kind == "posten" and ("group" in item or existing is None):
                     target["group"] = self._group_ref(item.get("group"))
+                if kind == "posten" and "day" in item:  # 📅 fester Abbuchungstag (freiwillig)
+                    day = int(item["day"]) if str(item["day"] or "").strip() else None
+                    if day is not None and not 1 <= day <= 31:
+                        raise HomeAssistantError("Fester Tag muss zwischen 1 und 31 liegen")
+                    target["day"] = day
                 if kind == "einnahme" and "date" in item:  # 📅 nur Info, z. B. „30.01.2026“ oder „monatlich am 1.“
                     target["date"] = str(item["date"] or "")[:30]
         if existing is None:

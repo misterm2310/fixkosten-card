@@ -39,6 +39,7 @@
 | 🧾 **Offene Stände** | Was du noch begleichen musst. Auf Wunsch auch von „Verfügbar“ abziehen |
 | 🏦 **Meine Konten** | IBAN-Liste zum schnellen Kopieren (📋) |
 | 👁️ **Verstecken** | Ein Tipp verschwimmt alle Beträge, z. B. wenn jemand mitschaut |
+| 🙈 **Verschleiert** | Einnahmen, Töpfe und „Komplett“ sind immer verschwommen. Am PC Maus drüber, am Handy auf den Betrag drücken = 4 Sekunden sichtbar. Abschaltbar in ⚙️ → Ansicht |
 | 🔒 **PIN-Sperre** | ⚙️ und „Bearbeiten“ nur mit PIN. Abhaken und Zahlungen gehen ohne |
 | 📊 **Rückblick** | Jeder Monat wird am Monatsende automatisch gemerkt (⚙️ → Daten → Rückblick) |
 | 🩺 **Gesundheit** | „Alles ok?“ findet Posten ohne Gruppe, alten Kontostand, vergessene Ausgaben …, dazu Fehler-Protokoll und Ressourcen |
@@ -118,7 +119,7 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 - ⚡ **Schnellknöpfe** für Ausgaben, einer pro Zeile
 - 💾 **Daten:** Import & Sicherung (CSV einlesen und sichern, nur Admins), 📜 Verlauf (an/aus, leeren), 📊 Rückblick, 💣 Werkseinstellungen (nur Admins, zwei Sicherheitsfragen, nur die PIN bleibt)
 - 🩺 **Gesundheit:** Alles ok?, Fehler-Protokoll, Ressourcen
-- 👁️ **Ansicht:** Ansicht für alle (Abschnitte ein-/ausblenden), Beschriftungen, Maskottchen (alle drei gelten für alle Geräte), Ruhiger Modus (nur dieses Gerät), in der Offline-App Hell / Dunkel
+- 👁️ **Ansicht:** Ansicht für alle (Abschnitte ein-/ausblenden, Einnahmen/Töpfe/Komplett verschleiern), Beschriftungen, Maskottchen (alle drei gelten für alle Geräte), Ruhiger Modus (nur dieses Gerät), in der Offline-App Hell / Dunkel
 - 📱 **Offline-App:** Anleitung und deine eigene App-Adresse mit „Kopieren“
 - 🔒 **Schutz** (4–8 Ziffern): Dann fragen ⚙️ und „Bearbeiten“ nach der PIN. Das 🔓 oben sperrt sofort wieder, sonst nach 10 Minuten Ruhe. 5× falsch = 1 Minute Pause.
 - 🛡️ Datenschutz, 🆕 Was ist neu und 💙 Credits

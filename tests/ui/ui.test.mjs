@@ -350,13 +350,13 @@ await new Promise((r) => setTimeout(r, 80));
 // 🙈 Einnahmen, Töpfe, Komplett verschleiert – antippen = 4 Sekunden sichtbar (beta.14)
 await sr(`const t = h.querySelector('[data-a="sec"][data-v="toepfe"]'); if (t && !h.querySelector('[data-a="open"][data-k="pot"]')) t.click();`);
 await new Promise((r) => setTimeout(r, 60));
-check("Verschleiert: Komplett, Töpfe-Summe und Topf", await sr(`return !!h.querySelector('.sum .veil[data-v="total"]') && !!h.querySelector('.ghead .veil[data-v="pots"]') && !!h.querySelector('.item .veil[data-v^="pot:"]') && !!h.querySelector('.ghead .veil[data-v="inc"]');`));
+check("Verschleiert: nur Summen (Komplett, Töpfe, Einnahmen), einzelne Töpfe klar", await sr(`return !!h.querySelector('.sum .veil[data-v="total"]') && !!h.querySelector('.ghead .veil[data-v="pots"]') && !h.querySelector('.item .veil') && !!h.querySelector('.ghead .veil[data-v="inc"]');`));
 await shot("10a-verschleiert.png");
-await sr(`h.querySelector('.item .veil[data-v^="pot:"]').click();`);
+await sr(`h.querySelector('.ghead .veil[data-v="pots"]').click();`);
 await new Promise((r) => setTimeout(r, 60));
-check("Antippen: Betrag sichtbar, Topf geht NICHT auf", await sr(`return h.querySelector('.item .veil[data-v^="pot:"]').classList.contains('peek') && !h.querySelector('.potbox');`));
+check("Antippen: Summe sichtbar, Töpfe klappen NICHT zu", await sr(`return h.querySelector('.ghead .veil[data-v="pots"]').classList.contains('peek') && !!h.querySelector('[data-a="open"][data-k="pot"]');`));
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._force = true; c._render(); });
-check("Bleibt sichtbar, auch wenn die Karte neu zeichnet", await sr(`return h.querySelector('.item .veil[data-v^="pot:"]').classList.contains('peek');`));
+check("Bleibt sichtbar, auch wenn die Karte neu zeichnet", await sr(`return h.querySelector('.ghead .veil[data-v="pots"]').classList.contains('peek');`));
 await new Promise((r) => setTimeout(r, 4200));
 check("Nach 4 Sekunden wieder verschwommen", await sr(`return !h.querySelector('.veil.peek');`));
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._send({ type: "settings", settings: { veil: false } }); });

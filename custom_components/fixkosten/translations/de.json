@@ -1,0 +1,115 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Fixkosten",
+        "description": "Deine monatlichen Fixkosten in Home Assistant. Alles Weitere stellst du in der Karte ein.",
+        "data": {
+          "sidebar": "In der Seitenleiste anzeigen"
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Fixkosten ist schon eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Fixkosten",
+        "data": {
+          "sidebar": "In der Seitenleiste anzeigen",
+          "reset_pin": "PIN zurücksetzen"
+        },
+        "data_description": {
+          "reset_pin": "Die PIN für ⚙️ und Bearbeiten wird gelöscht. Danach in der Karte eine neue festlegen.",
+          "sidebar": "Fixkosten als eigener Eintrag links in der Seitenleiste."
+        }
+      }
+    }
+  },
+  "services": {
+    "abhaken": {
+      "name": "Abhaken",
+      "description": "Fixkosten-Posten oder Einnahme für diesen Monat abhaken (oder Haken wieder entfernen).",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Name des Postens oder der Einnahme."
+        },
+        "erledigt": {
+          "name": "Erledigt",
+          "description": "An = abgehakt, aus = Haken weg."
+        }
+      }
+    },
+    "kontostand_setzen": {
+      "name": "Kontostand eintragen",
+      "description": "Aktuellen Kontostand (aus der Bank-App) eintragen.",
+      "fields": {
+        "kontostand": {
+          "name": "Kontostand",
+          "description": "Kontostand in Euro."
+        },
+        "vorgemerkt": {
+          "name": "Vorgemerkt",
+          "description": "Vorgemerkte Umsätze in Euro (minus = geht noch ab)."
+        }
+      }
+    },
+    "buchung_hinzufuegen": {
+      "name": "Kartenzahlung eintragen",
+      "description": "Kartenzahlung eintragen, die noch nicht abgebucht ist. Zählt sofort von „Verfügbar“ ab.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Wofür, z. B. Bäckerei."
+        },
+        "betrag": {
+          "name": "Betrag",
+          "description": "Betrag in Euro."
+        }
+      }
+    },
+    "topf_setzen": {
+      "name": "Topf eintragen",
+      "description": "Stand eines Topfs (Sparkonto, Bargeld, PayPal …) setzen. Gibt es ihn nicht, wird er angelegt.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Name des Topfs."
+        },
+        "betrag": {
+          "name": "Betrag",
+          "description": "Stand in Euro."
+        }
+      }
+    },
+    "haken_zuruecksetzen": {
+      "name": "Haken zurücksetzen",
+      "description": "Alle Haken dieses Monats entfernen."
+    },
+    "csv_import": {
+      "name": "CSV importieren",
+      "description": "Posten, Einnahmen und Töpfe aus einer CSV-Datei einlesen (Typ;Name;Betrag;Gruppe;Zahlart;Notiz – Typ = ausgabe, einnahme, topf, stand).",
+      "fields": {
+        "text": {
+          "name": "Text",
+          "description": "Inhalt der CSV-Datei."
+        },
+        "datei": {
+          "name": "Datei",
+          "description": "Dateiname im config-Ordner."
+        },
+        "ersetzen": {
+          "name": "Ersetzen",
+          "description": "An = vorhandene Posten, Einnahmen, Töpfe und offene Stände vorher löschen."
+        }
+      }
+    },
+    "daten_abrufen": {
+      "name": "Zahlen abrufen",
+      "description": "Gibt alle berechneten Zahlen zurück (für Skripte)."
+    }
+  }
+}

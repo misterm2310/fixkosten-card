@@ -1,0 +1,17 @@
+{
+  "name": "Fixkosten",
+  "short_name": "Fixkosten",
+  "description": "Deine Fixkosten aus Home Assistant – auch ohne Netz.",
+  "start_url": "/fixkosten/app/",
+  "scope": "/fixkosten/app/",
+  "display": "standalone",
+  "background_color": "#111418",
+  "theme_color": "#0288d1",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Kartenzahlung eintragen", "short_name": "Zahlung", "url": "/fixkosten/app/?do=pay" }
+  ]
+}

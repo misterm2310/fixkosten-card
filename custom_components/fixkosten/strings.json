@@ -1,0 +1,115 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Fixed costs",
+        "description": "Your monthly fixed costs in Home Assistant. Everything else is set up in the card.",
+        "data": {
+          "sidebar": "Show in sidebar"
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Fixed costs is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Fixed costs",
+        "data": {
+          "sidebar": "Show in sidebar",
+          "reset_pin": "Reset PIN"
+        },
+        "data_description": {
+          "reset_pin": "The PIN for ⚙️ and Edit is removed. Set a new one in the card afterwards.",
+          "sidebar": "Fixed costs as its own entry in the sidebar."
+        }
+      }
+    }
+  },
+  "services": {
+    "abhaken": {
+      "name": "Check off",
+      "description": "Check off a fixed cost or income for this month (or uncheck it).",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Name of the item or income."
+        },
+        "erledigt": {
+          "name": "Done",
+          "description": "On = checked, off = unchecked."
+        }
+      }
+    },
+    "kontostand_setzen": {
+      "name": "Set balance",
+      "description": "Enter the current account balance (from your banking app).",
+      "fields": {
+        "kontostand": {
+          "name": "Balance",
+          "description": "Balance in euros."
+        },
+        "vorgemerkt": {
+          "name": "Pending",
+          "description": "Pending transactions in euros (minus = still to be debited)."
+        }
+      }
+    },
+    "buchung_hinzufuegen": {
+      "name": "Add card payment",
+      "description": "Add a card payment that has not been debited yet. Counts against “available” immediately.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "What for, e.g. bakery."
+        },
+        "betrag": {
+          "name": "Amount",
+          "description": "Amount in euros."
+        }
+      }
+    },
+    "topf_setzen": {
+      "name": "Set pot",
+      "description": "Set the balance of a pot (savings, cash, PayPal …). Created if missing.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Name of the pot."
+        },
+        "betrag": {
+          "name": "Amount",
+          "description": "Balance in euros."
+        }
+      }
+    },
+    "haken_zuruecksetzen": {
+      "name": "Reset checks",
+      "description": "Remove all checks of this month."
+    },
+    "csv_import": {
+      "name": "Import CSV",
+      "description": "Import items, incomes and pots from a CSV file (type;name;amount;group;payment;note – type = ausgabe, einnahme, topf, stand).",
+      "fields": {
+        "text": {
+          "name": "Text",
+          "description": "CSV content."
+        },
+        "datei": {
+          "name": "File",
+          "description": "File name in the config folder."
+        },
+        "ersetzen": {
+          "name": "Replace",
+          "description": "On = delete existing items, incomes, pots and open balances first."
+        }
+      }
+    },
+    "daten_abrufen": {
+      "name": "Get numbers",
+      "description": "Returns all calculated numbers (for scripts)."
+    }
+  }
+}

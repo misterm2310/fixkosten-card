@@ -98,6 +98,13 @@ class FkSensor(SensorEntity):
         return self.hass.data[DOMAIN]["books"][self._entry_id]
 
     @property
+    def native_unit_of_measurement(self) -> str | None:
+        """💱 Geld-Sensoren nehmen die Währung aus ⚙️ (EUR, CHF …)"""
+        if self.entity_description.device_class != SensorDeviceClass.MONETARY:
+            return None
+        return (self._m.data.get("settings") or {}).get("currency") or "EUR"
+
+    @property
     def native_value(self) -> Any:
         return self.entity_description.value(self._m.summary())
 

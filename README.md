@@ -22,7 +22,8 @@
 - 📱 **Offline-App** mit Fingerabdruck-Sperre und 🔒 **PIN-Sperre** für Einstellungen.
 - ⠿ **Alles verschiebbar** (auch in eine andere Gruppe), ↩️ **Rückgängig** nach dem Löschen.
 - 📊 **Rückblick** über bis zu 3 Jahre, 📥 **CSV** einlesen und sichern, 📜 **Verlauf** (wer hat wann was geändert).
-- 👁️ **Ansicht** wie bei der Einkaufsliste: Abschnitte ausblenden, Beschriftungen, ruhiger Modus – und ein 🐷 **Sparschwein** als Maskottchen.
+- 👁️ **Ansicht** wie bei der Einkaufsliste: Abschnitte ausblenden, Beschriftungen, ruhiger Modus – und ein 🐷 **Sparschwein** als Maskottchen, das sich je nach Jahreszeit verkleidet.
+- 🌍 **Deutsch oder Englisch** (automatisch wie Home Assistant) und 💱 **Währung wählbar** (Euro, Franken, Dollar, Pfund …).
 
 <details><summary>📋 Alle Funktionen im Detail</summary>
 
@@ -46,7 +47,9 @@
 | 📱 **Offline-App** | Eigene Handy-App mit Anmeldung, Fingerabdruck/Face-ID-Sperre und Postausgang |
 | 📜 **Verlauf** | Wer hat wann was geändert: abgehakt, Kontostand, Ausgaben, Töpfe, Bearbeiten … Die letzten 300 Einträge, ausschaltbar, Admins können ihn leeren (⚙️ → Daten → Verlauf) |
 | 👁️ **Ansicht** | Abschnitte für alle ausblenden (Nächste Abbuchung, Ausgaben, Fixkosten, Einnahmen, Offene Stände, Töpfe, Meine Konten), **Beschriftungen** unter den Symbol-Knöpfen, **Ruhiger Modus** (nur dieses Gerät) und in der Offline-App **Hell / Dunkel** |
-| 🐷 **Maskottchen** | Ein Sparschwein oben links (Standard aus): freut sich im Plus, guckt skeptisch knapp über der Warngrenze, erschrickt im Minus und hüpft, wenn alle Fixkosten abgehakt sind. Morgens gähnt es, ab 21 Uhr schläft es |
+| 🐷 **Maskottchen** | Ein Sparschwein oben links (Standard aus): freut sich im Plus, guckt skeptisch knapp über der Warngrenze, erschrickt im Minus und hüpft, wenn alle Fixkosten abgehakt sind. Morgens gähnt es, ab 21 Uhr schläft es. Kostüme je nach Datum: Blume (Frühling), Sonnenbrille (Sommer), Blatt (Herbst), Schal (Winter), Hasenohren (Ostern), Kürbis (Halloween), Mütze (Advent), Partyhut (Silvester) |
+| 💱 **Währung** | ⚙️ → Rechnen & Warnung: Euro, Schweizer Franken, US-Dollar, Pfund, Złoty, Kronen, Forint. Ändert nur Zeichen und Schreibweise (CHF 1’234.50), es wird nichts umgerechnet. Die Sensoren nehmen die Währung mit |
+| 🌍 **Sprache** | Deutsch oder Englisch – automatisch wie Home Assistant, oder fest mit `language:` in der Karte. Deine eigenen Namen werden nie übersetzt |
 | 📖 **Anleitung** | Steckt direkt in der Karte (unten „📖 Anleitung“) |
 
 </details>
@@ -115,7 +118,7 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 <details><summary>Zahnrad in der Karte, Seitenleiste, PIN-Sperre und PIN zurücksetzen – <i>aufklappen</i></summary>
 
 **In der Karte (⚙️)** – wie bei der Einkaufsliste: Kästen nach Zweck zum Aufklappen, jede Zeile öffnet eine eigene Seite in der Karte (← zurück). Die PIN tippst du auf einem Zahlenfeld wie am Handy:
-- 🧮 **Rechnen & Warnung:** Haken am Monatsanfang automatisch zurücksetzen (Standard an), offene Stände von „Verfügbar“ abziehen (Standard aus), Warnung an/aus und Warngrenze
+- 🧮 **Rechnen & Warnung:** Haken am Monatsanfang automatisch zurücksetzen (Standard an), offene Stände von „Verfügbar“ abziehen (Standard aus), Warnung an/aus und Warngrenze, 💱 Währung
 - ⚡ **Schnellknöpfe** für Ausgaben, einer pro Zeile
 - 💾 **Daten:** Import & Sicherung (CSV einlesen und sichern, nur Admins), 📜 Verlauf (an/aus, leeren), 📊 Rückblick, 💣 Werkseinstellungen (nur Admins, zwei Sicherheitsfragen, nur die PIN bleibt)
 - 🩺 **Gesundheit:** Alles ok?, Fehler-Protokoll, Ressourcen
@@ -173,6 +176,7 @@ type: custom:fixkosten-card
 title: Fixkosten   # optional
 buch: Partnerin    # optional: welches Buch (leer = erstes Buch), auch im Karten-Editor wählbar
 privat: true       # optional: Beträge erst nach Antippen von 👁️ zeigen (z. B. fürs Küchen-Tablet)
+language: en       # optional: de oder en (ohne = wie Home Assistant), auch im Karten-Editor wählbar
 ```
 
 </details>

@@ -2,7 +2,7 @@
 
 # 💶 Fixed costs for Home Assistant
 
-🇩🇪 **Deutsch?** → [README auf Deutsch](README.md) (the card itself is in German)
+🇩🇪 **Deutsch?** → [README auf Deutsch](README.md) (the card speaks English when Home Assistant isn't set to German)
 
 **How much money is really left this month?** The card shows exactly that: big and at a glance, in your dashboard, in the sidebar and as a phone app that also works offline.
 
@@ -22,7 +22,9 @@
 - 🐷 **Pots**, 🧾 **open balances**, 🏦 **IBAN list** with copy button, 💵 **income** as info.
 - 📱 **Offline app** with fingerprint lock and 🔒 **PIN lock** for settings.
 - 📊 **Monthly review** for up to 3 years, 📥 **CSV** import and export, 📜 **history log** (who changed what and when).
-- 👁️ **View** settings like the shopping list: hide sections for everyone, labels under icon buttons, calm mode, light/dark in the offline app – plus a 🐷 **piggy bank mascot** that reacts to your money.
+- 👁️ **View** settings like the shopping list: hide sections for everyone, labels under icon buttons, calm mode, light/dark in the offline app – plus a 🐷 **piggy bank mascot** that reacts to your money and dresses up for the season (flower, sunglasses, leaf, scarf, bunny ears, pumpkin, Santa hat, party hat).
+- 🌍 **English or German**: automatic like Home Assistant, or fixed with `language: en` in the card (also in the card editor). Your own names are never translated.
+- 💱 **Currency** (⚙️ → Calculation & warning): euro, Swiss franc, US dollar, pound, złoty, kroner, forint. Only changes the symbol and number format (CHF 1’234.50), nothing is converted; the sensors use it too.
 - 📚 **Several books** (like several plants): Devices & services → Fixkosten → Add entry, e.g. one per person. Each book has its own data, sensors (`sensor.fixkosten_<name>_…`) and PIN; pick it in the card editor (`buch:`) and use the card's visibility per user.
 
 ---

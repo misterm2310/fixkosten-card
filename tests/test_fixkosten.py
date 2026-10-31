@@ -413,3 +413,18 @@ async def test_verlauf_und_ansicht(hass, setup):
     m.apply([{"type": "log_clear"}])
     assert m.data["log"] == [] and m.health()["counts"]["log"] == 0
     assert "log" in m.snapshot()
+
+
+async def test_waehrung(hass, setup):
+    """💱 Währung umstellen: Verlauf schreibt CHF, Beträge mit CHF/Fr./$ werden verstanden, Unsinn wird abgelehnt."""
+    from custom_components.fixkosten.manager import parse_money
+    m = mgr(hass)
+    assert m.data["settings"]["currency"] == "EUR"
+    m.apply([{"type": "settings", "settings": {"currency": "chf"}}])
+    assert m.data["settings"]["currency"] == "CHF"
+    m.apply([{"type": "konto", "balance": "CHF 1’234.50", "ts": 1}])
+    assert m.data["konto"]["balance"] == 1234.5
+    assert m.data["log"][-1]["text"] == "🏦 Kontostand 1.234,50 CHF"
+    assert parse_money("Fr. 12.50") == 12.5 and parse_money("$1,234.56") == 1234.56 and parse_money("1.234,56 €") == 1234.56
+    res = m.apply([{"type": "settings", "settings": {"currency": "XYZ"}}])
+    assert res[0]["ok"] is False and m.data["settings"]["currency"] == "CHF"

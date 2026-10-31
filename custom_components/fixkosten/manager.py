@@ -33,6 +33,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     APP_URL,
+    CURRENCIES,
     DEFAULT_GROUPS,
     DEFAULT_SETTINGS,
     MAX_BOOKINGS_DAYS,
@@ -56,17 +57,27 @@ def new_id() -> str:
     return uuid.uuid4().hex[:12]
 
 
+_CUR_RE = re.compile(r"(?i)\b(EUR|CHF|SFr\.?|Fr\.|USD|US\$|GBP|PLN|CZK|DKK|SEK|NOK|HUF|zł|Kč|kr\.?|Ft)(?![a-z])|[€$£]")
+
+
 def parse_money(value: Any) -> float:
     """„−1.234,56 €“, „-58,29“, „12.5“ → Zahl. Leer → 0."""
     if value is None:
         return 0.0
     if isinstance(value, (int, float)):
         return round(float(value), 2)
-    s = str(value).strip().replace("€", "").replace("EUR", "").replace("−", "-").replace(" ", "").replace(" ", "")
+    s = str(value).strip().replace("−", "-")
+    s = _CUR_RE.sub("", s)  # 💱 €, CHF, Fr., $, £ … weg
+    s = s.replace(" ", "").replace("\u00a0", "").replace("\u202f", "").replace("'", "").replace("’", "")
     if not s:
         return 0.0
-    if "," in s:  # deutsche Schreibweise: Punkt = Tausender, Komma = Nachkomma
-        s = s.replace(".", "").replace(",", ".")
+    if "," in s and "." in s:  # beide da: das letzte Zeichen ist das Komma (1.234,56 oder 1,234.56)
+        if s.rfind(",") > s.rfind("."):
+            s = s.replace(".", "").replace(",", ".")
+        else:
+            s = s.replace(",", "")
+    elif "," in s:  # deutsche Schreibweise: Komma = Nachkomma
+        s = s.replace(",", ".")
     elif s.count(".") > 1:
         s = s.replace(".", "")
     try:
@@ -382,13 +393,15 @@ class FixkostenManager:
         return results
 
     # ------------------------------------------------------------------ 📜 Verlauf (wer, wann, was)
-    @staticmethod
-    def _eur(value: Any) -> str:
+    def _eur(self, value: Any) -> str:
+        """💱 Betrag mit der eingestellten Währung, deutsch geschrieben: 1.234,50 € · 1.234,50 CHF"""
         try:
             v = float(value)
         except (TypeError, ValueError):
             return "?"
-        return f"{v:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+        code = (self.data.get("settings") or {}).get("currency") or "EUR"
+        sym = CURRENCIES.get(code, code)
+        return f"{v:,.2f} {sym}".replace(",", "X").replace(".", ",").replace("X", ".")
 
     def _name(self, kind: str, ref: Any) -> str:
         if kind in LIST_KINDS and ref is not None:
@@ -594,6 +607,11 @@ class FixkostenManager:
                 d["settings"]["warn_enabled"] = bool(s["warn_enabled"])
             if "warn_below" in s:
                 d["settings"]["warn_below"] = parse_money(s["warn_below"])
+            if "currency" in s:  # 💱 Währung
+                code = str(s["currency"] or "").upper().strip()
+                if code not in CURRENCIES:
+                    raise HomeAssistantError(f"Währung „{s['currency']}“ kenne ich nicht")
+                d["settings"]["currency"] = code
             for flag in ("log_on", "labels", "mascot", "veil", "lock_all"):  # 📜 🔤 🐷 einfache Schalter
                 if flag in s:
                     d["settings"][flag] = bool(s[flag])

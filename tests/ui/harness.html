@@ -1,0 +1,89 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Fixkosten Test</title>
+<style>
+:root { --primary-color:#03a9f4; --primary-text-color:#e1e1e1; --secondary-text-color:#9b9b9b; --divider-color:rgba(225,225,225,.12);
+  --primary-background-color:#111418; --secondary-background-color:#262a31; --card-background-color:#1c1f24; --ha-card-background:#1c1f24; color-scheme:dark; }
+body { margin:0; padding:16px; background:var(--primary-background-color); color:var(--primary-text-color); font:15px Roboto, system-ui, sans-serif; }
+ha-card { display:block; background:var(--ha-card-background); border-radius:12px; }
+#c1 { display:block; max-width:520px; }
+</style></head>
+<body>
+<fixkosten-card id="c1"></fixkosten-card>
+<script>
+// 🧪 Ein nachgebautes Home Assistant mit AUSGEDACHTEN Beispielzahlen
+const now = new Date();
+const mk = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+window.fake = {
+  online: true, applied: [],
+  data: {
+    month: mk,
+    groups: [{ id: "g01", name: "ab dem 1.", start_day: 1 }, { id: "g15", name: "ab dem 15.", start_day: 15 }],
+    posten: [
+      { id: "p1", name: "Miete", amount: 800, group: "g01", pay: "dauerauftrag", active: true, months: [] },
+      { id: "p2", name: "Strom", amount: 65, group: "g01", pay: "ueberweisung", active: true, months: [] },
+      { id: "p3", name: "Streaming", amount: 12.99, group: "g01", pay: "paypal", active: true, months: [] },
+      { id: "p4", name: "Sparen", amount: 50, group: "g01", pay: "keine", active: true, months: [] },
+      { id: "p5", name: "Handyvertrag", amount: 45, group: "g15", pay: "ueberweisung", active: true, months: [] },
+      { id: "p6", name: "Autoversicherung", amount: 58, group: "g15", pay: "ueberweisung", active: true, months: [] },
+      { id: "p7", name: "Kfz-Steuer", amount: 120, group: "g15", pay: "lastschrift", active: true, months: [3] },
+    ],
+    einnahmen: [{ id: "e1", name: "Lohn", amount: 2400, date: "30.01.2026" }, { id: "e2", name: "Nebenjob", amount: 150, date: "01.07.2026" }],
+    toepfe: [{ id: "t1", name: "Sparkonto", amount: 1000 }, { id: "t2", name: "Bargeld zu Hause", amount: 150 }, { id: "t3", name: "PayPal", amount: 0 }],
+    staende: [{ id: "s1", name: "Kumpel Tim", amount: 40, note: "Pizza" }],
+    konten: [{ id: "k1", name: "Girokonto", iban: "DE00 1234 5678 9012 3456 78", note: "Beispiel" }],
+    konto: { balance: 1500, pending: 0, updated: Date.now() - 86400000 },
+    paid: { p1: { paid: true, ts: 1 }, p2: { paid: true, ts: 1 } },
+    bookings: [{ id: "b1", name: "Supermarkt", amount: 23.4, ts: Date.now() - 3600000, month: mk, cleared: false }],
+    history: [
+      { month: "2026-07", fix_total: 980, fix_paid: 980, income_total: 2550, bookings: 410, available_end: 220 },
+      { month: "2026-08", fix_total: 1030, fix_paid: 1030, income_total: 2550, bookings: 520, available_end: 140 },
+      { month: "2026-09", fix_total: 1030, fix_paid: 1030, income_total: 2400, bookings: 380, available_end: 260 },
+    ],
+    settings: { reset_checks: true, warn_below: 100, quick: ["Bäckerei", "Netto, Lidl & Co.", "Amazon", "PayPal", "Sonstiges"] },
+  },
+};
+// 🎨 <ha-icon> nachbauen (wie in der Offline-App), damit die Bilder Symbole zeigen
+let ICONS = null; const waitIc = new Set();
+fetch("/custom_components/fixkosten/www/app/icons.json").then((r) => r.json()).then((j) => { ICONS = j; waitIc.forEach((e) => e.draw()); });
+customElements.define("ha-icon", class extends HTMLElement {
+  connectedCallback() { this.attachShadow({ mode: "open" }).innerHTML = `<style>:host{display:inline-flex;width:var(--mdc-icon-size,24px);height:var(--mdc-icon-size,24px);vertical-align:middle}svg{width:100%;height:100%;fill:currentColor}</style><svg viewBox="0 0 24 24"><path></path></svg>`; this.draw(); }
+  draw() { if (!ICONS) { waitIc.add(this); return; } const n = (this.getAttribute("icon") || "").replace("mdi:", ""); if (!ICONS[n]) console.warn("Symbol fehlt: " + n); this.shadowRoot?.querySelector("path")?.setAttribute("d", ICONS[n] || ""); }
+});
+let cb = null;
+const hass = () => ({
+  connected: fake.online, user: { name: "Test", is_admin: true }, states: {}, language: "de",
+  connection: { subscribeMessage: async (f) => { cb = f; setTimeout(() => f(JSON.parse(JSON.stringify(fake.data))), 10); return () => {}; } },
+  callWS: async (msg) => {
+    if (!fake.online) throw { code: "lost", message: "offline" };
+    if (msg.type === "fixkosten/apply") {
+      // wie Home Assistant: erst neuen Stand schicken, dann die Antwort
+      fake.applied.push(...msg.ops);
+      for (const o of msg.ops) {
+        if (o.type === "booking_add") fake.data.bookings.push({ id: o.op_id, name: o.name, amount: o.amount, ts: o.ts, month: mk, cleared: false });
+        if (o.type === "paid") fake.data.paid[o.id] = { paid: o.value, ts: o.ts };
+      }
+      cb && cb(JSON.parse(JSON.stringify(fake.data)));
+      return { results: msg.ops.map((o) => ({ op_id: o.op_id, ok: true })) };
+    }
+    if (msg.type === "fixkosten/pin/set") {
+      if (fake.pin && msg.old !== fake.pin) throw { code: "pin", message: "Die alte PIN stimmt nicht" };
+      fake.pin = msg.pin || null; fake.data.pin = !!fake.pin;
+      cb && cb(JSON.parse(JSON.stringify(fake.data)));
+      return { ok: true };
+    }
+    if (msg.type === "fixkosten/pin/check") return { ok: !fake.pin || msg.pin === fake.pin };
+    return {};
+  },
+});
+window.toasts = [];
+window.addEventListener("hass-notification", (e) => toasts.push(e.detail.message));
+window.setOnline = (on) => { fake.online = on; document.querySelector("#c1").hass = hass(); };
+localStorage.clear();
+import("/custom_components/fixkosten/www/fixkosten-card.js").then(() => {
+  const c = document.querySelector("#c1");
+  c.setConfig({ title: "Fixkosten" });
+  c.hass = hass();
+  setTimeout(() => (window.__ready = true), 100);
+});
+</script>
+</body></html>

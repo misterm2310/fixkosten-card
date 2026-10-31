@@ -1,0 +1,13 @@
+Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz
+ausgabe;Miete;800,00;1;d;
+ausgabe;Strom;65,00;1;ü;
+ausgabe;Streaming;12,99;1;p;
+ausgabe;Sparen;50,00;1;-;
+ausgabe;Handyvertrag;45,00;15;ü;
+ausgabe;Autoversicherung;58,00;15;ü;
+einnahme;Lohn;2.400,00;30.01.2026;ü;
+einnahme;Nebenjob;150,00;01.07.2026;ü;
+topf;Sparkonto;1.000,00;;;
+topf;Bargeld zu Hause;150,00;;;
+stand;Kumpel Tim;40,00;;;Pizza
+iban;Girokonto;DE00 1234 5678 9012 3456 78;;;Beispiel – keine echte IBAN

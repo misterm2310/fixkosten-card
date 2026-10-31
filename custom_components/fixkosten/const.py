@@ -34,6 +34,7 @@ DEFAULT_GROUPS = [
 ]
 DEFAULT_SETTINGS = {
     "reset_checks": True,   # ✅ Haken am Monatsanfang automatisch zurücksetzen (Schalter)
+    "warn_enabled": True,   # 🔕 Warnung an/aus (Schalter)
     "warn_below": 100.0,
     "debts_subtract": False,  # 🧾 offene Stände von „Verfügbar“ abziehen (Schalter)    # ⚠️ Warnung, wenn „Verfügbar“ darunter fällt
     "currency": "EUR",

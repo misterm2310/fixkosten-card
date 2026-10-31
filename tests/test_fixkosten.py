@@ -269,6 +269,20 @@ async def test_order_restore_and_day(hass, setup):
     m.apply([{"type": "booking_edit", "id": "b1", "name": "Tanken", "amount": "40,10"}])
     assert [(b["name"], b["amount"]) for b in m.data["bookings"] if b["id"] == "b1"] == [("Tanken", 40.1)]
     m.apply([{"type": "booking_delete", "id": "b1"}])
+    # 🐷 Topf: rausnehmen und (in Teilen) zurücklegen
+    sp = m.find("topf", "Sparkonto")["id"]
+    before = m.summary()["pots_total"]
+    m.apply([{"type": "topf_take", "id": sp, "amount": 50}])
+    assert m.find("topf", "Sparkonto")["lent"] == 50 and m.summary()["pots_total"] == before - 50 and m.summary()["pots_lent"] == 50
+    m.apply([{"type": "topf_return", "id": sp, "amount": 20}, {"type": "topf_return", "id": sp, "amount": 40}])
+    assert m.find("topf", "Sparkonto")["lent"] == 0 and m.summary()["pots_total"] == before + 10
+    m.apply([{"type": "topf_save", "item": {"id": sp, "amount": 1000}}])
+    # 🔕 Warnung aus
+    m.apply([{"type": "konto", "balance": -5000}])
+    assert m.summary()["warn"]
+    m.apply([{"type": "settings", "settings": {"warn_enabled": False}}])
+    assert not m.summary()["warn"]
+    m.apply([{"type": "settings", "settings": {"warn_enabled": True}}])
 
     topf = dict(m.find("topf", "Sparkonto"))
     m.apply([{"type": "topf_delete", "id": topf["id"]}])

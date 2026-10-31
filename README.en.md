@@ -15,7 +15,8 @@
 ## ✨ What does it do?
 
 - 💰 **Available** = balance − open fixed costs − card payments not yet debited.
-- 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – check them off when debited.
+- 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day, paused items shown greyed out.
+- ⠿ **Reorder everything** by dragging (items also into another group), ↩️ **undo** after deleting.
 - 💳 **Card payments** via quick buttons ("bakery 5.75") – subtracted immediately.
 - 🧮 **Calculator** at the top of the card, result straight into a payment or the balance.
 - 🐷 **Pots**, 🧾 **open balances**, 🏦 **IBAN list** with copy button, 💵 **income** as info.
@@ -58,7 +59,7 @@ Behind a reverse proxy only `/fixkosten/*`, `/auth/*` and `/api/*` are needed. F
 
 <details><summary>Card settings, sidebar, PIN lock and PIN reset – <i>expand</i></summary>
 
-**In the card (⚙️):** reset checks at the start of a month (default on), subtract open balances (default off), warning limit, quick buttons, CSV import/export (admins only) and the 🔒 **PIN lock** (4–8 digits) for ⚙️ and "Bearbeiten". 5 wrong attempts = 1 minute pause.
+**In the card (⚙️)**, tiles in categories that each open their own window: reset checks at the start of a month (default on), subtract open balances (default off), warning limit, quick buttons (one per line), offline app address with copy button, CSV import/export (admins only) and the 🔒 **PIN lock** (4–8 digits) for ⚙️ and "Bearbeiten". 5 wrong attempts = 1 minute pause.
 
 **In Home Assistant** (Settings → Devices & services → Fixkosten → **Configure**):
 - **Show in sidebar** – Fixkosten as its own sidebar entry.

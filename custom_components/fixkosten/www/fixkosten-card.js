@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.7";
+const FK_VERSION = "0.1.0-beta.8";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -24,7 +24,7 @@ const FK_GUIDE = [
   { icon: "calendar-month-outline", color: "#3949ab", title: "Fixkosten abhaken", text: `Deine Fixkosten stehen in Gruppen wie <b>„ab dem 1.“</b> und <b>„ab dem 15.“</b>. Die Gruppen sind <b>zugeklappt</b>: Tipp auf die Überschrift klappt sie auf (die Karte merkt sich das). Rechts steht „2 / 4“ und was noch offen ist.<br>Ist ein Posten vom Konto abgebucht: <b>Kreis antippen</b> ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️ → „Rechnen & Warnung“).<br>Hat ein Posten einen <b>festen Tag</b> (z. B. am 5.), steht oben ein Hinweis auf die nächste Abbuchung. <b>Pausierte</b> Posten (⏸️) stehen grau und abgehakt mit drin und zählen nicht mit.` },
   { icon: "credit-card-outline", color: "#ff9800", title: "Ausgaben", text: `Etwas bezahlt (Karte, PayPal, bar …), das noch nicht vom Konto abgebucht ist? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: den <b>grünen Haken ✓</b> antippen (lange drücken zeigt, was ein Knopf macht). Dann steckt er im Kontostand und fliegt aus der Rechnung. Vertippt? <b>Eintrag antippen</b> = Name und Betrag ändern. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein (einer pro Zeile).` },
   { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Ausgabe</b>, als <b>Kontostand</b> oder kopierst es.` },
-  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter, in einem eigenen Feld: <b>Stand korrigieren</b> (z. B. nach dem Nachzählen). Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? Grünen Haken ✓ antippen. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
+  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter: <b>Stand korrigieren</b> mit grünem Haken ✓ (z. B. nach dem Nachzählen). Auf den Namen tippen klappt wieder zu. Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? Grünen Haken ✓ antippen. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
   { icon: "pencil-outline", color: "#00897b", title: "Bearbeiten", text: `Unter <b>„Bearbeiten“</b> legst du alles an (＋ Neu) oder tippst einen Eintrag zum Ändern an. Posten können auf <b>bestimmte Monate</b> beschränkt werden (z. B. Kfz-Steuer nur im März) oder <b>pausiert</b> werden. Neue Gruppen bekommen einen Starttag (1–28).<br><b>Reihenfolge ändern:</b> am Griff ⠿ vorne ziehen. Fixkosten kannst du so auch in eine andere Gruppe schieben. Das klappt auch bei Gruppen, Töpfen, Einnahmen, offenen Ständen und Konten.` },
   { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Ausgaben, Einnahmen und was am Ende übrig war (bis zu 3 Jahre). Du findest ihn in <b>⚙️ → Daten → Rückblick</b>.` },
   { icon: "stethoscope", color: "#00897b", title: "Gesundheit, Fehler und Werkseinstellungen", text: `In ⚙️ → <b>🩺 Gesundheit</b>: <b>„Alles ok?“</b> sucht nach Dingen, die nicht zusammenpassen (Posten ohne Gruppe, alter Kontostand, vergessene Ausgaben …) und sagt, wie man es repariert. <b>Fehler-Protokoll</b> zeigt, was beim Speichern nicht geklappt hat. <b>Ressourcen</b> zeigt, wie viel Platz alles braucht.<br><b>💣 Werkseinstellungen</b> (⚙️ → Daten, nur Admins): alles zurück auf Anfang, nur die PIN bleibt. Zwei Sicherheitsfragen – vorher lieber „Als CSV sichern“.` },
@@ -36,6 +36,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.8", "🐷 <b>Topf-Fenster schlank:</b> nur noch zwei Zeilen. Oben Betrag mit ➖ und ➕, darunter „Stand korrigieren“ mit grünem Haken ✓ und ✕. Nur Symbole – lange drücken zeigt, was ein Knopf macht. Auf den Topf-Namen tippen klappt wieder zu."],
   ["0.1.0-beta.7", "🎛️ <b>Symbole wie bei der Einkaufsliste:</b> Emojis vorn an Knöpfen und Überschriften werden zu schlichten Linien-Symbolen, die Gruppen in ⚙️ haben farbige Kästchen mit weißem Symbol. · 🟢 <b>„Verfügbar“ ist im Plus immer grün</b>, rot nur im Minus. · 🐷 <b>Topf:</b> „Stand korrigieren“ hat jetzt ein eigenes Feld – der Betrag für Rausnehmen/Zurücklegen setzt nie mehr aus Versehen den Stand. · 🚪 Offline-App: klarer Text, dass <b>Abmelden</b> nur die Kopie im Handy löscht."],
   ["0.1.0-beta.6", "💵 <b>Einnahmen zum Abhaken</b> – so siehst du, ob der Lohn schon da ist (Haken gehen am Monatsanfang mit zurück). · 📊 Der <b>Rückblick</b> wohnt jetzt in ⚙️ → Daten, oben bleiben Übersicht und Bearbeiten. · 💣 <b>Werkseinstellungen</b> wie bei der Einkaufsliste (⚙️ → Daten, nur Admins, zwei Sicherheitsfragen, die PIN bleibt). · 🩺 Neue Gruppe <b>Gesundheit</b>: „Alles ok?“ findet z. B. Posten ohne Gruppe, alten Kontostand oder vergessene Ausgaben, dazu Fehler-Protokoll und Ressourcen. · 🎨 Symbole und Namen in ⚙️ wie bei der Einkaufsliste."],
   ["0.1.0-beta.5", "✅ „abgebucht“ und „beglichen“ sind nur noch ein <b>grüner Haken</b>. <b>Lange drücken</b> auf einen Symbol-Knopf zeigt, was er macht (wie bei der Einkaufsliste). · ↩️ Die <b>Zurück-Taste am Handy</b> geht in der Karte einen Schritt zurück (PIN → Einstellungen → Übersicht), statt alles zu schließen. · 🔕 <b>Warnung ausschaltbar</b> (⚙️ → Rechnen &amp; Warnung): dann bleibt „Verfügbar“ grün und der Warn-Sensor aus. · 🏦 Die Kachel <b>„Konto“</b> öffnet eine eigene Seite zum Eintragen. · 🗑️ <b>„Vorgemerkt“ ist weg</b> – die Ausgaben machen das schon. · 🐷 <b>Töpfe:</b> ➖ Rausnehmen und ➕ Zurücklegen (auch in Teilbeträgen), Geliehenes steht in Orange dabei."],
@@ -336,6 +337,13 @@ input.swchk:checked::after { left:20px; }
 .chip.on { background:var(--pc); border-color:var(--pc); color:var(--text-primary-color,#fff); }
 form.add { display:grid; grid-template-columns:1fr 110px 48px; gap:6px; margin:2px 2px 6px; }
 form.add.pinf { grid-template-columns:1fr 48px; }
+.potbox { padding:8px 10px; }
+.pothead { cursor:pointer; margin:0 0 6px; }
+.potrow { display:grid; grid-template-columns:1fr auto auto; gap:6px; align-items:center; margin:0 0 6px; }
+.potrow.set { grid-template-columns:auto 1fr auto auto; margin:0; }
+.potrow input.amount { text-align:right; min-width:0; }
+.potlbl { font-size:.85em; color:var(--secondary-text-color); }
+.iconbtn.potbtn { border:1.5px solid var(--divider-color, rgba(127,127,127,.35)); padding:7px; }
 form.add input.amount { text-align:right; }
 .addbtn { border:0; border-radius:12px; background:var(--fk-green); color:#fff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; }
 .addbtn ha-icon { --mdc-icon-size:26px; }
@@ -423,6 +431,7 @@ a { color:var(--pc); }
 /* ✓ nur ein grüner Haken – was er macht, zeigt langes Drücken (wie bei der Einkaufsliste) */
 .iconbtn.okbtn { color:var(--fk-green); border:1.5px solid color-mix(in srgb, var(--fk-green) 45%, transparent); padding:5px; }
 .iconbtn.okbtn:hover { background:color-mix(in srgb, var(--fk-green) 12%, transparent); color:var(--fk-green); }
+.iconbtn.potbtn.okbtn { padding:7px; }
 .finding { border:1px solid var(--divider-color, rgba(127,127,127,.25)); border-left:4px solid var(--fk-yellow); border-radius:12px; padding:8px 10px; margin:6px 0; }
 .okmsg { color:var(--fk-green); font-weight:600; }
 .btn.danger { color:#fff; background:#c62828; border-color:#c62828; }
@@ -757,13 +766,11 @@ class FixkostenCard extends HTMLElement {
   }
   // 🐷 Topf: rausnehmen, zurücklegen oder Stand ändern
   _potForm(t) {
+    // 🐷 Schlank (Marco): Kopf antippen = zu · Zeile 1 Betrag ➖ ➕ · Zeile 2 Stand korrigieren ✓ ✕ – nur Symbole, lange drücken zeigt den Namen
     const lent = Number(t.lent) || 0;
-    return `<form class="edit" data-a="potmove" data-id="${esc(t.id)}" style="--cc:#e91e63"><div class="f"><div style="grid-column:1 / -1"><b>${esc(t.name)}</b> · jetzt drin: ${this._m(t.amount)}${lent > 0 ? ` · <span class="lenttxt">${this._m(lent)} geliehen</span>` : ""}</div>
-      <label class="wide">Betrag (€)<input name="amount" inputmode="decimal" autocomplete="off" placeholder="z. B. 50" value="${lent > 0 ? numDe(lent) : ""}"></label></div>
-      <div class="btnrow"><button class="btn" type="submit" name="act" value="take">${ic("minus")}Rausnehmen</button><button class="btn ok" type="submit" name="act" value="return">${ic("plus")}Zurücklegen</button></div>
-      <div class="btnrow end"><button type="button" class="btn small" data-a="cancel">${ic("close")}Abbrechen</button></div></form>
-      <form class="edit potset" data-a="potset" data-id="${esc(t.id)}" style="--cc:#9e9e9e"><div class="f"><label class="wide">Stand korrigieren – so viel ist wirklich drin (€)<input name="stand" inputmode="decimal" autocomplete="off" value="${numDe(Number(t.amount) || 0)}"></label></div>
-      <div class="btnrow end"><button class="btn small" type="submit">${ic("pencil-outline")}Stand speichern</button></div></form>`;
+    return `<div class="edit potbox" style="--cc:#e91e63"><div class="pothead" data-a="cancel" title="Zuklappen"><b>${esc(t.name)}</b> · ${this._m(t.amount)}${lent > 0 ? ` · <span class="lenttxt">${this._m(lent)} geliehen</span>` : ""}</div>
+      <form class="potrow" data-a="potmove" data-id="${esc(t.id)}"><input name="amount" class="amount" inputmode="decimal" autocomplete="off" placeholder="Betrag €" aria-label="Betrag" value="${lent > 0 ? numDe(lent) : ""}"><button class="iconbtn potbtn" type="submit" name="act" value="take" title="Rausnehmen" aria-label="Rausnehmen">${ic("minus")}</button><button class="iconbtn potbtn okbtn" type="submit" name="act" value="return" title="Zurücklegen" aria-label="Zurücklegen">${ic("plus")}</button></form>
+      <form class="potrow set" data-a="potset" data-id="${esc(t.id)}"><span class="potlbl">Stand korrigieren</span><input name="stand" class="amount" inputmode="decimal" autocomplete="off" aria-label="Stand korrigieren" value="${numDe(Number(t.amount) || 0)}"><button class="iconbtn potbtn okbtn" type="submit" title="Stand speichern" aria-label="Stand speichern">${ic("check-bold")}</button><button type="button" class="iconbtn potbtn" data-a="cancel" title="Abbrechen" aria-label="Abbrechen">${ic("close")}</button></form></div>`;
   }
   // 🏦 Kontostand eintragen – eigene Seite wie bei der Einkaufsliste
   _kontoPage(d) {

@@ -173,6 +173,7 @@ check("Topf: Zurücklegen (Vorschlag = geliehen)", await p.evaluate(() => fake.a
 await p.waitForTimeout(150);
 await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
 await p.waitForTimeout(50);
+check("Topf: schlank – nur Symbol-Knöpfe ohne Text, mit Namen für langes Drücken", await sr(`const b = [...h.querySelectorAll('.potbox button')]; return b.length === 4 && b.every((x) => !x.textContent.trim() && x.title);`));
 check("Topf: kein „Als neuen Stand setzen“ mehr am Betragsfeld", await sr(`return !h.querySelector('form[data-a="potmove"] button[value="set"]') && !!h.querySelector('form[data-a="potset"] input[name="stand"]').value;`));
 await sr(`const f = h.querySelector('form[data-a="potset"]'); f.stand.value = "777"; f.requestSubmit();`);
 await p.waitForTimeout(80);

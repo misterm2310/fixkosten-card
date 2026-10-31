@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.14";
+const FK_VERSION = "0.1.0-beta.15";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -38,6 +38,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.15", "🙈 Verschwommen sind jetzt nur noch die <b>Summen</b>: hinter „Einnahmen“, hinter „Töpfe“ und bei „Komplett“. Die einzelnen Einnahmen und Töpfe sind wieder klar zu sehen."],
   ["0.1.0-beta.14", "🙈 <b>Einnahmen, Töpfe und „Komplett“ sind verschwommen</b>, falls jemand mitschaut. Am PC Maus drüber = zeigen, am Handy auf den Betrag drücken = <b>4 Sekunden</b> sichtbar, dann verschwimmt er wieder. Abschaltbar in ⚙️ → Ansicht → „Ansicht – für alle“."],
   ["0.1.0-beta.13", "📜 <b>Verlauf</b> (⚙️ → Daten): wer hat wann was geändert – abgehakt, Kontostand, Ausgaben, Töpfe (die letzten 300, ausschaltbar). · 👁️ Neue Gruppe <b>Ansicht</b> wie bei der Einkaufsliste: Abschnitte für alle ein- und ausblenden, <b>Beschriftungen</b> unter den Symbol-Knöpfen, <b>Ruhiger Modus</b> und in der Offline-App <b>Hell / Dunkel</b>. · 👆 Der Knopf <b>„Fingerabdruck-Sperre“</b> erscheint in der Offline-App nur noch, wo es auch geht (Fingerabdruck oder Face ID und https). · 🐷 <b>Maskottchen Sparschwein</b> (Standard aus): freut sich im Plus, guckt skeptisch knapp über der Warngrenze, erschrickt im Minus und hüpft, wenn alle Fixkosten abgehakt sind."],
   ["0.1.0-beta.12", "📚 <b>Mehrere Bücher</b> (wie mehrere Anlagen bei Solis): Einstellungen → Geräte &amp; Dienste → Fixkosten → <b>Eintrag hinzufügen</b>, z. B. eins pro Person. Jedes Buch hat eigene Daten, Sensoren und PIN. Im Karten-Editor wählst du bei „Welches Buch?“, und mit der Sichtbarkeit der Karte sieht jeder nur sein eigenes. Dein bisheriges Buch bleibt genau wie es ist."],
@@ -867,7 +868,7 @@ class FixkostenCard extends HTMLElement {
     // 💰 Einnahmen (nur Info)
     if (d.einnahmen.length && show("einnahmen")) {
       h += this._ghc("einnahmen", "cash-plus", "var(--fk-green)", "Einnahmen (Info)", this._mv(s.income_total, "inc", "pos"));
-      if (this._openSec.has("einnahmen")) h += d.einnahmen.filter((e) => countsThisMonth(d, e)).map((e) => { const on = !!d.received?.[e.id]?.paid; return `<div class="item ${on ? "done" : ""}" style="--cc:var(--fk-green)"><button class="chk ${on ? "on" : ""}" data-a="recv" data-id="${esc(e.id)}" aria-label="ist gebucht" title="${on ? "Ist gebucht ✓ – antippen = doch nicht" : "Antippen, wenn es auf dem Konto ist"}">${on ? ic("check") : ""}</button><div class="n"><b>${esc(e.name)}</b>${e.date ? `<div class="meta"><span class="tag">${esc(e.date)}</span></div>` : ""}</div><div class="amt">${this._mv(e.amount, "inc:" + e.id, "pos")}</div></div>`; }).join("");
+      if (this._openSec.has("einnahmen")) h += d.einnahmen.filter((e) => countsThisMonth(d, e)).map((e) => { const on = !!d.received?.[e.id]?.paid; return `<div class="item ${on ? "done" : ""}" style="--cc:var(--fk-green)"><button class="chk ${on ? "on" : ""}" data-a="recv" data-id="${esc(e.id)}" aria-label="ist gebucht" title="${on ? "Ist gebucht ✓ – antippen = doch nicht" : "Antippen, wenn es auf dem Konto ist"}">${on ? ic("check") : ""}</button><div class="n"><b>${esc(e.name)}</b>${e.date ? `<div class="meta"><span class="tag">${esc(e.date)}</span></div>` : ""}</div><div class="amt">${this._m(e.amount, "pos")}</div></div>`; }).join("");
     }
     // 🧾 Offene Stände
     if (d.staende.length && show("staende")) {
@@ -879,7 +880,7 @@ class FixkostenCard extends HTMLElement {
     if (d.toepfe.length && show("toepfe")) {
       h += this._ghc("toepfe", "piggy-bank-outline", "#e91e63", "Töpfe", this._mv(s.pots_total, "pots"));
       if (this._openSec.has("toepfe")) h += d.toepfe.map((t) => this._open?.kind === "pot" && this._open.id === t.id ? this._potForm(t)
-        : `<div class="item click" style="--cc:#e91e63" data-a="open" data-k="pot" data-id="${esc(t.id)}" title="Antippen = rausnehmen, zurücklegen oder Stand ändern"><div class="n"><b>${esc(t.name)}</b>${t.lent > 0 ? `<div class="meta"><span class="tag lent">${this._mv(t.lent, "lent:" + t.id)} geliehen</span></div>` : ""}</div><div class="amt">${this._mv(t.amount, "pot:" + t.id)}</div></div>`).join("");
+        : `<div class="item click" style="--cc:#e91e63" data-a="open" data-k="pot" data-id="${esc(t.id)}" title="Antippen = rausnehmen, zurücklegen oder Stand ändern"><div class="n"><b>${esc(t.name)}</b>${t.lent > 0 ? `<div class="meta"><span class="tag lent">${this._m(t.lent)} geliehen</span></div>` : ""}</div><div class="amt">${this._m(t.amount)}</div></div>`).join("");
       h += `<div class="sum"><span>Komplett (Verfügbar + Töpfe)</span>${this._mv(s.total, "total")}</div>`;
     }
     // 🏦 Meine Konten (nur Info)
@@ -1145,7 +1146,7 @@ class FixkostenCard extends HTMLElement {
       log: { icon: "history", color: "#5e35b1", title: "Verlauf", info: st.log_on === false ? "aus" : `${(d.log || []).length} Einträge · wer, wann, was`, html: () => this._logHtml(d, admin) },
       view: { icon: "eye-outline", color: "#00897b", title: "Ansicht – für alle", info: (() => { const n = FK_VIEW.filter(([k]) => (st.view || {})[k] === false).length; return n ? `${n} ausgeblendet` : "alles sichtbar"; })(), html: () => `
         <p class="small">Was auf der Übersicht zu sehen ist. Gilt für <b>alle</b> – auf allen Handys, im Dashboard und in der App. Ausgeblendetes ist nicht weg, nur versteckt. Unter „Bearbeiten“ bleibt alles da.</p>
-        <label class="switch"><span>${ic("eye-off-outline")}<span class="vt"><b>Einnahmen, Töpfe und „Komplett“ verschleiern</b><small>PC: Maus drüber · Handy: Betrag antippen = 4 Sekunden sichtbar</small></span></span><input type="checkbox" class="swchk" data-a="setveil" ${st.veil !== false ? "checked" : ""}></label>
+        <label class="switch"><span>${ic("eye-off-outline")}<span class="vt"><b>Summen von Einnahmen, Töpfen und „Komplett“ verschleiern</b><small>PC: Maus drüber · Handy: Betrag antippen = 4 Sekunden sichtbar</small></span></span><input type="checkbox" class="swchk" data-a="setveil" ${st.veil !== false ? "checked" : ""}></label>
         ${FK_VIEW.map(([k, i, t, sub]) => `<label class="switch"><span>${ic(i)}<span class="vt"><b>${t}</b><small>${sub}</small></span></span><input type="checkbox" class="swchk" data-a="setview" data-v="${k}" ${(st.view || {})[k] !== false ? "checked" : ""}></label>`).join("")}` },
       labels: { icon: "format-text", color: "#546e7a", title: "Beschriftungen", info: st.labels ? "an – für alle" : "aus", html: () => `
         <label class="switch"><span>${ic("format-text")}Beschriftungen anzeigen</span><input type="checkbox" class="swchk" data-a="setlabels" ${st.labels ? "checked" : ""}></label>

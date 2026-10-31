@@ -149,14 +149,19 @@ await sr(`const f = h.querySelector('form[data-a="kontosave"]'); f.balance.value
 await p.waitForTimeout(80);
 check("Konto speichern schickt Stand", await p.evaluate(() => fake.applied.some((o) => o.type === "konto" && o.balance === 1500)) && await sr(`return !!h.querySelector('.big');`));
 // 🐷 Topf: rausnehmen
+await p.waitForTimeout(200); // erst die Antwort von HA abwarten (zeichnet neu)
 await sr(`h.querySelector('[data-a="sec"][data-v="toepfe"]').click();`);
+await p.waitForTimeout(50);
 await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
+await p.waitForTimeout(50);
 await shot("4d-topf.png");
 await sr(`const f = h.querySelector('form[data-a="potmove"]'); f.amount.value = "50"; f.querySelector('button[value="take"]').click();`);
 await p.waitForTimeout(80);
 check("Topf: Rausnehmen schickt topf_take", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_take" && o.id === "t2" && o.amount === 50)));
 check("Topf: „geliehen“ in Orange", await sr(`const t = h.querySelector('.item[data-id="t2"] .tag.lent')?.textContent || ''; return /50,00/.test(t) && /geliehen/.test(t);`), await sr(`return h.querySelector('.item[data-id="t2"]')?.textContent || '-';`));
+await p.waitForTimeout(150);
 await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
+await p.waitForTimeout(50);
 await sr(`const f = h.querySelector('form[data-a="potmove"]'); f.querySelector('button[value="return"]').click();`);
 await p.waitForTimeout(80);
 check("Topf: Zurücklegen (Vorschlag = geliehen)", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_return" && o.id === "t2" && o.amount === 50)) && await sr(`return !h.querySelector('.item[data-id="t2"] .tag.lent');`));

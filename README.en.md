@@ -61,7 +61,7 @@ Behind a reverse proxy only `/fixkosten/*`, `/auth/*` and `/api/*` are needed. F
 
 <details><summary>Card settings, sidebar, PIN lock and PIN reset – <i>expand</i></summary>
 
-**In the card (⚙️)**, tiles in categories that each open their own window: reset checks at the start of a month (default on), subtract open balances (default off), warning limit, quick buttons (one per line), offline app address with copy button, CSV import/export (admins only), 📜 history log (on/off, clear), 👁️ view (hide sections, blur the income/pots totals and "Komplett" – hover or tap for 4 seconds to show, labels, mascot – for everyone; calm mode – this device only; light/dark – offline app) and the 🔒 **PIN lock** (4–8 digits) for ⚙️ and "Bearbeiten". 5 wrong attempts = 1 minute pause.
+**In the card (⚙️)**, tiles in categories that each open their own window: reset checks at the start of a month (default on), subtract open balances (default off), warning limit, quick buttons (one per line), offline app address with copy button, CSV import/export (admins only), 📜 history log (on/off, clear), 👁️ view (hide sections, blur the income/pots totals and "Komplett" – hover or tap for 4 seconds to show, labels, mascot – for everyone; calm mode – this device only; light/dark – offline app) and the 🔒 **PIN lock** (optionally for the whole card) (4–8 digits) for ⚙️ and "Bearbeiten". 5 wrong attempts = 1 minute pause.
 
 **In Home Assistant** (Settings → Devices & services → Fixkosten → **Configure**):
 - **Show in sidebar** – Fixkosten as its own sidebar entry.

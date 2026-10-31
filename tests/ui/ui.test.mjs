@@ -365,6 +365,22 @@ check("Schalter aus: nichts mehr verschwommen", await sr(`return !h.querySelecto
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._send({ type: "settings", settings: { veil: true } }); });
 await new Promise((r) => setTimeout(r, 80));
 
+// 🔒 Ganze Karte mit PIN sperren (beta.16)
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._send({ type: "settings", settings: { lock_all: true } }); });
+await new Promise((r) => setTimeout(r, 80));
+await sr(`h.querySelector('.head [data-a="lock"]').click();`);
+await new Promise((r) => setTimeout(r, 60));
+check("Ganze Karte gesperrt: nur Zahlenfeld, keine Zahlen, kein Abbrechen", await sr(`return !!h.querySelector('.ppad') && !h.querySelector('.big') && !h.querySelector('.pcancel') && !h.querySelector('.badge') && !h.querySelector('[data-a="calc"]');`));
+await shot("11-ganze-karte-gesperrt.png");
+await keys("4711✔");
+await p.waitForTimeout(80);
+check("Richtige PIN zeigt die Übersicht", await sr(`return !!h.querySelector('.big') && !h.querySelector('.ppad');`));
+await sr(`h.querySelector('[data-a="tab"][data-v="set"]').click();`);
+await sr(`h.querySelector('[data-a="setgrp"][data-v="App & Info"]').click(); h.querySelector('[data-a="sheet"][data-v="pin"]').click();`);
+check("Schalter „Ganze Karte sperren“ in Schutz", await sr(`return !!h.querySelector('[data-a="setlockall"]')?.checked;`));
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._send({ type: "settings", settings: { lock_all: false } }); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+await new Promise((r) => setTimeout(r, 80));
+
 // 📱 Offline-App: Anmeldeseite lädt ohne Fehler
 const a = await b.newPage({ viewport: { width: 390, height: 760 }, deviceScaleFactor: shots ? 2 : 1 });
 a.on("pageerror", (e) => errs.push("app: " + String(e)));

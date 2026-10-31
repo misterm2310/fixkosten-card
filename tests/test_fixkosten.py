@@ -404,12 +404,12 @@ async def test_verlauf_und_ansicht(hass, setup):
     m.apply([{"type": "booking_add", "name": "x", "amount": "0"}])
     assert len(m.data["log"]) == 4
     # Schalter aus → nichts mehr merken; leeren geht
-    m.apply([{"type": "settings", "settings": {"log_on": False, "labels": True, "mascot": True, "view": {"toepfe": False, "quatsch": False}, "veil": False}}])
+    m.apply([{"type": "settings", "settings": {"log_on": False, "labels": True, "mascot": True, "view": {"toepfe": False, "quatsch": False}, "veil": False, "lock_all": True}}])
     n = len(m.data["log"])
     m.apply([{"type": "paid", "id": "Miete"}])
     assert len(m.data["log"]) == n
     st = m.data["settings"]
-    assert st["veil"] is False and st["labels"] is True and st["mascot"] is True and st["view"] == {"toepfe": False}
+    assert st["veil"] is False and st["lock_all"] is True and st["labels"] is True and st["mascot"] is True and st["view"] == {"toepfe": False}
     m.apply([{"type": "log_clear"}])
     assert m.data["log"] == [] and m.health()["counts"]["log"] == 0
     assert "log" in m.snapshot()

@@ -76,7 +76,7 @@ async def test_import_and_summary(hass, setup):
     assert s["fix_total"] == 1030 and s["fix_open"] == 1030
     assert s["available"] == 470
     assert s["income_total"] == 2400 and s["surplus"] == 1370
-    assert s["total"] == 1500 + 1150
+    assert s["total"] == 470 + 1150  # Verfügbar + Töpfe
     assert s["debts"] == 40
     # Am 10.: „ab dem 1.“ ist fällig, „ab dem 15.“ kommt noch
     g = {x["name"]: x for x in s["groups"]}

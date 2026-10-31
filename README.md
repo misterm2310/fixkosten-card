@@ -34,7 +34,7 @@
 | 💳 **Kartenzahlungen** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: „✓ abgebucht“ |
 | 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Kartenzahlung, Kontostand oder kopieren. Rechnet selbst, ohne `eval` |
 | 💵 **Einnahmen** | Nur zur Info (Lohn, Nebenjob …). Zeigt, was nach den Fixkosten übrig bleibt |
-| 🐷 **Töpfe** | Was wo liegt: Sparkonto, Bargeld zu Hause, PayPal … plus „Komplett (mit Konto)“ |
+| 🐷 **Töpfe** | Was wo liegt: Sparkonto, Bargeld zu Hause, PayPal … plus „Komplett“ = Verfügbar + alle Töpfe |
 | 🧾 **Offene Stände** | Was du noch begleichen musst. Auf Wunsch auch von „Verfügbar“ abziehen |
 | 🏦 **Meine Konten** | IBAN-Liste zum schnellen Kopieren (📋) |
 | 👁️ **Verstecken** | Ein Tipp verschwimmt alle Beträge, z. B. wenn jemand mitschaut |
@@ -108,7 +108,7 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 
 <details><summary>Zahnrad in der Karte, Seitenleiste, PIN-Sperre und PIN zurücksetzen – <i>aufklappen</i></summary>
 
-**In der Karte (⚙️)** – Kacheln in Kategorien, jede öffnet ein eigenes Fenster:
+**In der Karte (⚙️)** – wie bei der Einkaufsliste: Kästen nach Zweck zum Aufklappen, jede Zeile öffnet ein eigenes Fenster:
 - 🧮 **Rechnen & Warnung:** Haken am Monatsanfang automatisch zurücksetzen (Standard an), offene Stände von „Verfügbar“ abziehen (Standard aus), Warngrenze, vorgemerkte Umsätze
 - ⚡ **Schnellknöpfe** für Kartenzahlungen, einer pro Zeile
 - 📥 **Daten (CSV):** einlesen und sichern (nur Admins)
@@ -183,7 +183,7 @@ privat: true       # optional: Beträge erst nach Antippen von 👁️ zeigen (z
 | `sensor.fixkosten_kartenzahlungen_offen` | Noch nicht abgebuchte Kartenzahlungen |
 | `sensor.fixkosten_kartenzahlungen_monat` | Alle Kartenzahlungen dieses Monats |
 | `sensor.fixkosten_offene_staende` | Summe der offenen Stände |
-| `sensor.fixkosten_gesamtvermoegen` | Konto + alle Töpfe |
+| `sensor.fixkosten_gesamtvermoegen` | Verfügbar + alle Töpfe |
 | `sensor.fixkosten_naechste_abbuchung` | Name des nächsten offenen Postens (Attribute: Betrag, Gruppe, ab Tag, fällig) |
 | `binary_sensor.fixkosten_warnung` | An, wenn „Verfügbar“ unter der Grenze aus ⚙️ liegt |
 

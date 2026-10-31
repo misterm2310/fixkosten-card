@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.10";
+const FK_VERSION = "0.1.0-beta.11";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -21,7 +21,7 @@ const REPO = "https://github.com/misterm2310/fixkosten-card";
 const FK_GUIDE = [
   { icon: "cash-check", color: "#43a047", title: "Was heißt „Verfügbar“?", text: `Die große Zahl oben ist das Geld, das du diesen Monat <b>wirklich</b> noch ausgeben kannst:<br><b>Kontostand</b> − <b>Fixkosten, die noch nicht abgehakt sind</b> − <b>Ausgaben, die noch nicht abgebucht sind</b>.<br>Grün = im Plus · Rot = im Minus. Die Warngrenze (⚙️ → „Rechnen & Warnung“, dort auch ganz ausschaltbar) schaltet nur den Warn-Sensor für Automationen.` },
   { icon: "bank-outline", color: "#0288d1", title: "Kontostand eintragen", text: `Tippe auf die Kachel <b>„Konto“</b> und gib den Stand aus deiner Bank-App ein. Es öffnet sich eine eigene Seite, wie bei der Einkaufsliste. Das Datum auf der Kachel zeigt, wann du ihn zuletzt eingetragen hast.` },
-  { icon: "calendar-month-outline", color: "#3949ab", title: "Fixkosten abhaken", text: `Deine Fixkosten stehen in Gruppen wie <b>„ab dem 1.“</b> und <b>„ab dem 15.“</b>. Die Gruppen sind <b>zugeklappt</b>: Tipp auf die Überschrift klappt sie auf (die Karte merkt sich das). Rechts steht „2 / 4“ und was noch offen ist.<br>Ist ein Posten vom Konto abgebucht: <b>Kreis antippen</b> ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️ → „Rechnen & Warnung“).<br>Hat ein Posten einen <b>festen Tag</b> (z. B. am 5.), steht oben ein Hinweis auf die nächste Abbuchung. <b>Pausierte</b> Posten (⏸️) stehen grau und abgehakt mit drin und zählen nicht mit.` },
+  { icon: "calendar-month-outline", color: "#3949ab", title: "Fixkosten abhaken", text: `Deine Fixkosten stehen in Gruppen wie <b>„ab dem 1.“</b> und <b>„ab dem 15.“</b>. Die Gruppen sind <b>zugeklappt</b>: Tipp auf die Überschrift klappt sie auf. Beim nächsten Öffnen ist wieder alles zu (nur die Ausgaben sind offen). Rechts steht „2 / 4“ und was noch offen ist.<br>Ist ein Posten vom Konto abgebucht: <b>Kreis antippen</b> ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️ → „Rechnen & Warnung“).<br>Hat ein Posten einen <b>festen Tag</b> (z. B. am 5.), steht oben ein Hinweis auf die nächste Abbuchung. <b>Pausierte</b> Posten (⏸️) stehen grau und abgehakt mit drin und zählen nicht mit.` },
   { icon: "credit-card-outline", color: "#ff9800", title: "Ausgaben", text: `Etwas bezahlt (Karte, PayPal, bar …), das noch nicht vom Konto abgebucht ist? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: den <b>grünen Haken ✓</b> antippen (lange drücken zeigt, was ein Knopf macht). Dann steckt er im Kontostand und fliegt aus der Rechnung. Vertippt? <b>Eintrag antippen</b> = Name und Betrag ändern. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein (einer pro Zeile).` },
   { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Ausgabe</b>, als <b>Kontostand</b> oder kopierst es.` },
   { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter: <b>Stand korrigieren</b> mit grünem Haken ✓ (z. B. nach dem Nachzählen). Auf den Namen tippen klappt wieder zu. Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). Kommt es nicht mehr zurück: Topf öffnen und den <b>orangen Zettel antippen</b> → weg. „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? Grünen Haken ✓ antippen. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
@@ -36,6 +36,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.11", "📂 Die Karte <b>merkt sich aufgeklappte Kategorien nicht mehr</b>: Beim Öffnen sieht sie immer gleich aus – Ausgaben offen, alles andere zu."],
   ["0.1.0-beta.10", "🔵 Die <b>blaue Zahl oben</b> zählt jetzt offene Fixkosten <b>und</b> Ausgaben, die noch nicht abgebucht sind. · 🐷 „Nicht mehr zurücklegen“ gibt es nur noch <b>im geöffneten Topf</b> (orangen Zettel dort antippen) – in der Liste passiert beim Antippen nichts aus Versehen."],
   ["0.1.0-beta.9", "🐷 <b>Orangen „geliehen“-Zettel antippen</b> = „nicht mehr zurücklegen“: der Zettel ist weg, das Geld gilt als ausgegeben. · 💳 <b>Ausgaben einklappbar</b> (Standard offen) – zugeklappt bleiben Schnellknöpfe und Eingabe da. · 💾 <b>CSV-Sicherung</b> hat jetzt den <b>Kontostand</b> (mit Datum) und das <b>Datum bei Töpfen</b> – beides kommt beim Einlesen wieder rein. · 🧹 „Bleibt nach Fixkosten“ ist weg (hat nur verwirrt)."],
   ["0.1.0-beta.8", "🐷 <b>Topf-Fenster schlank:</b> nur noch zwei Zeilen. Oben Betrag mit ➖ und ➕, darunter „Stand korrigieren“ mit grünem Haken ✓ und ✕. Nur Symbole – lange drücken zeigt, was ein Knopf macht. Auf den Topf-Namen tippen klappt wieder zu."],
@@ -58,7 +59,7 @@ const GUIDE_SUB = ["die große Zahl oben", "Stand aus der Bank-App", "Kreis anti
 const FK_CARDS = new Set(); // ↩️ alle Fixkosten-Karten auf der Seite (für die Zurück-Taste)
 const DKEY = "fixkosten_data";
 const HKEY = "fixkosten_hidden";
-const OKEY = "fixkosten_offen"; // 📂 welche Abschnitte aufgeklappt sind (Standard: alle zu)
+const OKEY = "fixkosten_offen"; // 📂 alter Merkzettel fürs Aufklappen (wird nicht mehr benutzt, nur noch weggeräumt)
 
 const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const eur = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" });
@@ -491,7 +492,8 @@ class FixkostenCard extends HTMLElement {
     this._queue = store.get(QKEY, []);
     this._server = null;        // letzter Stand von Home Assistant
     this._hidden = store.get(HKEY, null);
-    this._openSec = new Set(store.get(OKEY, []));
+    this._openSec = new Set(); // 📂 nichts merken (Marco): beim Öffnen immer Standard – Ausgaben offen, Rest zu
+    try { localStorage.removeItem(OKEY); } catch (_) { /* alter Merkzettel weg */ }
     this._sheet = null;         // welche Einstellungs-Seite offen ist
     this._pad = null;           // 🔢 PIN-Zahlenfeld (entsperren, PIN ändern …)
     // 👆 Knöpfe nur mit Symbol: lange drücken zeigt kurz, was sie machen (wie bei der Einkaufsliste) – der Druck löst dann nichts aus
@@ -1169,7 +1171,7 @@ class FixkostenCard extends HTMLElement {
       try { navigator.serviceWorker?.getRegistrations?.().then((rs) => rs.forEach((r) => { if (/\/fixkosten\/app\//.test(r.scope)) r.update().catch(() => {}); })); } catch (_) { /* egal */ }
       setTimeout(() => location.reload(), 300);
     }
-    else if (a === "sec") { const k = el.dataset.v; this._openSec.has(k) ? this._openSec.delete(k) : this._openSec.add(k); store.put(OKEY, [...this._openSec]); redraw(); }
+    else if (a === "sec") { const k = el.dataset.v; this._openSec.has(k) ? this._openSec.delete(k) : this._openSec.add(k); redraw(); }
     else if (a === "sheet") { this._sheet = el.dataset.v; redraw(); if (["errors", "stats"].includes(this._sheet)) this._loadHealth(); }
     else if (a === "errclear") { this._hass.callWS({ type: "fixkosten/errors_clear" }).then(() => this._loadHealth(), () => this._toast("📴 Geht nur mit Netz")); }
     else if (a === "fixgroup") { const p = d.posten.find((x) => x.id === id); if (p && d.groups[0]) this._send({ type: "posten_save", item: { id, group: d.groups[0].id } }); }

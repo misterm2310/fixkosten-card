@@ -213,7 +213,7 @@ await sr(`const c = h.querySelector('[data-a="setwarnon"]'); c.checked = false; 
 await p.waitForTimeout(80);
 check("Warnung aus schickt Einstellung, Grenze verschwindet", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.warn_enabled === false)) && await sr(`return !h.querySelector('[data-a="setwarn"]');`));
 await p.goBack(); await p.waitForTimeout(300);
-check("Zurück: Seite zu, Einstellungen bleiben", await sr(`return !h.querySelector('.pagehost') && h.querySelectorAll('.lgbox').length === 4;`));
+check("Zurück: Seite zu, Einstellungen bleiben", await sr(`return !h.querySelector('.pagehost') && h.querySelectorAll('.lgbox').length === 5;`));
 await p.goBack(); await p.waitForTimeout(300);
 check("Zurück: dann Übersicht", await sr(`return !!h.querySelector('.big');`));
 
@@ -226,11 +226,11 @@ await p.evaluate(() => { const c = document.querySelector('#c1'); delete c._serv
 // ⚙️ Einstellungen: Zahnrad oben in der Leiste
 check("⚙️ sitzt oben in der Leiste, 🔒 in der Zeile darunter", await sr(`return !!h.querySelector('.topbar [data-a="tab"][data-v="set"]') && !!h.querySelector('.head [data-a="lock"]') && !h.querySelector('.head [data-v="set"]');`));
 await sr(`h.querySelector('.topbar [data-a="tab"][data-v="set"]').click();`);
-check("⚙️ wie Einkaufsliste: 4 Kästen, zugeklappt, ✕ oben", await sr(`return h.querySelectorAll('.lgbox').length === 4 && !h.querySelector('.lrow') && h.querySelector('.head [data-a="back"] ha-icon')?.getAttribute('icon') === 'mdi:close';`));
+check("⚙️ wie Einkaufsliste: 5 Kästen, zugeklappt, ✕ oben", await sr(`return h.querySelectorAll('.lgbox').length === 5 && !h.querySelector('.lrow') && h.querySelector('.head [data-a="back"] ha-icon')?.getAttribute('icon') === 'mdi:close';`));
 await sr(`h.querySelector('[data-a="setgrp"][data-v="App & Info"]').click();`);
 check("Kasten aufklappen zeigt Zeilen mit bunten Symbolen", await sr(`return h.querySelectorAll('.lrow .ic').length === 5;`));
 await shot("5-einstellungen.png");
-check("⚙️ Gruppen-Kästchen: farbig mit Linien-Symbol statt Emoji (wie EL)", await sr(`const g = [...h.querySelectorAll('.lgroup .gem')]; return g.length === 4 && g.every((x) => x.querySelector('ha-icon') && !/\\p{Extended_Pictographic}/u.test(x.textContent) && x.style.background);`));
+check("⚙️ Gruppen-Kästchen: farbig mit Linien-Symbol statt Emoji (wie EL)", await sr(`const g = [...h.querySelectorAll('.lgroup .gem')]; return g.length === 5 && g.every((x) => x.querySelector('ha-icon') && !/\\p{Extended_Pictographic}/u.test(x.textContent) && x.style.background);`));
 await sr(`h.querySelector('[data-a="sheet"][data-v="app"]').click();`);
 check("Offline-App als Seite in der Karte, ← oben", await sr(`return /Zum Startbildschirm/.test(h.querySelector('.pagehost')?.textContent || '') && h.querySelector('.head [data-a="back"] ha-icon')?.getAttribute('icon') === 'mdi:arrow-left';`));
 await shot("5b-offline-app.png");
@@ -301,6 +301,51 @@ await sr(`const q = h.querySelector('.elg-q'); q.value = "fingerabdruck"; q.disp
 check("Anleitung: Suche filtert", await sr(`const v = [...h.querySelectorAll('details.elg-sec')].filter((x) => !x.hidden); return v.length >= 1 && v.length < 5 && v.every((x) => x.open);`));
 await sr(`const q = h.querySelector('.elg-q'); q.value = ""; q.dispatchEvent(new Event('input')); h.querySelector('details.elg-sec').open = true;`);
 await shot("8-anleitung.png");
+
+// 👁️ Ansicht, 🔤 Beschriftungen, 🐷 Sparschwein, 🧘 Ruhiger Modus, 📜 Verlauf (beta.13)
+await sr(`h.querySelector('.topbar [data-a="tab"][data-v="set"]').click();`);
+await new Promise((r) => setTimeout(r, 60));
+if (await sr(`return !!h.querySelector('.ppad');`)) { await keys("4711✔"); await p.waitForTimeout(80); }
+await sr(`h.querySelector('[data-a="setgrp"][data-v="Ansicht"]').click();`);
+check("Ansicht: Gruppe mit Ansicht, Beschriftungen, Maskottchen, Ruhig", await sr(`return ["view", "labels", "mascot", "calm"].every((k) => h.querySelector('[data-a="sheet"][data-v="' + k + '"]')) && !h.querySelector('[data-a="sheet"][data-v="theme"]');`));
+await sr(`h.querySelector('[data-a="sheet"][data-v="mascot"]').click();`);
+check("Maskottchen: Vorschau mit 5 Gesichtern", await sr(`return h.querySelectorAll('.mascotprev svg.mascot').length === 5;`));
+await sr(`const x = h.querySelector('[data-a="setmascot"]'); x.checked = true; x.dispatchEvent(new Event('change'));`);
+await new Promise((r) => setTimeout(r, 80));
+check("Maskottchen: Sparschwein statt Geldbörse", await sr(`return !!h.querySelector('.head .mascotbox svg.mascot') && /mascot (happy|worried|shock|tired|sleep)/.test(h.querySelector('.head .mascotbox svg').getAttribute('class'));`));
+await shot("9a-maskottchen.png");
+await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="sheet"][data-v="labels"]').click();`);
+await sr(`const x = h.querySelector('[data-a="setlabels"]'); x.checked = true; x.dispatchEvent(new Event('change'));`);
+await new Promise((r) => setTimeout(r, 80));
+check("Beschriftungen: Text unter Rechner/Verstecken", await sr(`return [...h.querySelectorAll('.head .iconbtn .lbl')].map((x) => x.textContent).join() .startsWith("Rechner,Verstecken");`));
+check("Beschriftungen: Host hat Klasse labels", await p.evaluate(() => document.querySelector('#c1').classList.contains('labels')));
+await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="sheet"][data-v="calm"]').click();`);
+await sr(`const x = h.querySelector('[data-a="setcalm"]'); x.checked = true; x.dispatchEvent(new Event('change'));`);
+check("Ruhiger Modus: nur auf diesem Gerät (localStorage)", await p.evaluate(() => document.querySelector('#c1').classList.contains('calm') && localStorage.getItem('fixkosten_calm') === 'true'));
+await sr(`const x = h.querySelector('[data-a="setcalm"]'); x.checked = false; x.dispatchEvent(new Event('change'));`);
+await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="sheet"][data-v="view"]').click();`);
+check("Ansicht: 7 Schalter, alle an", await sr(`const x = [...h.querySelectorAll('[data-a="setview"]')]; return x.length === 7 && x.every((i) => i.checked);`));
+await shot("9b-ansicht.png");
+await sr(`const x = h.querySelector('[data-a="setview"][data-v="toepfe"]'); x.checked = false; x.dispatchEvent(new Event('change'));`);
+await new Promise((r) => setTimeout(r, 80));
+check("Ansicht: schickt view-Schalter", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.view?.toepfe === false)));
+await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('.head [data-a="back"]').click();`);
+await new Promise((r) => setTimeout(r, 60));
+check("Ansicht: Töpfe auf der Übersicht ausgeblendet", await sr(`return !h.querySelector('[data-a="sec"][data-v="toepfe"]') && !!h.querySelector('[data-a="sec"][data-v="ausgaben_zu"]');`));
+await shot("9c-beschriftungen.png");
+await sr(`h.querySelector('.topbar [data-a="tab"][data-v="set"]').click();`);
+await new Promise((r) => setTimeout(r, 60));
+if (await sr(`return !!h.querySelector('.ppad');`)) { await keys("4711✔"); await p.waitForTimeout(80); }
+await sr(`h.querySelector('[data-a="setgrp"][data-v="Daten"]').click(); h.querySelector('[data-a="sheet"][data-v="log"]').click();`);
+check("Verlauf: Einträge mit Uhrzeit und Name", await sr(`return h.querySelectorAll('.logrow').length > 3 && !!h.querySelector('.logday') && /Test/.test(h.querySelector('.logrow').textContent);`));
+await shot("9d-verlauf.png");
+await p.evaluate(() => { window.confirm = () => true; });
+await sr(`h.querySelector('[data-a="logclear"]').click();`);
+await new Promise((r) => setTimeout(r, 80));
+check("Verlauf: leeren schickt log_clear", await p.evaluate(() => fake.applied.some((o) => o.type === "log_clear")));
+// zurück auf Standard, damit die folgenden Prüfungen wie vorher laufen
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._send({ type: "settings", settings: { labels: false, mascot: false, view: { toepfe: true } } }); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+await new Promise((r) => setTimeout(r, 80));
 
 // 📱 Offline-App: Anmeldeseite lädt ohne Fehler
 const a = await b.newPage({ viewport: { width: 390, height: 760 }, deviceScaleFactor: shots ? 2 : 1 });

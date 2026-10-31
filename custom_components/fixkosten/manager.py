@@ -37,6 +37,7 @@ from .const import (
     DEFAULT_SETTINGS,
     MAX_BOOKINGS_DAYS,
     MAX_HISTORY,
+    MAX_LOG,
     MAX_SEEN_OPS,
     PAY_SHORT,
     PAY_TYPES,
@@ -84,6 +85,9 @@ def month_key(now: datetime) -> str:
     return f"{now.year:04d}-{now.month:02d}"
 
 
+VIEW_KEYS = ("next", "ausgaben", "fixkosten", "einnahmen", "staende", "toepfe", "konten")  # 👁️ was man ausblenden kann
+
+
 def _empty() -> dict[str, Any]:
     return {
         "groups": [dict(g) for g in DEFAULT_GROUPS],
@@ -98,6 +102,7 @@ def _empty() -> dict[str, Any]:
         "received": {},
         "bookings": [],
         "history": [],
+        "log": [],  # 📜 Verlauf: wer, wann, was (die letzten MAX_LOG)
         "settings": dict(DEFAULT_SETTINGS),
         "seen": [],
         "pin": None,  # 🔒 PIN für ⚙️ und Bearbeiten (nur als Prüfsumme)
@@ -357,9 +362,11 @@ class FixkostenManager:
                 results.append({"op_id": oid, "ok": True, "duplicate": True})
                 continue
             try:
+                text = self._describe(op)  # 📜 vorher beschreiben (beim Löschen ist der Name danach weg)
                 self._apply_one(op, user)
                 changed = True
                 results.append({"op_id": oid, "ok": True})
+                self._log(op, text, user)
             except HomeAssistantError as err:
                 results.append({"op_id": oid, "ok": False, "error": str(err)})
                 self._log_error(op, str(err), user)
@@ -374,6 +381,74 @@ class FixkostenManager:
             self._save()
         return results
 
+    # ------------------------------------------------------------------ 📜 Verlauf (wer, wann, was)
+    @staticmethod
+    def _eur(value: Any) -> str:
+        try:
+            v = float(value)
+        except (TypeError, ValueError):
+            return "?"
+        return f"{v:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    def _name(self, kind: str, ref: Any) -> str:
+        if kind in LIST_KINDS and ref is not None:
+            it = self.find(kind, str(ref))  # findet auch über den Namen
+            return str((it or {}).get("name") or ref)
+        for it in self.data.get("bookings") or []:
+            if it.get("id") == ref:
+                return str(it.get("name") or "")
+        return str(ref or "")
+
+    def _describe(self, op: dict[str, Any]) -> str | None:
+        """📜 Ein Satz für den Verlauf, z. B. „✅ Miete abgehakt“. None = nicht merken."""
+        t = str(op.get("type") or "")
+        on = op.get("value", True) is not False
+        what = {"posten": "Fixkosten", "einnahme": "Einnahme", "topf": "Topf", "stand": "Offener Stand", "konto": "Konto", "gruppe": "Gruppe"}
+        kind, _, verb = t.partition("_")
+        if kind in what and verb == "save":
+            item = op.get("item") or {}
+            name = item.get("name") or self._name(kind, item.get("id"))
+            return f"✏️ {what[kind]} „{name}“ {'geändert' if item.get('id') and self.find(kind, item['id']) else 'neu'}"
+        if kind in what and verb == "delete":
+            return f"🗑️ {what[kind]} „{self._name(kind, op.get('id'))}“ gelöscht"
+        if t == "paid":
+            return f"{'✅' if on else '⭕'} „{self._name('posten', op.get('id'))}“ {'abgehakt' if on else 'Haken weg'}"
+        if t == "received":
+            return f"{'💵' if on else '⭕'} „{self._name('einnahme', op.get('id'))}“ {'ist da' if on else 'doch nicht da'}"
+        if t == "reset_checks":
+            return "↩️ Alle Haken zurückgesetzt"
+        if t == "konto" and "balance" in op:
+            return f"🏦 Kontostand {self._eur(parse_money(op['balance']))}"
+        if t == "booking_add":
+            return f"💳 Ausgabe „{str(op.get('name') or 'Ausgabe').strip()[:60]}“ {self._eur(parse_money(op.get('amount', 0)))}"
+        if t == "booking_clear":
+            return f"{'✓' if on else '⭕'} „{self._name('booking', op.get('id'))}“ {'abgebucht' if on else 'doch nicht abgebucht'}"
+        if t == "booking_edit":
+            return f"✏️ Ausgabe „{op.get('name') or self._name('booking', op.get('id'))}“ geändert"
+        if t == "booking_delete":
+            return f"🗑️ Ausgabe „{self._name('booking', op.get('id'))}“ gelöscht"
+        if t in ("topf_take", "topf_return"):
+            amount = self._eur(abs(parse_money(op.get("amount", 0))))
+            pot = self._name("topf", op.get("id"))
+            return f"🐷 {amount} aus „{pot}“ genommen" if t == "topf_take" else f"🐷 {amount} in „{pot}“ zurückgelegt"
+        if t == "topf_keep":
+            return f"🐷 „{self._name('topf', op.get('id'))}“: Geliehenes bleibt weg"
+        if t == "restore":
+            return f"↩️ „{(op.get('item') or {}).get('name') or ''}“ zurückgeholt"
+        if t == "order":
+            return "⠿ Reihenfolge geändert"
+        if t == "settings":
+            return "⚙️ Einstellungen geändert"
+        return None
+
+    def _log(self, op: dict[str, Any], text: str | None, user: str | None) -> None:
+        if not text or self.data["settings"].get("log_on", True) is False:
+            return
+        ts = int(op.get("ts") or dt_util.utcnow().timestamp() * 1000)
+        log = self.data.setdefault("log", [])
+        log.append({"ts": ts, "by": user, "text": text[:120]})
+        self.data["log"] = log[-MAX_LOG:]
+
     # ------------------------------------------------------------------ 🩺 Gesundheit
     def _log_error(self, op: dict[str, Any], error: str, user: str | None) -> None:
         """🐞 Merkt sich, was nicht geklappt hat (ohne Beträge oder Namen – nur Art und Fehler)."""
@@ -386,7 +461,7 @@ class FixkostenManager:
     def health(self) -> dict[str, Any]:
         """📊 Speicher und Umfang (für ⚙️ → Gesundheit)."""
         size = len(json.dumps(self.data, ensure_ascii=False).encode("utf-8"))
-        counts = {k: len(self.data.get(k) or []) for k in ("groups", "posten", "einnahmen", "toepfe", "staende", "konten", "bookings", "history")}
+        counts = {k: len(self.data.get(k) or []) for k in ("groups", "posten", "einnahmen", "toepfe", "staende", "konten", "bookings", "history", "log")}
         return {"errors": list(reversed(self.errors)), "size": size, "counts": counts, "seen": len(self.data.get("seen") or [])}
 
     def factory_reset(self) -> None:
@@ -519,6 +594,17 @@ class FixkostenManager:
                 d["settings"]["warn_enabled"] = bool(s["warn_enabled"])
             if "warn_below" in s:
                 d["settings"]["warn_below"] = parse_money(s["warn_below"])
+            for flag in ("log_on", "labels", "mascot"):  # 📜 🔤 🐷 einfache Schalter
+                if flag in s:
+                    d["settings"][flag] = bool(s[flag])
+            if isinstance(s.get("view"), dict):  # 👁️ Abschnitte ein-/ausblenden (für alle)
+                view = dict(d["settings"].get("view") or {})
+                for k, v in s["view"].items():
+                    if k in VIEW_KEYS:
+                        view[k] = bool(v)
+                d["settings"]["view"] = view
+        elif t == "log_clear":  # 🧹 Verlauf leeren
+            d["log"] = []
         else:
             raise HomeAssistantError(f"Unbekannte Änderung „{t}“")
 

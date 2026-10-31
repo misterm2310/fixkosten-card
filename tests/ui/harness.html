@@ -62,13 +62,16 @@ const hass = () => ({
       // wie Home Assistant: erst neuen Stand schicken, dann die Antwort
       fake.applied.push(...msg.ops);
       for (const o of msg.ops) {
+        fake.data.log = fake.data.log || [];
+        if (o.type === "log_clear") fake.data.log = [];
+        else fake.data.log.push({ ts: o.ts || Date.now(), by: "Test", text: "✏️ " + o.type });
         if (o.type === "booking_add") fake.data.bookings.push({ id: o.op_id, name: o.name, amount: o.amount, ts: o.ts, month: mk, cleared: false });
         if (o.type === "paid") fake.data.paid[o.id] = { paid: o.value, ts: o.ts };
         if (o.type === "received") { fake.data.received = fake.data.received || {}; fake.data.received[o.id] = { paid: o.value, ts: o.ts }; }
         if (o.type === "booking_edit") { const b = fake.data.bookings.find((x) => x.id === o.id); if (b) Object.assign(b, { name: o.name, amount: o.amount }); }
         if (o.type === "topf_keep") { const t = fake.data.toepfe.find((x) => x.id === o.id); t.lent = 0; }
         if (o.type === "topf_take" || o.type === "topf_return") { const t = fake.data.toepfe.find((x) => x.id === o.id); const v = o.type === "topf_take" ? o.amount : -o.amount; t.amount -= v; t.lent = Math.max(0, (t.lent || 0) + v); t.updated = Date.now(); }
-        if (o.type === "settings") Object.assign(fake.data.settings, o.settings);
+        if (o.type === "settings") Object.assign(fake.data.settings, { ...o.settings, view: { ...(fake.data.settings.view || {}), ...(o.settings.view || {}) } });
         if (o.type === "booking_delete") fake.data.bookings = fake.data.bookings.filter((b) => b.id !== o.id);
         if (o.type === "restore" && o.kind === "booking") fake.data.bookings.splice(o.index, 0, o.item);
         if (o.type === "order" && o.kind === "posten") { const pos = new Map(o.ids.map((x, i) => [x, i])); fake.data.posten.sort((a, b) => (pos.get(a.id) ?? 99) - (pos.get(b.id) ?? 99)); for (const x of fake.data.posten) if (o.groups[x.id]) x.group = o.groups[x.id]; }

@@ -21,7 +21,8 @@
 - 🧮 **Calculator** at the top of the card, result straight into a payment or the balance.
 - 🐷 **Pots**, 🧾 **open balances**, 🏦 **IBAN list** with copy button, 💵 **income** as info.
 - 📱 **Offline app** with fingerprint lock and 🔒 **PIN lock** for settings.
-- 📊 **Monthly review** for up to 3 years, 📥 **CSV** import and export.
+- 📊 **Monthly review** for up to 3 years, 📥 **CSV** import and export, 📜 **history log** (who changed what and when).
+- 👁️ **View** settings like the shopping list: hide sections for everyone, labels under icon buttons, calm mode, light/dark in the offline app – plus a 🐷 **piggy bank mascot** that reacts to your money.
 - 📚 **Several books** (like several plants): Devices & services → Fixkosten → Add entry, e.g. one per person. Each book has its own data, sensors (`sensor.fixkosten_<name>_…`) and PIN; pick it in the card editor (`buch:`) and use the card's visibility per user.
 
 ---
@@ -47,7 +48,7 @@ privat: true   # optional: hide amounts until 👁️ is tapped
 1. Open `https://YOUR-HA-ADDRESS/fixkosten/app/` in your phone's browser
 2. Log in with your Home Assistant user (2FA works too)
 3. Browser menu → **"Add to home screen"**
-4. Tap **"👆 Fingerabdruck-Sperre einschalten"** at the bottom. After 1 minute in the background the app asks again
+4. Tap **"👆 Fingerabdruck-Sperre einschalten"** at the bottom (only shown if your phone supports fingerprint or Face ID). After 1 minute in the background the app asks again
 
 Offline, the app shows the last known state. Changes wait in an **outbox** and are sent automatically once Home Assistant is reachable again. Nothing is counted twice. **Logging out** only removes the copy on the phone; your data in Home Assistant stays.
 Behind a reverse proxy only `/fixkosten/*`, `/auth/*` and `/api/*` are needed. Fingerprint requires **https**.
@@ -60,7 +61,7 @@ Behind a reverse proxy only `/fixkosten/*`, `/auth/*` and `/api/*` are needed. F
 
 <details><summary>Card settings, sidebar, PIN lock and PIN reset – <i>expand</i></summary>
 
-**In the card (⚙️)**, tiles in categories that each open their own window: reset checks at the start of a month (default on), subtract open balances (default off), warning limit, quick buttons (one per line), offline app address with copy button, CSV import/export (admins only) and the 🔒 **PIN lock** (4–8 digits) for ⚙️ and "Bearbeiten". 5 wrong attempts = 1 minute pause.
+**In the card (⚙️)**, tiles in categories that each open their own window: reset checks at the start of a month (default on), subtract open balances (default off), warning limit, quick buttons (one per line), offline app address with copy button, CSV import/export (admins only), 📜 history log (on/off, clear), 👁️ view (hide sections, labels, mascot – for everyone; calm mode – this device only; light/dark – offline app) and the 🔒 **PIN lock** (4–8 digits) for ⚙️ and "Bearbeiten". 5 wrong attempts = 1 minute pause.
 
 **In Home Assistant** (Settings → Devices & services → Fixkosten → **Configure**):
 - **Show in sidebar** – Fixkosten as its own sidebar entry.

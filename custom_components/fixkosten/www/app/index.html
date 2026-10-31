@@ -18,10 +18,13 @@
   --divider-color:rgba(0,0,0,.12); --primary-background-color:#f5f5f5; --secondary-background-color:#e9e9e9;
   --card-background-color:#fff; --ha-card-background:#fff; color-scheme:light;
 }
+/* 🌓 Hell / Dunkel: automatisch nach dem Handy – oder fest (⚙️ → Ansicht → Hell / Dunkel, data-theme) */
 @media (prefers-color-scheme: dark) {
-  :root { --primary-text-color:#e1e1e1; --secondary-text-color:#9b9b9b; --divider-color:rgba(225,225,225,.12);
+  :root:not([data-theme="light"]) { --primary-text-color:#e1e1e1; --secondary-text-color:#9b9b9b; --divider-color:rgba(225,225,225,.12);
     --primary-background-color:#111418; --secondary-background-color:#262a31; --card-background-color:#1c1f24; --ha-card-background:#1c1f24; color-scheme:dark; }
 }
+:root[data-theme="dark"] { --primary-text-color:#e1e1e1; --secondary-text-color:#9b9b9b; --divider-color:rgba(225,225,225,.12);
+  --primary-background-color:#111418; --secondary-background-color:#262a31; --card-background-color:#1c1f24; --ha-card-background:#1c1f24; color-scheme:dark; }
 * { box-sizing:border-box; }
 html, body { margin:0; background:var(--primary-background-color); color:var(--primary-text-color); font:16px/1.4 Roboto, system-ui, -apple-system, "Segoe UI", sans-serif; }
 body { padding:calc(env(safe-area-inset-top) + 8px) 8px calc(env(safe-area-inset-bottom) + 24px); }
@@ -52,6 +55,7 @@ body.locked #wrap { display:none; }
 // Hier läuft GENAU DIESELBE Karte wie im Dashboard. Diese Seite spielt nur „Home Assistant“ für sie:
 // Anmeldung, Verbindung und „letzten Stand merken“. Den Postausgang (Änderungen ohne Netz) hat die Karte selbst.
 window.__fkOfflineApp = true;
+try { const t = localStorage.getItem("fkapp_theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (_) { /* egal */ }
 const BASE = "/fixkosten/app/";
 const CLIENT_ID = location.origin + BASE;
 const VERSION = "__FK_VERSION__";
@@ -333,7 +337,7 @@ function update() {
     wrap.append(card);
     const foot = document.createElement("div");
     foot.className = "foot";
-    foot.innerHTML = `<button id="lockBtn"></button> <button id="logoutBtn">🚪 Abmelden</button><p class="small">Abmelden meldet nur dieses Handy ab. Deine Daten in Home Assistant bleiben komplett erhalten, nur die Kopie hier im Handy wird gelöscht.</p>`;
+    foot.innerHTML = `<button id="lockBtn" hidden></button> <button id="logoutBtn">🚪 Abmelden</button><p class="small">Abmelden meldet nur dieses Handy ab. Deine Daten in Home Assistant bleiben komplett erhalten, nur die Kopie hier im Handy wird gelöscht.</p>`;
     wrap.append(foot);
     document.getElementById("lockBtn").addEventListener("click", () => (lock ? lockDisable() : lockEnable()));
     document.getElementById("logoutBtn").addEventListener("click", () => {
@@ -342,7 +346,12 @@ function update() {
     });
   }
   const lb = document.getElementById("lockBtn");
-  if (lb) lb.textContent = lock ? "🔒 Fingerabdruck-Sperre: an" : "👆 Fingerabdruck-Sperre einschalten";
+  if (lb) {
+    lb.textContent = lock ? "🔒 Fingerabdruck-Sperre: an" : "👆 Fingerabdruck-Sperre einschalten";
+    // 👆 Nur zeigen, wo es auch geht (Fingerabdruck/Face ID + https). Ist sie schon an, bleibt der Knopf zum Ausschalten.
+    if (lock) lb.hidden = false;
+    else bioAvailable().then((ok) => { lb.hidden = !ok; });
+  }
   showLock();
   card.hass = makeHass();
   if (shortcut === "pay") { shortcut = null; setTimeout(() => card.shadowRoot?.querySelector('input[name="amount"]')?.focus(), 600); }
@@ -359,7 +368,7 @@ function logout(silent) {
   localStorage.removeItem(K.auth);
   if (!silent) {
     // 🔒 Alles Persönliche aus dem Handy löschen
-    for (const k of [K.user, ...fkKeys("fixkosten_data", "fixkosten_queue"), "fixkosten_hidden", "fkapp_buch", LOCK_KEY]) localStorage.removeItem(k);
+    for (const k of [K.user, ...fkKeys("fixkosten_data", "fixkosten_queue"), "fixkosten_hidden", "fkapp_buch", "fixkosten_calm", LOCK_KEY]) localStorage.removeItem(k);
     user = null;
     if (refresh) fetch("/auth/token", { method: "POST", body: new URLSearchParams({ action: "revoke", token: refresh }) }).catch(() => {});
   }

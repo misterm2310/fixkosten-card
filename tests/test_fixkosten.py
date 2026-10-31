@@ -385,3 +385,31 @@ async def test_mehrere_buecher(hass, setup, hass_ws_client):
         await hass.async_block_till_done()
     assert rm.called
     assert get_manager(hass) is erstes
+
+
+async def test_verlauf_und_ansicht(hass, setup):
+    """📜 Verlauf merkt wer/wann/was · 👁️ Ansicht, 🔤 Beschriftungen, 🐷 Maskottchen sind Schalter für alle."""
+    m = mgr(hass)
+    m.import_csv(CSV)
+    m.apply([{"type": "paid", "id": "Strom", "ts": 1000}], user="Tester")
+    m.apply([{"op_id": "b1", "type": "booking_add", "name": "Bäckerei", "amount": "5,75", "ts": 2000}], user="Tester")
+    m.apply([{"type": "konto", "balance": "1.234,50", "ts": 3000}])
+    m.apply([{"type": "booking_delete", "id": "b1", "ts": 4000}])
+    texts = [x["text"] for x in m.data["log"]]
+    assert texts[0] == "✅ „Strom“ abgehakt" and m.data["log"][0]["by"] == "Tester"
+    assert "💳 Ausgabe „Bäckerei“ 5,75 €" in texts
+    assert "🏦 Kontostand 1.234,50 €" in texts
+    assert "🗑️ Ausgabe „Bäckerei“ gelöscht" in texts  # Name kommt noch mit, obwohl gelöscht
+    # Fehler landen nicht im Verlauf
+    m.apply([{"type": "booking_add", "name": "x", "amount": "0"}])
+    assert len(m.data["log"]) == 4
+    # Schalter aus → nichts mehr merken; leeren geht
+    m.apply([{"type": "settings", "settings": {"log_on": False, "labels": True, "mascot": True, "view": {"toepfe": False, "quatsch": False}}}])
+    n = len(m.data["log"])
+    m.apply([{"type": "paid", "id": "Miete"}])
+    assert len(m.data["log"]) == n
+    st = m.data["settings"]
+    assert st["labels"] is True and st["mascot"] is True and st["view"] == {"toepfe": False}
+    m.apply([{"type": "log_clear"}])
+    assert m.data["log"] == [] and m.health()["counts"]["log"] == 0
+    assert "log" in m.snapshot()

@@ -163,8 +163,13 @@ await sr(`const f = h.querySelector('form[data-a="potmove"]'); f.amount.value = 
 await p.waitForTimeout(80);
 check("Topf: Rausnehmen schickt topf_take", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_take" && o.id === "t2" && o.amount === 50)));
 check("Topf: „geliehen“ in Orange", await sr(`const t = h.querySelector('.item[data-id="t2"] .tag.lent')?.textContent || ''; return /50,00/.test(t) && /geliehen/.test(t);`), await sr(`return h.querySelector('.item[data-id="t2"]')?.textContent || '-';`));
+check("Topf-Liste: oranger Zettel ist nur Anzeige", await sr(`return !h.querySelector('.item[data-id="t2"] [data-a="lentoff"]');`));
+await p.waitForTimeout(200); // erst die Antwort von HA abwarten (zeichnet neu)
+await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
+await p.waitForTimeout(50);
 p.once("dialog", (dl) => dl.accept());
-await sr(`h.querySelector('.item[data-id="t2"] .tag.lent').click();`);
+await shot("4e-topf-geliehen.png");
+await sr(`h.querySelector('.potbox [data-a="lentoff"]').click();`);
 await p.waitForTimeout(80);
 check("Topf: orangen Zettel antippen = nicht mehr zurücklegen (topf_keep)", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_keep" && o.id === "t2")) && await sr(`return !h.querySelector('.item[data-id="t2"] .tag.lent');`));
 await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
@@ -190,6 +195,7 @@ await p.waitForTimeout(150);
 const csv = await p.evaluate(async () => { const c = document.querySelector('#c1') || document.querySelector('fixkosten-card'); let blob; const o = URL.createObjectURL; URL.createObjectURL = (b) => { blob = b; return "blob:x"; }; const ac = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () {}; c._export(c._data); URL.createObjectURL = o; HTMLAnchorElement.prototype.click = ac; return await blob.text(); });
 check("CSV hat Kontostand-Zeile", /\nkontostand;Konto;1500,00;\d\d\.\d\d\.\d{4}/.test(csv), csv.slice(0, 200));
 check("CSV hat Datum bei Töpfen", /\ntopf;[^;]+;[^;]+;\d\d\.\d\d\.\d{4}/.test(csv), csv);
+check("Blaue Zahl = offene Fixkosten + offene Ausgaben", await sr(`const b = h.querySelector('.badge'); return /Ausgaben/.test(b?.title || '') && Number(b.textContent) === Number(b.title.match(/(\\d+) Fixkosten/)[1]) + Number(b.title.match(/(\\d+) Ausgaben/)[1]);`));
 // 💳 Ausgaben einklappbar: Standard offen, zu = nur Liste weg, Eingabe bleibt
 check("Ausgaben: Standard offen", await sr(`return !!h.querySelector('[data-a="sec"][data-v="ausgaben_zu"]') && !!h.querySelector('.item[data-k="booking"]');`));
 await sr(`h.querySelector('[data-a="sec"][data-v="ausgaben_zu"]').click();`);

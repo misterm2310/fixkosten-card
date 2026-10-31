@@ -63,7 +63,7 @@ def test_parse_money():
 async def test_import_and_summary(hass, setup):
     m = mgr(hass)
     counts = m.import_csv(CSV)
-    assert counts == {"ausgaben": 4, "einnahmen": 1, "toepfe": 2, "staende": 1, "konten": 1, "uebersprungen": 0}
+    assert counts == {"ausgaben": 4, "einnahmen": 1, "toepfe": 2, "staende": 1, "konten": 1, "kontostand": 0, "uebersprungen": 0}
     # Kfz-Steuer gilt jeden Monat (Monate nur über die Karte), Miete ist positiv gespeichert
     assert m.find("posten", "Miete")["amount"] == 800
     assert m.find("posten", "Handyvertrag")["group"] == "g15"
@@ -276,6 +276,8 @@ async def test_order_restore_and_day(hass, setup):
     assert m.find("topf", "Sparkonto")["lent"] == 50 and m.summary()["pots_total"] == before - 50 and m.summary()["pots_lent"] == 50
     m.apply([{"type": "topf_return", "id": sp, "amount": 20}, {"type": "topf_return", "id": sp, "amount": 40}])
     assert m.find("topf", "Sparkonto")["lent"] == 0 and m.summary()["pots_total"] == before + 10
+    m.apply([{"type": "topf_take", "id": sp, "amount": 30}, {"type": "topf_keep", "id": sp}])  # 🐷 doch nicht zurücklegen
+    assert m.find("topf", "Sparkonto")["lent"] == 0 and m.summary()["pots_total"] == before - 20 and m.find("topf", "Sparkonto")["updated"]
     m.apply([{"type": "topf_save", "item": {"id": sp, "amount": 1000}}])
     # 🔕 Warnung aus
     m.apply([{"type": "konto", "balance": -5000}])
@@ -325,3 +327,14 @@ async def test_health_and_factory_reset(hass, setup):
     m.set_pin("4711")
     m.factory_reset()
     assert not m.data["posten"] and len(m.data["groups"]) == 2 and m.data["pin"] and m.check_pin("4711")
+
+
+async def test_import_kontostand_und_datum(hass, setup):
+    # 🏦 Kontostand-Zeile und 📅 Topf-Datum aus dem CSV-Export kommen beim Einlesen wieder rein
+    m = mgr(hass)
+    counts = m.import_csv("Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz\nkontostand;Konto;-12,50;31.10.2026;;\ntopf;Bargeld;150,00;24.10.2026;;\n")
+    assert counts["kontostand"] == 1 and counts["toepfe"] == 1
+    assert m.summary()["balance"] == -12.5
+    from datetime import datetime
+    upd = m.find("topf", "Bargeld")["updated"]
+    assert datetime.fromtimestamp(upd / 1000).strftime("%d.%m.%Y") in ("23.10.2026", "24.10.2026")

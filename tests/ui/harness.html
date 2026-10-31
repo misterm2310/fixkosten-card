@@ -62,6 +62,7 @@ const hass = () => ({
       for (const o of msg.ops) {
         if (o.type === "booking_add") fake.data.bookings.push({ id: o.op_id, name: o.name, amount: o.amount, ts: o.ts, month: mk, cleared: false });
         if (o.type === "paid") fake.data.paid[o.id] = { paid: o.value, ts: o.ts };
+        if (o.type === "received") { fake.data.received = fake.data.received || {}; fake.data.received[o.id] = { paid: o.value, ts: o.ts }; }
         if (o.type === "booking_edit") { const b = fake.data.bookings.find((x) => x.id === o.id); if (b) Object.assign(b, { name: o.name, amount: o.amount }); }
         if (o.type === "topf_take" || o.type === "topf_return") { const t = fake.data.toepfe.find((x) => x.id === o.id); const v = o.type === "topf_take" ? o.amount : -o.amount; t.amount -= v; t.lent = Math.max(0, (t.lent || 0) + v); }
         if (o.type === "settings") Object.assign(fake.data.settings, o.settings);
@@ -79,6 +80,8 @@ const hass = () => ({
       return { ok: true };
     }
     if (msg.type === "fixkosten/pin/check") return { ok: !fake.pin || msg.pin === fake.pin };
+    if (msg.type === "fixkosten/health") return { errors: [], size: 4321, counts: { posten: fake.data.posten.length, groups: 2 }, seen: 0 };
+    if (msg.type === "fixkosten/errors_clear") return { ok: true };
     return {};
   },
 });

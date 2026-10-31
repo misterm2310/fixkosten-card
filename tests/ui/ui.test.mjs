@@ -43,7 +43,7 @@ const fmt = (v) => new Intl.NumberFormat("de-DE", { style: "currency", currency:
 check("Verfügbar richtig gerechnet", big === fmt(exp.avail), `${big} statt ${fmt(exp.avail)}`);
 check("Gruppen, Einnahmen, Töpfe sind zu", await sr(`return !h.querySelector('[data-a="paid"]') && !!h.querySelector('[data-a="sec"][data-v="g:g01"]') && !h.querySelector('[data-a="pot"]');`));
 check("Hinweis nur für festen Tag (Streaming am 20.)", await sr(`return /Streaming/.test(h.querySelector('.next')?.textContent || '') && !/Jetzt fällig/.test(h.innerHTML);`), await sr(`return h.querySelector('.next')?.textContent || 'kein Hinweis';`));
-check("Reiter: Übersicht · Rückblick · Bearbeiten", await sr(`return [...h.querySelectorAll('.tab')].map((t) => t.dataset.v).join() === "home,hist,edit";`));
+check("Reiter: Übersicht · Bearbeiten", await sr(`return [...h.querySelectorAll('.tab')].map((t) => t.dataset.v).join() === "home,edit";`));
 await shot("1a-zugeklappt.png");
 await sr(`h.querySelector('[data-a="sec"][data-v="g:g01"]').click();`);
 await sr(`h.querySelector('[data-a="sec"][data-v="g:g15"]').click();`);
@@ -135,10 +135,14 @@ check("Ziehen am Griff sortiert Töpfe", tord && tord.ids.join() === "t3,t1,t2",
 check("Ziehen öffnet nicht aus Versehen den Eintrag", await sr(`return !h.querySelector('form[data-a="save"]');`));
 await shot("3-bearbeiten.png");
 
-// 📊 Rückblick
-await sr(`h.querySelector('[data-a="tab"][data-v="hist"]').click();`);
-check("Rückblick: 4 Monate", await sr(`return h.querySelectorAll('.hist .m').length === 4;`));
-await shot("4-rueckblick.png");
+// 💵 Einnahmen abhaken
+await sr(`h.querySelector('[data-a="tab"][data-v="home"]').click();`);
+await sr(`h.querySelector('[data-a="sec"][data-v="einnahmen"]').click();`);
+await p.waitForTimeout(50);
+await sr(`h.querySelector('[data-a="recv"]').click();`);
+await p.waitForTimeout(100);
+check("Einnahme abhaken schickt „received“", await p.evaluate(() => fake.applied.some((o) => o.type === "received" && o.value === true)));
+await sr(`h.querySelector('[data-a="sec"][data-v="einnahmen"]').click();`);
 
 // 🏦 Kontostand auf eigener Seite
 await sr(`h.querySelector('[data-a="tab"][data-v="home"]').click();`);
@@ -175,7 +179,7 @@ await sr(`const c = h.querySelector('[data-a="setwarnon"]'); c.checked = false; 
 await p.waitForTimeout(80);
 check("Warnung aus schickt Einstellung, Grenze verschwindet", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.warn_enabled === false)) && await sr(`return !h.querySelector('[data-a="setwarn"]');`));
 await p.goBack(); await p.waitForTimeout(300);
-check("Zurück: Seite zu, Einstellungen bleiben", await sr(`return !h.querySelector('.pagehost') && h.querySelectorAll('.lgbox').length === 3;`));
+check("Zurück: Seite zu, Einstellungen bleiben", await sr(`return !h.querySelector('.pagehost') && h.querySelectorAll('.lgbox').length === 4;`));
 await p.goBack(); await p.waitForTimeout(300);
 check("Zurück: dann Übersicht", await sr(`return !!h.querySelector('.big');`));
 
@@ -188,7 +192,7 @@ await p.evaluate(() => { const c = document.querySelector('#c1'); delete c._serv
 // ⚙️ Einstellungen: Zahnrad oben in der Leiste
 check("⚙️ sitzt oben in der Leiste, 🔒 in der Zeile darunter", await sr(`return !!h.querySelector('.topbar [data-a="tab"][data-v="set"]') && !!h.querySelector('.head [data-a="lock"]') && !h.querySelector('.head [data-v="set"]');`));
 await sr(`h.querySelector('.topbar [data-a="tab"][data-v="set"]').click();`);
-check("⚙️ wie Einkaufsliste: 3 Kästen, zugeklappt, ✕ oben", await sr(`return h.querySelectorAll('.lgbox').length === 3 && !h.querySelector('.lrow') && h.querySelector('.head [data-a="back"] ha-icon')?.getAttribute('icon') === 'mdi:close';`));
+check("⚙️ wie Einkaufsliste: 4 Kästen, zugeklappt, ✕ oben", await sr(`return h.querySelectorAll('.lgbox').length === 4 && !h.querySelector('.lrow') && h.querySelector('.head [data-a="back"] ha-icon')?.getAttribute('icon') === 'mdi:close';`));
 await sr(`h.querySelector('[data-a="setgrp"][data-v="App & Info"]').click();`);
 check("Kasten aufklappen zeigt Zeilen mit bunten Symbolen", await sr(`return h.querySelectorAll('.lrow .ic').length === 5;`));
 await shot("5-einstellungen.png");
@@ -198,6 +202,22 @@ await shot("5b-offline-app.png");
 await sr(`h.querySelector('.head [data-a="back"]').click();`);
 await sr(`h.querySelector('[data-a="sheet"][data-v="news"]').click();`);
 check("Was ist neu: Beta-Kasten", await sr(`return /Du bist in der Beta/.test(h.querySelector('.pagehost')?.textContent || '');`));
+await sr(`h.querySelector('.head [data-a="back"]').click();`);
+// 📊 Rückblick, 🩺 Gesundheit, 💣 Werkseinstellungen in ⚙️
+await sr(`h.querySelector('[data-a="setgrp"][data-v="Daten"]').click(); h.querySelector('[data-a="sheet"][data-v="hist"]').click();`);
+check("Rückblick in ⚙️: 4 Monate", await sr(`return h.querySelectorAll('.pagehost .hist .m').length === 4;`));
+await shot("4-rueckblick.png");
+await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="sheet"][data-v="factory"]').click();`);
+check("Werkseinstellungen-Seite mit rotem Knopf", await sr(`return !!h.querySelector('.pagehost .btn.danger[data-a="factory"]');`));
+await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="setgrp"][data-v="Gesundheit"]').click(); h.querySelector('[data-a="sheet"][data-v="check"]').click();`);
+check("Alles ok? zeigt Funde", await sr(`return h.querySelectorAll('.pagehost .finding').length >= 1 || !!h.querySelector('.pagehost .okmsg');`));
+await shot("5d-alles-ok.png");
+await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="sheet"][data-v="errors"]').click();`);
+await p.waitForTimeout(100);
+check("Fehler-Protokoll lädt", await sr(`return /Keine Fehler|Protokoll leeren/.test(h.querySelector('.pagehost')?.textContent || '');`), await sr(`return h.querySelector('.pagehost')?.textContent || '-';`));
+await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="sheet"][data-v="stats"]').click();`);
+await p.waitForTimeout(100);
+check("Ressourcen zeigen Speicher", await sr(`return /In Home Assistant/.test(h.querySelector('.pagehost')?.textContent || '');`));
 await sr(`h.querySelector('.head [data-a="back"]').click();`);
 await sr(`h.querySelector('[data-a="setgrp"][data-v="Rechnen"]').click();`);
 await sr(`h.querySelector('[data-a="sheet"][data-v="quick"]').click();`);

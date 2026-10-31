@@ -24,6 +24,9 @@ def async_register(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_import)
     websocket_api.async_register_command(hass, ws_pin_set)
     websocket_api.async_register_command(hass, ws_pin_check)
+    websocket_api.async_register_command(hass, ws_health)
+    websocket_api.async_register_command(hass, ws_errors_clear)
+    websocket_api.async_register_command(hass, ws_factory_reset)
 
 
 @websocket_api.websocket_command({vol.Required("type"): "fixkosten/subscribe"})
@@ -101,3 +104,36 @@ async def ws_pin_check(hass: HomeAssistant, connection: websocket_api.ActiveConn
         connection.send_result(msg["id"], {"ok": m.check_pin(msg["pin"])})
     except HomeAssistantError as err:
         connection.send_error(msg["id"], "pin", str(err))
+
+
+@websocket_api.websocket_command({vol.Required("type"): "fixkosten/health"})
+@callback
+def ws_health(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """🩺 Fehler-Protokoll, Speicher und Umfang."""
+    m = _manager(hass)
+    if m is None:
+        connection.send_error(msg["id"], "not_ready", "Fixkosten ist noch nicht eingerichtet")
+        return
+    connection.send_result(msg["id"], m.health())
+
+
+@websocket_api.websocket_command({vol.Required("type"): "fixkosten/errors_clear"})
+@callback
+def ws_errors_clear(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    m = _manager(hass)
+    if m is not None:
+        m.clear_errors()
+    connection.send_result(msg["id"], {"ok": True})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "fixkosten/factory_reset"})
+@websocket_api.require_admin
+@callback
+def ws_factory_reset(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """💣 Werkseinstellungen (nur Admins) – nur die PIN bleibt."""
+    m = _manager(hass)
+    if m is None:
+        connection.send_error(msg["id"], "not_ready", "Fixkosten ist noch nicht eingerichtet")
+        return
+    m.factory_reset()
+    connection.send_result(msg["id"], {"ok": True})

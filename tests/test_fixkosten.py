@@ -306,3 +306,22 @@ async def test_order_restore_and_day(hass, setup):
     assert m.find("posten", "Miete")["day"] is None
     assert not m.apply([{"type": "posten_save", "item": {"id": miete, "day": 40}}])[0]["ok"]
     assert m.snapshot()["app_url"] is None  # ohne https-Adresse keine App-Adresse
+
+
+async def test_health_and_factory_reset(hass, setup):
+    """🩺 Fehler-Protokoll, Speicher, 💵 Einnahmen abhaken und 💣 Werkseinstellungen (PIN bleibt)."""
+    m = mgr(hass)
+    m.import_csv(CSV)
+    lohn = m.data["einnahmen"][0]["id"]
+    assert m.apply([{"type": "received", "id": lohn, "value": True}])[0]["ok"]
+    assert m.data["received"][lohn]["paid"]
+    m.apply([{"type": "reset_checks"}])
+    assert not m.data["received"]
+    assert not m.apply([{"type": "gibtsnicht"}])[0]["ok"]
+    h = m.health()
+    assert h["errors"] and "gibtsnicht" in h["errors"][0]["error"] and h["size"] > 100 and h["counts"]["posten"] > 0
+    m.clear_errors()
+    assert not m.health()["errors"]
+    m.set_pin("4711")
+    m.factory_reset()
+    assert not m.data["posten"] and len(m.data["groups"]) == 2 and m.data["pin"] and m.check_pin("4711")

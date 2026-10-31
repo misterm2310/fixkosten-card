@@ -33,13 +33,14 @@
 | ↩️ **Rückgängig** | Nach Löschen, „beglichen“ oder „abgebucht“ steht 8 Sekunden lang „Rückgängig“ unten in der Karte |
 | 💳 **Ausgaben** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: grüner Haken ✓. Eintrag antippen = ändern. Lange drücken auf einen Symbol-Knopf zeigt, was er macht |
 | 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Ausgabe, Kontostand oder kopieren. Rechnet selbst, ohne `eval` |
-| 💵 **Einnahmen** | Nur zur Info (Lohn, Nebenjob …). Zeigt, was nach den Fixkosten übrig bleibt |
+| 💵 **Einnahmen** | Nur zur Info (Lohn, Nebenjob …), mit Kreis zum Abhaken, sobald sie auf dem Konto sind. Zeigt, was nach den Fixkosten übrig bleibt |
 | 🐷 **Töpfe** | Was wo liegt: Sparkonto, Bargeld zu Hause, PayPal … plus „Komplett“ = Verfügbar + alle Töpfe. ➖ Rausnehmen und ➕ Zurücklegen, Geliehenes steht in Orange dabei |
 | 🧾 **Offene Stände** | Was du noch begleichen musst. Auf Wunsch auch von „Verfügbar“ abziehen |
 | 🏦 **Meine Konten** | IBAN-Liste zum schnellen Kopieren (📋) |
 | 👁️ **Verstecken** | Ein Tipp verschwimmt alle Beträge, z. B. wenn jemand mitschaut |
 | 🔒 **PIN-Sperre** | ⚙️ und „Bearbeiten“ nur mit PIN. Abhaken und Zahlungen gehen ohne |
-| 📊 **Rückblick** | Jeder Monat wird am Monatsende automatisch gemerkt |
+| 📊 **Rückblick** | Jeder Monat wird am Monatsende automatisch gemerkt (⚙️ → Daten → Rückblick) |
+| 🩺 **Gesundheit** | „Alles ok?“ findet Posten ohne Gruppe, alten Kontostand, vergessene Ausgaben …, dazu Fehler-Protokoll und Ressourcen |
 | 📱 **Offline-App** | Eigene Handy-App mit Anmeldung, Fingerabdruck/Face-ID-Sperre und Postausgang |
 | 📖 **Anleitung** | Steckt direkt in der Karte (unten „📖 Anleitung“) |
 
@@ -111,10 +112,11 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 **In der Karte (⚙️)** – wie bei der Einkaufsliste: Kästen nach Zweck zum Aufklappen, jede Zeile öffnet eine eigene Seite in der Karte (← zurück). Die PIN tippst du auf einem Zahlenfeld wie am Handy:
 - 🧮 **Rechnen & Warnung:** Haken am Monatsanfang automatisch zurücksetzen (Standard an), offene Stände von „Verfügbar“ abziehen (Standard aus), Warnung an/aus und Warngrenze
 - ⚡ **Schnellknöpfe** für Ausgaben, einer pro Zeile
-- 📥 **Daten (CSV):** einlesen und sichern (nur Admins)
+- 💾 **Daten:** Import & Sicherung (CSV einlesen und sichern, nur Admins), 📊 Rückblick, 💣 Werkseinstellungen (nur Admins, zwei Sicherheitsfragen, nur die PIN bleibt)
+- 🩺 **Gesundheit:** Alles ok?, Fehler-Protokoll, Ressourcen
 - 📱 **Offline-App:** Anleitung und deine eigene App-Adresse mit „Kopieren“
-- 🔒 **Schutz (PIN)** (4–8 Ziffern): Dann fragen ⚙️ und „Bearbeiten“ nach der PIN. Das 🔓 oben sperrt sofort wieder, sonst nach 10 Minuten Ruhe. 5× falsch = 1 Minute Pause.
-- 🛡️ Datenschutz und 💙 Credits & Spenden
+- 🔒 **Schutz** (4–8 Ziffern): Dann fragen ⚙️ und „Bearbeiten“ nach der PIN. Das 🔓 oben sperrt sofort wieder, sonst nach 10 Minuten Ruhe. 5× falsch = 1 Minute Pause.
+- 🛡️ Datenschutz, 🆕 Was ist neu und 💙 Credits
 
 **In Home Assistant** (Einstellungen → Geräte & Dienste → Fixkosten → **Konfigurieren**):
 - **In der Seitenleiste anzeigen** – Fixkosten als eigener Eintrag links, ganz ohne Dashboard.

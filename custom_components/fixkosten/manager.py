@@ -13,6 +13,7 @@ import csv
 import hashlib
 import hmac
 import io
+import json
 import logging
 import re
 import secrets
@@ -90,7 +91,7 @@ def _empty() -> dict[str, Any]:
         "toepfe": [],
         "staende": [],  # 🧾 offene Stände, die noch beglichen werden müssen
         "konten": [],   # 🏦 nur Info: Name + IBAN zum schnellen Kopieren
-        "konto": {"balance": 0.0, "pending": 0.0, "updated": 0},
+        "konto": {"balance": 0.0, "updated": 0},
         "month": "",
         "paid": {},
         "received": {},
@@ -113,6 +114,7 @@ class FixkostenManager:
         self._unsub_time: CALLBACK_TYPE | None = None
         self._pin_fails = 0
         self._pin_locked_until = 0.0
+        self.errors: list[dict[str, Any]] = []  # 🐞 Fehler-Protokoll (nur im Speicher, die letzten 50)
 
     # ------------------------------------------------------------------ 💾 Laden / Speichern
     async def async_load(self) -> None:
@@ -352,8 +354,10 @@ class FixkostenManager:
                 results.append({"op_id": oid, "ok": True})
             except HomeAssistantError as err:
                 results.append({"op_id": oid, "ok": False, "error": str(err)})
+                self._log_error(op, str(err), user)
             except (KeyError, TypeError, ValueError) as err:
                 results.append({"op_id": oid, "ok": False, "error": f"ungültig: {err}"})
+                self._log_error(op, f"ungültig: {err}", user)
             self.data["seen"].append(oid)
         self.data["seen"] = self.data["seen"][-MAX_SEEN_OPS:]
         if changed:
@@ -361,6 +365,30 @@ class FixkostenManager:
         else:
             self._save()
         return results
+
+    # ------------------------------------------------------------------ 🩺 Gesundheit
+    def _log_error(self, op: dict[str, Any], error: str, user: str | None) -> None:
+        """🐞 Merkt sich, was nicht geklappt hat (ohne Beträge oder Namen – nur Art und Fehler)."""
+        self.errors.append({"ts": int(dt_util.utcnow().timestamp() * 1000), "type": str(op.get("type"))[:40], "error": error[:200], "by": user})
+        self.errors = self.errors[-50:]
+
+    def clear_errors(self) -> None:
+        self.errors = []
+
+    def health(self) -> dict[str, Any]:
+        """📊 Speicher und Umfang (für ⚙️ → Gesundheit)."""
+        size = len(json.dumps(self.data, ensure_ascii=False).encode("utf-8"))
+        counts = {k: len(self.data.get(k) or []) for k in ("groups", "posten", "einnahmen", "toepfe", "staende", "konten", "bookings", "history")}
+        return {"errors": list(reversed(self.errors)), "size": size, "counts": counts, "seen": len(self.data.get("seen") or [])}
+
+    def factory_reset(self) -> None:
+        """💣 Werkseinstellungen: alles zurück auf Anfang – nur die PIN bleibt."""
+        pin = self.data.get("pin")
+        self.data = _empty()
+        self.data["pin"] = pin
+        self.data["month"] = month_key(dt_util.now())
+        self.errors = []
+        self._changed()
 
     def _apply_one(self, op: dict[str, Any], user: str | None) -> None:
         t = op.get("type")

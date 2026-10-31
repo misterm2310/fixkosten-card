@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.12";
+const FK_VERSION = "0.1.0-beta.13";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -34,9 +34,11 @@ const FK_GUIDE = [
   { icon: "shield-key-outline", color: "#455a64", title: "PIN-Sperre und Seitenleiste", text: `In ⚙️ unter <b>„Schutz (PIN)“</b> legst du eine PIN (4–8 Ziffern) fest. Dann fragen ⚙️ und „Bearbeiten“ danach. Übersicht, Abhaken und Ausgaben gehen weiter ohne PIN. Das 🔓 Schloss unter der Leiste (neben 🧮 und 👁️) sperrt sofort wieder (sonst nach 10 Minuten Ruhe). Die PIN tippst du wie am Handy auf dem Zahlenfeld ein.<br><b>PIN vergessen?</b> Kein Drama: Ein Admin geht auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.<br>Im selben Fenster schaltest du auch <b>„In der Seitenleiste anzeigen“</b> an oder aus.` },
   { icon: "upload", color: "#546e7a", title: "CSV einlesen und sichern", text: `In ⚙️ → <b>„Daten (CSV)“</b> (nur Admins): Datei wählen oder Text einfügen → „Einlesen“. Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b>. „Als CSV sichern“ lädt alles als Datei herunter.` },
   { icon: "lock-outline", color: "#455a64", title: "Datenschutz", text: `Alles bleibt in <b>deinem</b> Home Assistant. Keine Cloud, kein Tracking, nichts geht ins Internet. IBANs stehen bewusst in keinem Sensor.` },
+  { icon: "eye-outline", color: "#00897b", title: "Verlauf, Ansicht und Sparschwein", text: `<b>📜 Verlauf</b> (⚙️ → Daten): wer hat wann was geändert – abgehakt, Kontostand, Ausgaben, Töpfe … Die letzten 300 Einträge, ausschaltbar, Admins können ihn leeren.<br><b>👁️ Ansicht</b> (⚙️ → Ansicht, gilt für alle): Abschnitte wie Töpfe, Einnahmen oder Meine Konten ausblenden. <b>Beschriftungen</b> zeigen kurzen Text unter den Symbol-Knöpfen. <b>Ruhiger Modus</b> (nur dieses Gerät): gedämpfte Farben, nichts bewegt sich. In der Offline-App gibt es noch <b>Hell / Dunkel</b>.<br><b>🐷 Sparschwein</b> (⚙️ → Ansicht → Maskottchen): sitzt oben links und zeigt, wie es um dein Geld steht – fröhlich im Plus, skeptisch knapp über der Warngrenze, erschrocken im Minus. Sind alle Fixkosten abgehakt, hüpft es. Morgens gähnt es, ab 21 Uhr schläft es. Antippen = zurück zur Übersicht.` },
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.13", "📜 <b>Verlauf</b> (⚙️ → Daten): wer hat wann was geändert – abgehakt, Kontostand, Ausgaben, Töpfe (die letzten 300, ausschaltbar). · 👁️ Neue Gruppe <b>Ansicht</b> wie bei der Einkaufsliste: Abschnitte für alle ein- und ausblenden, <b>Beschriftungen</b> unter den Symbol-Knöpfen, <b>Ruhiger Modus</b> und in der Offline-App <b>Hell / Dunkel</b>. · 👆 Der Knopf <b>„Fingerabdruck-Sperre“</b> erscheint in der Offline-App nur noch, wo es auch geht (Fingerabdruck oder Face ID und https). · 🐷 <b>Maskottchen Sparschwein</b> (Standard aus): freut sich im Plus, guckt skeptisch knapp über der Warngrenze, erschrickt im Minus und hüpft, wenn alle Fixkosten abgehakt sind."],
   ["0.1.0-beta.12", "📚 <b>Mehrere Bücher</b> (wie mehrere Anlagen bei Solis): Einstellungen → Geräte &amp; Dienste → Fixkosten → <b>Eintrag hinzufügen</b>, z. B. eins pro Person. Jedes Buch hat eigene Daten, Sensoren und PIN. Im Karten-Editor wählst du bei „Welches Buch?“, und mit der Sichtbarkeit der Karte sieht jeder nur sein eigenes. Dein bisheriges Buch bleibt genau wie es ist."],
   ["0.1.0-beta.11", "📂 Die Karte <b>merkt sich aufgeklappte Kategorien nicht mehr</b>: Beim Öffnen sieht sie immer gleich aus – Ausgaben offen, alles andere zu."],
   ["0.1.0-beta.10", "🔵 Die <b>blaue Zahl oben</b> zählt jetzt offene Fixkosten <b>und</b> Ausgaben, die noch nicht abgebucht sind. · 🐷 „Nicht mehr zurücklegen“ gibt es nur noch <b>im geöffneten Topf</b> (orangen Zettel dort antippen) – in der Liste passiert beim Antippen nichts aus Versehen."],
@@ -56,11 +58,16 @@ function fkVerCmp(a, b) {
   for (let i = 0; i < 4; i++) if (x[i] !== y[i]) return x[i] > y[i] ? 1 : -1;
   return 0;
 }
-const GUIDE_EMO = ["💶", "🏦", "📅", "💳", "🧮", "🐷", "✏️", "📊", "🙈", "📱", "🔒", "📄", "🛡️"];
-const GUIDE_SUB = ["die große Zahl oben", "Stand aus der Bank-App", "Kreis antippen", "Bäckerei & Co.", "🧮 oben in der Karte", "Töpfe, Stände, IBANs", "neu, ändern, verschieben", "Monate im Vergleich", "👁️ oben in der Karte", "ohne Netz, mit Fingerabdruck", "PIN, Schloss, Seitenleiste", "Datei einlesen und sichern", "alles bleibt bei dir"];
+const GUIDE_EMO = ["💶", "🏦", "📅", "💳", "🧮", "🐷", "✏️", "📊", "🩺", "🙈", "📚", "📱", "🔒", "📄", "🛡️", "👁️"];
+const GUIDE_SUB = ["die große Zahl oben", "Stand aus der Bank-App", "Kreis antippen", "Bäckerei & Co.", "🧮 oben in der Karte", "Töpfe, Stände, IBANs", "neu, ändern, verschieben", "Monate im Vergleich", "Alles ok?, Fehler, Reset", "👁️ oben in der Karte", "eins pro Person", "ohne Netz, mit Fingerabdruck", "PIN, Schloss, Seitenleiste", "Datei einlesen und sichern", "alles bleibt bei dir", "Verlauf, Ansicht, Sparschwein"];
 const FK_CARDS = new Set(); // ↩️ alle Fixkosten-Karten auf der Seite (für die Zurück-Taste)
 const DKEY = "fixkosten_data";
 const HKEY = "fixkosten_hidden";
+const CALMKEY = "fixkosten_calm"; // 🧘 Ruhiger Modus – nur dieses Gerät
+const THEMEKEY = "fkapp_theme";   // 🌓 Hell / Dunkel – nur in der Offline-App
+const fkTheme = () => { try { return localStorage.getItem(THEMEKEY) || "auto"; } catch (_) { return "auto"; } };
+// 👁️ Was man für alle ausblenden kann (gleiche Schlüssel wie VIEW_KEYS in manager.py)
+const FK_VIEW = [["next", "calendar-clock", "Nächste Abbuchung", "der Hinweis unter den Kacheln"], ["ausgaben", "credit-card-outline", "Ausgaben", "Schnellknöpfe, Eingabe und Liste"], ["fixkosten", "calendar-month-outline", "Fixkosten-Gruppen", "„ab dem 1.“, „ab dem 15.“ …"], ["einnahmen", "cash-plus", "Einnahmen", "Lohn & Co. zum Abhaken"], ["staende", "file-document-alert-outline", "Offene Stände", "was du noch begleichen musst"], ["toepfe", "piggy-bank-outline", "Töpfe", "Sparkonto, Bargeld …"], ["konten", "bank-outline", "Meine Konten", "IBANs zum Kopieren"]];
 const OKEY = "fixkosten_offen"; // 📂 alter Merkzettel fürs Aufklappen (wird nicht mehr benutzt, nur noch weggeräumt)
 
 const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -261,7 +268,53 @@ function applyLocal(d, op) {
     d[key] = d[key].map((x, i) => [x, i]).sort((a, b) => (pos.get(a[0].id) ?? 1e6 + a[1]) - (pos.get(b[0].id) ?? 1e6 + b[1])).map((x) => x[0]);
     if (op.kind === "posten") for (const x of d[key]) { const g = op.groups?.[x.id]; if (g && d.groups.some((y) => y.id === g)) x.group = g; }
   }
-  else if (t === "settings") d.settings = { ...d.settings, ...op.settings, warn_below: "warn_below" in (op.settings || {}) ? parseMoney(op.settings.warn_below) : d.settings.warn_below };
+  else if (t === "settings") d.settings = { ...d.settings, ...op.settings, view: { ...(d.settings.view || {}), ...(op.settings?.view || {}) }, warn_below: "warn_below" in (op.settings || {}) ? parseMoney(op.settings.warn_below) : d.settings.warn_below };
+  else if (t === "log_clear") d.log = [];
+}
+
+// ---------------------------------------------------------------- 🐷 Maskottchen Sparschwein (wie der Einkaufswagen der Einkaufsliste)
+function fkMascotMood(d, now = new Date()) {
+  const hr = now.getHours();
+  if (hr >= 21 || hr < 6) return "sleep"; // 😴 ab 21 Uhr bis 6 Uhr
+  if (hr < 9) return "tired";             // 🥱 morgens gähnen
+  const s = d.summary, st = d.settings || {};
+  if (s.available < 0) return "shock";    // 😱 im Minus
+  if (st.warn_enabled !== false && s.available < (Number(st.warn_below) || 0)) return "worried"; // 😐 knapp
+  return "happy";                         // 😄 im Plus
+}
+function fkMascotDeco(now = new Date()) {
+  const m = now.getMonth() + 1, day = now.getDate();
+  if ((m === 12 && day === 31) || (m === 1 && day === 1)) return "party";
+  if (m === 12 && day <= 26) return "santa";
+  if ((m === 10 && day >= 17) || (m === 11 && day <= 7)) return "pumpkin"; // 🎃 17.10.–7.11. wie bei der Einkaufsliste
+  return "";
+}
+function fkMascotSvg(mood, deco = "") {
+  const k = "currentColor";
+  const eye = mood === "sleep" || mood === "tired" ? `<path d="M20.4 11.6q1.3 1 2.6 0" fill="none" stroke="${k}" stroke-width="1.2" stroke-linecap="round"/>`
+    : mood === "shock" ? `<circle cx="21.7" cy="11.4" r="1.6" fill="#fff" stroke="${k}" stroke-width=".9"/><circle cx="21.7" cy="11.4" r=".6" fill="${k}"/>`
+    : mood === "worried" ? `<circle cx="21.7" cy="11.8" r="1.1" fill="${k}"/><path d="M20.2 9.6l3-.8" stroke="${k}" stroke-width="1" stroke-linecap="round"/>`
+    : `<circle cx="21.7" cy="11.6" r="1.2" fill="${k}"/>`;
+  const mouth = { happy: `<path d="M24.2 17.6q1.8 1.6 3.6 0" fill="none" stroke="${k}" stroke-width="1.2" stroke-linecap="round"/>`,
+    worried: `<path d="M24.4 18.2h3.2" stroke="${k}" stroke-width="1.2" stroke-linecap="round"/>`,
+    shock: `<ellipse cx="26" cy="18.4" rx="1.2" ry="1.4" fill="${k}"/>`,
+    tired: `<ellipse cx="26" cy="18.4" rx="1.4" ry="1.8" fill="${k}"/>`,
+    sleep: `<path d="M24.6 18q1.4.8 2.8 0" fill="none" stroke="${k}" stroke-width="1" stroke-linecap="round"/>` }[mood] || "";
+  const extra = mood === "shock" ? `<path d="M17.4 6.4q1.4 2.2 0 3.2q-1.4-1 0-3.2z" fill="#4fc3f7"/>`
+    : mood === "sleep" ? `<text x="25" y="7" font-size="5.5" font-weight="700" fill="${k}" opacity=".7">z</text><text x="28.4" y="3.8" font-size="4" font-weight="700" fill="${k}" opacity=".5">z</text>`
+    : mood === "happy" ? `<path d="M29.5 3.5l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7z" fill="#fdd835"/>` : "";
+  const hat = { santa: `<path d="M15.4 6.6q4-7.4 10.6-1.2l-1.8 1.4z" fill="#e53935"/><rect x="14.6" y="5.6" width="11.4" height="2.4" rx="1.2" fill="#fff"/><circle cx="26.4" cy="4.4" r="1.6" fill="#fff"/>`,
+    party: `<path d="M17.6 6.8l3-7 3 7z" fill="#ab47bc" stroke="#6a1b9a" stroke-width=".5"/><circle cx="20.6" cy=".4" r="1.2" fill="#fdd835"/>`,
+    pumpkin: `<g transform="translate(5 24)"><ellipse cx="0" cy="0" rx="4.6" ry="3.8" fill="#fb8c00" stroke="#e65100" stroke-width=".6"/><path d="M0-3.8q-1.8 3.8 0 7.6M-2.4-3.2q-2 3.2 0 6.4M2.4-3.2q2 3.2 0 6.4" fill="none" stroke="#e65100" stroke-width=".5"/><path d="M0-3.8v-1.6q.8-.8 2-.6" fill="none" stroke="#43a047" stroke-width="1.2" stroke-linecap="round"/></g>` }[deco] || "";
+  return `<svg class="mascot ${mood}" viewBox="0 0 34 30" width="32" height="28" style="overflow:visible" aria-hidden="true">
+    <path d="M4.6 14.6q-3.2-.6-2.4-3q.8-1.8 2.4-.4" fill="none" stroke="${k}" stroke-width="1.2" stroke-linecap="round"/>
+    <rect x="8.4" y="21" width="3.4" height="5.4" rx="1.4" fill="#f8bbd0" stroke="${k}" stroke-width="1.2"/><rect x="20" y="21" width="3.4" height="5.4" rx="1.4" fill="#f8bbd0" stroke="${k}" stroke-width="1.2"/>
+    <ellipse cx="16" cy="15.4" rx="11.6" ry="8.6" fill="#f8bbd0" stroke="${k}" stroke-width="1.4"/>
+    <path d="M17.6 7.6l1.4-4.4 3.4 3.6" fill="#f48fb1" stroke="${k}" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M11.4 8.4h5" stroke="${k}" stroke-width="1.4" stroke-linecap="round"/>
+    <ellipse cx="27.6" cy="14.8" rx="3" ry="2.6" fill="#f48fb1" stroke="${k}" stroke-width="1.2"/><circle cx="26.8" cy="14.8" r=".55" fill="${k}"/><circle cx="28.6" cy="14.8" r=".55" fill="${k}"/>
+    ${mood === "happy" ? `<circle cx="20.4" cy="15.6" r="1.4" fill="#ec407a" opacity=".45"/>` : ""}
+    ${eye}${mouth}${extra}${hat}</svg>`;
 }
 
 // ---------------------------------------------------------------- 🎨 Aussehen
@@ -482,6 +535,31 @@ a { color:var(--pc); }
 .betabox { border:1px solid #fb8c00; border-radius:12px; padding:10px 12px; margin:0 0 12px; background:rgba(251,140,0,.1); }
 ol.steps { padding-left:22px; }
 ol.steps li { margin:3px 0; }
+/* 🔤 Beschriftungen unter Symbol-Knöpfen (⚙️ → Ansicht) */
+.iconbtn .lbl { font-size:10px; line-height:1.1; font-weight:500; }
+:host(.labels) .iconbtn:has(.lbl) { flex-direction:column; align-items:center; gap:2px; border-radius:10px; padding:4px 5px; }
+:host(.labels) .topbar .lbl { display:inline; }
+:host(.labels) .topbar .iconbtn { flex-direction:column; align-items:center; gap:2px; border-radius:10px; }
+/* 🧘 Ruhiger Modus (nur dieses Gerät) */
+:host(.calm) *, :host(.calm) *::before, :host(.calm) *::after { animation:none !important; transition:none !important; }
+:host(.calm) .gdot, :host(.calm) .ic, :host(.calm) .gem, :host(.calm) .hero, :host(.calm) .badge, :host(.calm) .mascot { filter:saturate(.35); }
+/* 🐷 Maskottchen */
+.mascotbox { color:var(--primary-text-color); }
+.mascot.happy { animation:fkwob 2.6s ease-in-out infinite; transform-origin:50% 90%; }
+.mascotbox.hop .mascot { animation:fkhop .7s ease-out 2; }
+@keyframes fkwob { 0%,100% { transform:rotate(0); } 25% { transform:rotate(-4deg); } 75% { transform:rotate(4deg); } }
+@keyframes fkhop { 0%,100% { transform:translateY(0); } 40% { transform:translateY(-7px); } }
+@media (prefers-reduced-motion: reduce) { .mascot, .mascotbox .mascot { animation:none !important; } }
+.mascotprev { display:flex; flex-wrap:wrap; gap:14px; margin:10px 0; color:var(--primary-text-color); }
+.mascotprev > span { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.mascotprev svg { width:44px; height:39px; }
+.mascotprev small { font-size:11px; color:var(--secondary-text-color); }
+/* 📜 Verlauf */
+.logday { margin:12px 0 4px; font-size:.8em; font-weight:600; color:var(--secondary-text-color); text-transform:uppercase; letter-spacing:.03em; }
+.logrow { display:flex; align-items:baseline; gap:8px; padding:4px 2px; border-bottom:1px solid var(--divider-color, rgba(127,127,127,.15)); font-size:.9em; }
+.logrow .lt { flex:none; width:42px; color:var(--secondary-text-color); font-variant-numeric:tabular-nums; }
+.logrow .lx { flex:1; min-width:0; }
+.switch .vt { display:flex; flex-direction:column; } .switch .vt small { color:var(--secondary-text-color); font-size:.82em; }
 `;
 
 class FixkostenCard extends HTMLElement {
@@ -574,7 +652,7 @@ class FixkostenCard extends HTMLElement {
     if (!this._server) return null;
     const d = JSON.parse(JSON.stringify(this._server));
     for (const k of ["groups", "posten", "einnahmen", "toepfe", "staende", "konten", "bookings", "history"]) d[k] = d[k] || [];
-    d.paid = d.paid || {}; d.received = d.received || {}; d.konto = d.konto || {}; d.settings = d.settings || {};
+    d.paid = d.paid || {}; d.received = d.received || {}; d.konto = d.konto || {}; d.settings = d.settings || {}; d.log = d.log || [];
     for (const op of this._queue) applyLocal(d, op);
     d.summary = summary(d);
     return d;
@@ -622,6 +700,7 @@ class FixkostenCard extends HTMLElement {
   _gh(icon, color, title, right = "") {
     return `<div class="ghead"><span class="gdot" style="--gc:${color}">${ic(icon)}</span><span>${title}</span><span class="n">${right}</span></div>`;
   }
+  _lb(t) { return this._labels ? `<span class="lbl">${esc(t)}</span>` : ""; } // 🔤 Beschriftung unter einem Symbol-Knopf
   _greet() {
     const h = new Date().getHours();
     const g = h < 11 ? "☀️ Guten Morgen" : h < 18 ? "🌤️ Hallo" : "🌙 Guten Abend";
@@ -636,6 +715,9 @@ class FixkostenCard extends HTMLElement {
     if (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT") && !this._force) { this._pending = true; return; }
     this._force = false;
     const d = this._data;
+    this._labels = !!d?.settings?.labels; // 🔤 Text unter den Symbol-Knöpfen (für alle)
+    this.classList.toggle("labels", this._labels);
+    this.classList.toggle("calm", !!store.get(CALMKEY, false)); // 🧘 Ruhiger Modus (nur dieses Gerät)
     const online = this._hass?.connected !== false;
     const q = this._queue.length;
     const pill = q ? `<button class="pill wait" data-a="tab" data-v="home">⏳ ${q} ${q === 1 ? "wartet" : "warten"}</button>`
@@ -655,10 +737,10 @@ class FixkostenCard extends HTMLElement {
     const showBack = !!(d && (this._view === "set" || this._view === "guide" || this._view === "konto" || this._pad));
     const appLock = this._app && !!window.__fkAppLock?.on?.();
     const isLocked = d?.pin && !pinOpen();
-    const tools = `<button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}</button>
-      <button class="iconbtn ${this._hidden ? "on" : ""}" data-a="hide" title="Beträge ${this._hidden ? "zeigen" : "verstecken"}">${ic(this._hidden ? "eye-off-outline" : "eye-outline")}</button>
-      <button class="iconbtn" data-a="lock" title="${appLock ? "App jetzt sperren" : isLocked ? "Gesperrt – PIN nötig für ⚙️ und Bearbeiten" : "Jetzt sperren"}">${ic(isLocked && !appLock ? "lock-outline" : "lock-open-variant-outline")}</button>
-      ${showBack ? `<button class="iconbtn" data-a="back" title="${deeper ? "Zurück" : "Schließen"}">${ic(deeper ? "arrow-left" : "close")}</button>` : ""}`;
+    const tools = `<button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}${this._lb("Rechner")}</button>
+      <button class="iconbtn ${this._hidden ? "on" : ""}" data-a="hide" title="Beträge ${this._hidden ? "zeigen" : "verstecken"}">${ic(this._hidden ? "eye-off-outline" : "eye-outline")}${this._lb(this._hidden ? "Zeigen" : "Verstecken")}</button>
+      <button class="iconbtn" data-a="lock" title="${appLock ? "App jetzt sperren" : isLocked ? "Gesperrt – PIN nötig für ⚙️ und Bearbeiten" : "Jetzt sperren"}">${ic(isLocked && !appLock ? "lock-outline" : "lock-open-variant-outline")}${this._lb(isLocked && !appLock ? "Gesperrt" : "Sperren")}</button>
+      ${showBack ? `<button class="iconbtn" data-a="back" title="${deeper ? "Zurück" : "Schließen"}">${ic(deeper ? "arrow-left" : "close")}${this._lb(deeper ? "Zurück" : "Schließen")}</button>` : ""}`;
     let body;
     if (!d) {
       body = this._err ? `<div class="empty">⚠️ ${esc(this._err)}<br>Ist die Integration „Fixkosten“ eingerichtet?</div>` : `<div class="empty">⏳ Lade …</div>`;
@@ -666,7 +748,12 @@ class FixkostenCard extends HTMLElement {
       const openFix = d.summary.groups.reduce((n, g) => n + g.count - g.done, 0), openBk = d.bookings.filter((b) => !b.cleared).length;
       const open = openFix + openBk; // 🔵 offene Fixkosten + Ausgaben, die noch nicht abgebucht sind
       const tabs = [["home", "view-dashboard-outline", "Übersicht"], ["edit", "pencil-outline", "Bearbeiten"]]; // 📊 Rückblick wohnt jetzt in ⚙️ → Daten
-      body = `<div class="head"><div class="title"><span class="logo" data-a="tab" data-v="home" title="Zurück zur Übersicht">${ic("wallet-outline")}</span>${open ? `<span class="badge" data-a="tab" data-v="home" title="noch offen: ${openFix} Fixkosten, ${openBk} Ausgaben">${open}</span>` : ""}</div>${tools}</div>`;
+      // 🐷 Maskottchen statt Geldbörse (Schalter in ⚙️ → Ansicht) – hüpft einmal, wenn die letzte Fixkosten abgehakt wird
+      const hop = this._prevOpenFix > 0 && openFix === 0 && d.posten.length > 0;
+      this._prevOpenFix = openFix;
+      const logo = d.settings.mascot ? `<span class="logo mascotbox ${hop ? "hop" : ""}" data-a="tab" data-v="home" title="Zurück zur Übersicht">${fkMascotSvg(fkMascotMood(d), fkMascotDeco())}</span>`
+        : `<span class="logo" data-a="tab" data-v="home" title="Zurück zur Übersicht">${ic("wallet-outline")}</span>`;
+      body = `<div class="head"><div class="title">${logo}${open ? `<span class="badge" data-a="tab" data-v="home" title="noch offen: ${openFix} Fixkosten, ${openBk} Ausgaben">${open}</span>` : ""}</div>${tools}</div>`;
       body += this._updHtml(d);
       if (!page && this._view !== "set") body += `<div class="tabs">${tabs.map(([k, i, l]) => `<button class="tab ${this._view === k ? "active" : ""}" data-a="tab" data-v="${k}">${ic(i)}${l}</button>`).join("")}</div>`;
       if (this._calc) body += this._calcView(d);
@@ -734,9 +821,11 @@ class FixkostenCard extends HTMLElement {
     // 📅 Hinweis nur für Posten mit festem Tag: der nächste, der noch nicht abgehakt ist
     const today = new Date().getDate();
     const fixed = d.posten.filter((p) => p.day && countsThisMonth(d, p) && !d.paid[p.id]?.paid).sort((a, b) => ((a.day < today) - (b.day < today)) || a.day - b.day);
-    if (fixed.length) { const n = fixed[0]; h += `<div class="next">${ic("calendar-clock")}<span><b>${n.day <= today ? "Fällig" : `Am ${n.day}.`}:</b> ${esc(n.name)} · ${this._m(n.amount)}</span></div>`; }
+    const v = d.settings.view || {}, show = (k) => v[k] !== false; // 👁️ Ansicht für alle
+    if (fixed.length && show("next")) { const n = fixed[0]; h += `<div class="next">${ic("calendar-clock")}<span><b>${n.day <= today ? "Fällig" : `Am ${n.day}.`}:</b> ${esc(n.name)} · ${this._m(n.amount)}</span></div>`; }
 
     // 💳 Ausgaben
+    if (show("ausgaben")) {
     const bOpen = !this._openSec.has("ausgaben_zu"); // 💳 Standard offen – zugeklappt verschwindet nur die Liste, Schnellknöpfe + Eingabe bleiben
     h += `<div class="ghead click" data-a="sec" data-v="ausgaben_zu"><span class="gdot" style="--gc:#ff9800">${ic("credit-card-outline")}</span><span>Ausgaben</span><span class="n">noch nicht abgebucht · ${this._m(-s.bookings_open)}${!bOpen && openBookings.length ? ` · ${openBookings.length}` : ""}</span><span class="chev">${ic(bOpen ? "chevron-up" : "chevron-down")}</span></div>`;
     h += `<div class="quick">${quick.map((q) => `<button class="chip ${this._quickName === q ? "on" : ""}" data-a="quick" data-v="${esc(q)}">${esc(q)}</button>`).join("")}</div>
@@ -744,12 +833,14 @@ class FixkostenCard extends HTMLElement {
       <input name="amount" class="amount" placeholder="0,00 €" inputmode="decimal" autocomplete="off" value="${esc(this._prefAmount || "")}"><button class="addbtn" type="submit" title="Eintragen">${ic("plus")}</button></form>`;
     if (bOpen) h += openBookings.length ? openBookings.map((b) => this._open?.kind === "booking" && this._open.id === b.id ? this._bookingForm(b) : `<div class="item click" style="--cc:#ff9800" data-a="open" data-k="booking" data-id="${esc(b.id)}" title="Antippen = ändern"><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${b.by ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
       <div class="amt">${this._m(-b.amount, "neg")}</div>
-      <button class="iconbtn okbtn" data-a="clear" data-id="${esc(b.id)}" title="✓ Ist jetzt auf dem Konto abgebucht" aria-label="abgebucht">${ic("check-bold")}</button>
-      <button class="iconbtn" data-a="bdel" data-id="${esc(b.id)}" title="Löschen">${ic("close")}</button></div>`).join("") : `<div class="empty">Nichts offen 🎉</div>`;
+      <button class="iconbtn okbtn" data-a="clear" data-id="${esc(b.id)}" title="✓ Ist jetzt auf dem Konto abgebucht" aria-label="abgebucht">${ic("check-bold")}${this._lb("abgebucht")}</button>
+      <button class="iconbtn" data-a="bdel" data-id="${esc(b.id)}" title="Löschen">${ic("close")}${this._lb("löschen")}</button></div>`).join("") : `<div class="empty">Nichts offen 🎉</div>`;
+    }
 
     // 📋 Fixkosten nach Gruppen
     // ⏸️ Pausierte stehen mit drin, gelten aber als abgehakt (zählen nicht mit)
     const shown = (p) => p.active === false || countsThisMonth(d, p);
+    if (show("fixkosten")) {
     for (const g of s.groups) {
       const items = d.posten.filter((p) => p.group === g.id && shown(p));
       if (!items.length) continue;
@@ -760,30 +851,31 @@ class FixkostenCard extends HTMLElement {
     const loose = d.posten.filter((p) => !d.groups.some((g) => g.id === p.group) && shown(p));
     if (loose.length) h += this._ghc("g:-", "calendar-month-outline", "#9e9e9e", "Ohne Gruppe", String(loose.length)) + (this._openSec.has("g:-") ? loose.map((p) => this._postenRow(d, p)).join("") : "");
     if (!d.posten.length) h += `<div class="empty">Noch keine Fixkosten. Unter „Bearbeiten“ anlegen oder unter ⚙️ eine CSV-Datei einlesen.</div>`;
+    }
 
     // 💰 Einnahmen (nur Info)
-    if (d.einnahmen.length) {
+    if (d.einnahmen.length && show("einnahmen")) {
       h += this._ghc("einnahmen", "cash-plus", "var(--fk-green)", "Einnahmen (Info)", this._m(s.income_total, "pos"));
       if (this._openSec.has("einnahmen")) h += d.einnahmen.filter((e) => countsThisMonth(d, e)).map((e) => { const on = !!d.received?.[e.id]?.paid; return `<div class="item ${on ? "done" : ""}" style="--cc:var(--fk-green)"><button class="chk ${on ? "on" : ""}" data-a="recv" data-id="${esc(e.id)}" aria-label="ist gebucht" title="${on ? "Ist gebucht ✓ – antippen = doch nicht" : "Antippen, wenn es auf dem Konto ist"}">${on ? ic("check") : ""}</button><div class="n"><b>${esc(e.name)}</b>${e.date ? `<div class="meta"><span class="tag">${esc(e.date)}</span></div>` : ""}</div><div class="amt">${this._m(e.amount, "pos")}</div></div>`; }).join("");
     }
     // 🧾 Offene Stände
-    if (d.staende.length) {
+    if (d.staende.length && show("staende")) {
       h += this._gh("file-document-alert-outline", "var(--fk-red)", "Offene Stände", `${d.settings.debts_subtract ? "abgezogen · " : ""}${this._m(-s.debts, "neg")}`);
       h += d.staende.map((x) => `<div class="item" style="--cc:var(--fk-red)"><div class="n"><b>${esc(x.name)}</b>${x.note ? `<div class="meta"><span class="tag">${esc(x.note)}</span></div>` : ""}</div><div class="amt">${this._m(-x.amount, "neg")}</div>
-        <button class="iconbtn okbtn" data-a="settle" data-id="${esc(x.id)}" title="✓ Ist beglichen" aria-label="beglichen">${ic("check-bold")}</button></div>`).join("");
+        <button class="iconbtn okbtn" data-a="settle" data-id="${esc(x.id)}" title="✓ Ist beglichen" aria-label="beglichen">${ic("check-bold")}${this._lb("beglichen")}</button></div>`).join("");
     }
     // 🐷 Töpfe
-    if (d.toepfe.length) {
+    if (d.toepfe.length && show("toepfe")) {
       h += this._ghc("toepfe", "piggy-bank-outline", "#e91e63", "Töpfe", this._m(s.pots_total));
       if (this._openSec.has("toepfe")) h += d.toepfe.map((t) => this._open?.kind === "pot" && this._open.id === t.id ? this._potForm(t)
         : `<div class="item click" style="--cc:#e91e63" data-a="open" data-k="pot" data-id="${esc(t.id)}" title="Antippen = rausnehmen, zurücklegen oder Stand ändern"><div class="n"><b>${esc(t.name)}</b>${t.lent > 0 ? `<div class="meta"><span class="tag lent">${this._m(t.lent)} geliehen</span></div>` : ""}</div><div class="amt">${this._m(t.amount)}</div></div>`).join("");
       h += `<div class="sum"><span>Komplett (Verfügbar + Töpfe)</span>${this._m(s.total)}</div>`;
     }
     // 🏦 Meine Konten (nur Info)
-    if (d.konten.length) {
+    if (d.konten.length && show("konten")) {
       h += this._ghc("konten", "bank-outline", "var(--pc)", "Meine Konten", String(d.konten.length));
       if (this._openSec.has("konten")) h += d.konten.map((k) => `<div class="item"><div class="n"><b>${esc(k.name)}</b><div class="meta"><span class="tag ${this._hidden ? "hidden-amt" : ""}" style="font-family:monospace">${esc(k.iban)}</span>${k.note ? `<span class="tag">${esc(k.note)}</span>` : ""}</div></div>
-        <button class="iconbtn" data-a="copy" data-id="${esc(k.id)}" title="IBAN kopieren">${ic("content-copy")}</button></div>`).join("");
+        <button class="iconbtn" data-a="copy" data-id="${esc(k.id)}" title="IBAN kopieren">${ic("content-copy")}${this._lb("kopieren")}</button></div>`).join("");
     }
     return h;
   }
@@ -792,8 +884,8 @@ class FixkostenCard extends HTMLElement {
     // 🐷 Schlank (Marco): Kopf antippen = zu · Zeile 1 Betrag ➖ ➕ · Zeile 2 Stand korrigieren ✓ ✕ – nur Symbole, lange drücken zeigt den Namen
     const lent = Number(t.lent) || 0;
     return `<div class="edit potbox" style="--cc:#e91e63"><div class="pothead" data-a="cancel" title="Zuklappen"><b>${esc(t.name)}</b> · ${this._m(t.amount)}${lent > 0 ? ` <button type="button" class="tag lent lentbtn" data-a="lentoff" data-id="${esc(t.id)}" title="Antippen = nicht mehr zurücklegen">${this._m(lent)} geliehen ${ic("close")}</button>` : ""}</div>
-      <form class="potrow" data-a="potmove" data-id="${esc(t.id)}"><input name="amount" class="amount" inputmode="decimal" autocomplete="off" placeholder="Betrag €" aria-label="Betrag" value="${lent > 0 ? numDe(lent) : ""}"><button class="iconbtn potbtn" type="submit" name="act" value="take" title="Rausnehmen" aria-label="Rausnehmen">${ic("minus")}</button><button class="iconbtn potbtn okbtn" type="submit" name="act" value="return" title="Zurücklegen" aria-label="Zurücklegen">${ic("plus")}</button></form>
-      <form class="potrow set" data-a="potset" data-id="${esc(t.id)}"><span class="potlbl">Stand korrigieren</span><input name="stand" class="amount" inputmode="decimal" autocomplete="off" aria-label="Stand korrigieren" value="${numDe(Number(t.amount) || 0)}"><button class="iconbtn potbtn okbtn" type="submit" title="Stand speichern" aria-label="Stand speichern">${ic("check-bold")}</button><button type="button" class="iconbtn potbtn" data-a="cancel" title="Abbrechen" aria-label="Abbrechen">${ic("close")}</button></form></div>`;
+      <form class="potrow" data-a="potmove" data-id="${esc(t.id)}"><input name="amount" class="amount" inputmode="decimal" autocomplete="off" placeholder="Betrag €" aria-label="Betrag" value="${lent > 0 ? numDe(lent) : ""}"><button class="iconbtn potbtn" type="submit" name="act" value="take" title="Rausnehmen" aria-label="Rausnehmen">${ic("minus")}${this._lb("raus")}</button><button class="iconbtn potbtn okbtn" type="submit" name="act" value="return" title="Zurücklegen" aria-label="Zurücklegen">${ic("plus")}${this._lb("zurück")}</button></form>
+      <form class="potrow set" data-a="potset" data-id="${esc(t.id)}"><span class="potlbl">Stand korrigieren</span><input name="stand" class="amount" inputmode="decimal" autocomplete="off" aria-label="Stand korrigieren" value="${numDe(Number(t.amount) || 0)}"><button class="iconbtn potbtn okbtn" type="submit" title="Stand speichern" aria-label="Stand speichern">${ic("check-bold")}${this._lb("speichern")}</button><button type="button" class="iconbtn potbtn" data-a="cancel" title="Abbrechen" aria-label="Abbrechen">${ic("close")}${this._lb("abbrechen")}</button></form></div>`;
   }
   // 🏦 Kontostand eintragen – eigene Seite wie bei der Einkaufsliste
   _kontoPage(d) {
@@ -1029,7 +1121,7 @@ class FixkostenCard extends HTMLElement {
       app: { icon: "cellphone-arrow-down", color: "#3949ab", title: "Offline-App", info: "auch ohne Netz", html: () => `
         <p class="small">Eine eigene kleine App nur für die Fixkosten. Sie öffnet sich auch <b>ohne Netz</b>, zeigt den letzten Stand, lässt dich abhaken und eintragen und schickt alles nach, sobald wieder Netz da ist.</p>
         <ol class="small steps"><li>Auf dem Handy im <b>Browser</b> (Chrome oder Safari, nicht in der HA-App) die Adresse unten öffnen.</li><li>Einmal mit deinem Home-Assistant-Benutzer <b>anmelden</b>.</li><li>Im Browser-Menü <b>„Zum Startbildschirm hinzufügen“</b> – fertig, eigenes 💶-Symbol.</li></ol>
-        <p class="small">Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. <b>Abmelden</b> meldet nur das Handy ab – deine Daten in Home Assistant bleiben erhalten. Es braucht eine <b>https</b>-Adresse (z. B. Nabu Casa).</p>
+        <p class="small">Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b> (nur auf Handys, die Fingerabdruck oder Face ID können). <b>Abmelden</b> meldet nur das Handy ab – deine Daten in Home Assistant bleiben erhalten. Es braucht eine <b>https</b>-Adresse (z. B. Nabu Casa).</p>
         ${d.app_url ? `<p class="small"><b>Deine Adresse für die App:</b></p><input id="appUrl" readonly value="${esc(d.app_url)}" translate="no">
         <div class="btnrow"><button class="btn main" data-a="appcopy">${ic("content-copy")}Kopieren</button></div><p class="small">Kopieren, im Handy-Browser einfügen, fertig. Die Adresse funktioniert zu Hause und unterwegs.</p>`
         : `<p class="small">⚠️ Home Assistant kennt keine https-Adresse für unterwegs. Mit <b>Nabu Casa</b> (Einstellungen → Home Assistant Cloud → Fernzugriff) oder einer eigenen https-Adresse (Einstellungen → System → Netzwerk) klappt es. Zu Hause geht auch: <code>${esc(location.origin)}/fixkosten/app/</code></p>`}` },
@@ -1039,6 +1131,24 @@ class FixkostenCard extends HTMLElement {
       factory: { icon: "nuke", color: "#b71c1c", title: "Werkseinstellungen", info: admin ? "alles zurücksetzen" : "nur Admins", html: () => admin ? `
         <p><b>💣 Werkseinstellungen</b><br>Setzt <b>wirklich alles</b> zurück, als hättest du die Fixkosten frisch installiert: Fixkosten, Gruppen, Einnahmen, Ausgaben, Töpfe, offene Stände, Konten, Kontostand, Haken, Rückblick und alle Schalter. Danach sind die Standard-Gruppen „ab dem 1.“ und „ab dem 15.“ wieder da. Nur die <b>PIN</b> bleibt. <b>Das geht nicht rückgängig</b> – vorher unter „Import &amp; Sicherung“ → „Als CSV sichern“.</p>
         <div class="btnrow"><button class="btn danger" data-a="factory">${ic("nuke")}Werkseinstellungen – alles löschen</button></div>` : `<p class="small">💣 Werkseinstellungen gibt es nur für Admins.</p>` },
+      log: { icon: "history", color: "#5e35b1", title: "Verlauf", info: st.log_on === false ? "aus" : `${(d.log || []).length} Einträge · wer, wann, was`, html: () => this._logHtml(d, admin) },
+      view: { icon: "eye-outline", color: "#00897b", title: "Ansicht – für alle", info: (() => { const n = FK_VIEW.filter(([k]) => (st.view || {})[k] === false).length; return n ? `${n} ausgeblendet` : "alles sichtbar"; })(), html: () => `
+        <p class="small">Was auf der Übersicht zu sehen ist. Gilt für <b>alle</b> – auf allen Handys, im Dashboard und in der App. Ausgeblendetes ist nicht weg, nur versteckt. Unter „Bearbeiten“ bleibt alles da.</p>
+        ${FK_VIEW.map(([k, i, t, sub]) => `<label class="switch"><span>${ic(i)}<span class="vt"><b>${t}</b><small>${sub}</small></span></span><input type="checkbox" class="swchk" data-a="setview" data-v="${k}" ${(st.view || {})[k] !== false ? "checked" : ""}></label>`).join("")}` },
+      labels: { icon: "format-text", color: "#546e7a", title: "Beschriftungen", info: st.labels ? "an – für alle" : "aus", html: () => `
+        <label class="switch"><span>${ic("format-text")}Beschriftungen anzeigen</span><input type="checkbox" class="swchk" data-a="setlabels" ${st.labels ? "checked" : ""}></label>
+        <p class="small">Zeigt unter den kleinen Symbol-Knöpfen (🧮 Rechner, 👁️ Verstecken, ✓ abgebucht …) einen kurzen Text. Handys haben ja keine Tooltips. Gilt für <b>alle</b>. Auch ohne den Schalter gilt: <b>Länger auf ein Symbol drücken</b> zeigt kurz, was es macht.</p>` },
+      mascot: { icon: "piggy-bank-outline", color: "#ec407a", title: "Maskottchen", info: st.mascot ? "Sparschwein ist da" : "aus", html: () => `
+        <label class="switch"><span>${ic("piggy-bank-outline")}Sparschwein oben links zeigen</span><input type="checkbox" class="swchk" data-a="setmascot" ${st.mascot ? "checked" : ""}></label>
+        <p class="small">Statt der Geldbörse sitzt oben links ein <b>Sparschwein</b> und zeigt, wie es um dein Geld steht. Antippen = zurück zur Übersicht. Gilt für <b>alle</b>.</p>
+        <div class="mascotprev">${[["happy", "im Plus"], ["worried", "knapp"], ["shock", "im Minus"], ["tired", "morgens"], ["sleep", "ab 21 Uhr"]].map(([m, t]) => `<span>${fkMascotSvg(m)}<small>${t}</small></span>`).join("")}</div>
+        <p class="small">😄 <b>Im Plus</b> freut es sich und wackelt · 😐 <b>knapp über der Warngrenze</b> guckt es skeptisch · 😱 <b>im Minus</b> erschrickt es · 🎉 Sind <b>alle Fixkosten abgehakt</b>, hüpft es einmal · 🥱 Morgens bis 9 Uhr gähnt es, 😴 ab 21 Uhr schläft es · 🎃 Um Halloween hat es einen Kürbis dabei, im Dezember eine Mütze.</p>` },
+      calm: { icon: "meditation", color: "#5c6bc0", title: "Ruhiger Modus", info: store.get(CALMKEY, false) ? "an – nur dieses Gerät" : "aus", html: () => `
+        <label class="switch"><span>${ic("meditation")}Ruhiger Modus</span><input type="checkbox" class="swchk" data-a="setcalm" ${store.get(CALMKEY, false) ? "checked" : ""}></label>
+        <p class="small">Nur für <b>dieses Gerät</b>. Gedämpfte Farben, keine Animationen, das Sparschwein hält still – angenehm für empfindliche Augen und alte Tablets.</p>` },
+      ...(this._app ? { theme: { icon: "theme-light-dark", color: "#37474f", title: "Hell / Dunkel", info: { light: "☀️ Hell", dark: "🌙 Dunkel" }[fkTheme()] || "🌓 Automatisch", html: () => `
+        <p class="small">Nur für die Offline-App auf diesem Gerät. „Automatisch“ richtet sich nach dem Handy – so wie Home Assistant auch.</p>
+        <div class="btnrow">${[["auto", "🌓 Automatisch"], ["light", "☀️ Hell"], ["dark", "🌙 Dunkel"]].map(([v, l]) => `<button class="btn ${fkTheme() === v ? "main" : ""}" data-a="theme" data-v="${v}">${l}</button>`).join("")}</div>` } } : {}),
       check: { icon: "check-decagram-outline", color: "#43a047", title: "Alles ok?", info: "prüfen", html: () => this._checkHtml(d) },
       errors: { icon: "bug-outline", color: "#e53935", title: "Fehler-Protokoll", info: this._health ? (this._health.errors.length ? `${this._health.errors.length} Meldungen` : "keine Fehler 🎉") : "Meldungen ansehen", html: () => this._errorsHtml() },
       stats: { icon: "chart-donut", color: "#00897b", title: "Ressourcen", info: "Speicher & Umfang", html: () => this._statsHtml(d) },
@@ -1049,12 +1159,26 @@ class FixkostenCard extends HTMLElement {
   _setView(d) {
     // 🗂️ wie die Einkaufsliste: Kästen nach Zweck (zugeklappt), darin Zeilen mit bunten Symbolen – jede Zeile öffnet ein eigenes Fenster
     const sh = this._sheets(d);
-    const cats = [["🧮", "Rechnen", ["rechnen", "quick"]], ["💾", "Daten", ["csv", "hist", "factory"]], ["🩺", "Gesundheit", ["check", "errors", "stats"]], ["📱", "App & Info", ["app", "pin", "privacy", "news", "credits"]]];
+    const cats = [["🧮", "Rechnen", ["rechnen", "quick"]], ["💾", "Daten", ["csv", "log", "hist", "factory"]], ["🩺", "Gesundheit", ["check", "errors", "stats"]], ["👁️", "Ansicht", ["view", "labels", "mascot", "calm", ...(this._app ? ["theme"] : [])]], ["📱", "App & Info", ["app", "pin", "privacy", "news", "credits"]]];
     return `<div class="sethead">Einstellungen</div>` + cats.map(([emo, title, keys]) => {
       const open = this._setOpen === title;
       const rows = open ? keys.map((k) => `<button class="lrow" data-a="sheet" data-v="${k}"><span class="ic" style="--ic:${sh[k].color}">${ic(sh[k].icon)}</span><span class="grow"><b>${sh[k].title}</b><small>${esc(sh[k].info)}</small></span>${ic("chevron-right")}</button>`).join("") : "";
       return `<div class="lgbox"><button class="lgroup" data-a="setgrp" data-v="${esc(title)}" aria-expanded="${open}"><span class="gem">${emo}</span><span class="grow"><b>${title}</b><small>${keys.map((k) => sh[k].title).join(", ")}</small></span>${ic(open ? "chevron-up" : "chevron-down")}</button>${rows}</div>`;
     }).join("");
+  }
+  // 📜 Verlauf: wer hat wann was geändert (neuestes oben, nach Tagen)
+  _logHtml(d, admin) {
+    const on = d.settings.log_on !== false, log = (d.log || []).slice().reverse();
+    let day = "", rows = "";
+    for (const e of log.slice(0, 150)) {
+      const dt = new Date(e.ts), dk = dt.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
+      if (dk !== day) { day = dk; rows += `<div class="logday">${esc(dk)}</div>`; }
+      rows += `<div class="logrow"><span class="lt">${dt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</span><span class="lx ${this._hidden ? "hidden-amt" : ""}">${esc(e.text)}</span>${e.by ? `<span class="tag">${esc(e.by)}</span>` : ""}</div>`;
+    }
+    return `<label class="switch"><span>${ic("history")}Verlauf an</span><input type="checkbox" class="swchk" data-a="setlog" ${on ? "checked" : ""}></label>
+      <p class="small">Merkt sich <b>wer wann was</b> geändert hat: abgehakt, Kontostand, Ausgaben, Töpfe, Bearbeiten … Die letzten 300 Einträge, nur in deinem Home Assistant.${this._queue.length ? " Was noch im Postausgang wartet, kommt dazu, sobald es angekommen ist." : ""}</p>
+      ${log.length ? rows + (log.length > 150 ? `<p class="small">… und ${log.length - 150} ältere.</p>` : "") : `<p class="okmsg">Noch nichts passiert 🙂</p>`}
+      ${admin && log.length ? `<div class="btnrow"><button class="btn" data-a="logclear">${ic("delete-sweep-outline")}Verlauf leeren</button></div>` : ""}`;
   }
   // 🩺 Alles ok? – sucht nach Dingen, die nicht zusammenpassen (wie bei der Einkaufsliste), jeder Fund mit „so reparierst du's“
   _checks(d) {
@@ -1235,6 +1359,18 @@ class FixkostenCard extends HTMLElement {
       else { this._open = null; this._removeWithUndo(k, id, { type: `${k}_delete`, id }, "🗑️ Gelöscht"); }
     } else if (a === "setreset") this._send({ type: "settings", settings: { reset_checks: el.checked } });
     else if (a === "setdebts") this._send({ type: "settings", settings: { debts_subtract: el.checked } });
+    else if (a === "setlog") this._send({ type: "settings", settings: { log_on: el.checked } });
+    else if (a === "setview") this._send({ type: "settings", settings: { view: { [el.dataset.v]: el.checked } } });
+    else if (a === "setlabels") this._send({ type: "settings", settings: { labels: el.checked } });
+    else if (a === "setmascot") this._send({ type: "settings", settings: { mascot: el.checked } });
+    else if (a === "setcalm") { store.put(CALMKEY, el.checked); redraw(); }
+    else if (a === "theme") { // 🌓 nur Offline-App
+      const v = el.dataset.v;
+      try { v === "auto" ? localStorage.removeItem(THEMEKEY) : localStorage.setItem(THEMEKEY, v); } catch (_) { /* egal */ }
+      v === "auto" ? document.documentElement.removeAttribute("data-theme") : document.documentElement.setAttribute("data-theme", v);
+      redraw();
+    }
+    else if (a === "logclear") { if (confirm("Den ganzen Verlauf löschen?")) this._send({ type: "log_clear" }); }
     else if (a === "setwarnon") this._send({ type: "settings", settings: { warn_enabled: el.checked } });
     else if (a === "setwarn") { const v = parseMoney(el.value); if (!Number.isNaN(v)) this._send({ type: "settings", settings: { warn_below: v } }); }
     else if (a === "resetnow") { if (confirm("Alle Haken dieses Monats entfernen?")) this._send({ type: "reset_checks" }); }

@@ -38,9 +38,14 @@ DEFAULT_SETTINGS = {
     "warn_below": 100.0,
     "debts_subtract": False,  # 🧾 offene Stände von „Verfügbar“ abziehen (Schalter)    # ⚠️ Warnung, wenn „Verfügbar“ darunter fällt
     "currency": "EUR",
+    "log_on": True,         # 📜 Verlauf: wer hat wann was geändert (Schalter)
+    "labels": False,        # 🔤 Beschriftungen unter den Symbol-Knöpfen (für alle)
+    "mascot": False,        # 🐷 Maskottchen Sparschwein oben links (für alle)
+    "view": {},             # 👁️ Ansicht für alle: Abschnitt → False = ausgeblendet
     "quick": ["Bäckerei", "Netto, Lidl & Co.", "Amazon", "PayPal", "Mc Donalds & BK", "Sonstiges"],  # ⚡ Schnellknöpfe
 }
 
 MAX_BOOKINGS_DAYS = 400   # 🧾 Tagesbuchungen so lange aufheben
+MAX_LOG = 300            # 📜 Verlauf: so viele Einträge merken
 MAX_HISTORY = 36          # 📊 Monatsrückblick: so viele Monate merken
 MAX_SEEN_OPS = 2000       # 🔁 schon verarbeitete Änderungen (gegen doppeltes Nachschicken aus der Offline-App)

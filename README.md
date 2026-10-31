@@ -21,7 +21,8 @@
 - 🐷 **Töpfe**, 🧾 **offene Stände**, 🏦 **IBAN-Liste** zum Kopieren, 💵 **Einnahmen** als Info.
 - 📱 **Offline-App** mit Fingerabdruck-Sperre und 🔒 **PIN-Sperre** für Einstellungen.
 - ⠿ **Alles verschiebbar** (auch in eine andere Gruppe), ↩️ **Rückgängig** nach dem Löschen.
-- 📊 **Rückblick** über bis zu 3 Jahre, 📥 **CSV** einlesen und sichern.
+- 📊 **Rückblick** über bis zu 3 Jahre, 📥 **CSV** einlesen und sichern, 📜 **Verlauf** (wer hat wann was geändert).
+- 👁️ **Ansicht** wie bei der Einkaufsliste: Abschnitte ausblenden, Beschriftungen, ruhiger Modus – und ein 🐷 **Sparschwein** als Maskottchen.
 
 <details><summary>📋 Alle Funktionen im Detail</summary>
 
@@ -42,6 +43,9 @@
 | 📊 **Rückblick** | Jeder Monat wird am Monatsende automatisch gemerkt (⚙️ → Daten → Rückblick) |
 | 🩺 **Gesundheit** | „Alles ok?“ findet Posten ohne Gruppe, alten Kontostand, vergessene Ausgaben …, dazu Fehler-Protokoll und Ressourcen |
 | 📱 **Offline-App** | Eigene Handy-App mit Anmeldung, Fingerabdruck/Face-ID-Sperre und Postausgang |
+| 📜 **Verlauf** | Wer hat wann was geändert: abgehakt, Kontostand, Ausgaben, Töpfe, Bearbeiten … Die letzten 300 Einträge, ausschaltbar, Admins können ihn leeren (⚙️ → Daten → Verlauf) |
+| 👁️ **Ansicht** | Abschnitte für alle ausblenden (Nächste Abbuchung, Ausgaben, Fixkosten, Einnahmen, Offene Stände, Töpfe, Meine Konten), **Beschriftungen** unter den Symbol-Knöpfen, **Ruhiger Modus** (nur dieses Gerät) und in der Offline-App **Hell / Dunkel** |
+| 🐷 **Maskottchen** | Ein Sparschwein oben links (Standard aus): freut sich im Plus, guckt skeptisch knapp über der Warngrenze, erschrickt im Minus und hüpft, wenn alle Fixkosten abgehakt sind. Morgens gähnt es, ab 21 Uhr schläft es |
 | 📖 **Anleitung** | Steckt direkt in der Karte (unten „📖 Anleitung“) |
 
 </details>
@@ -93,7 +97,7 @@ Alles Weitere steht in der Karte unter **📖 Anleitung** – einfach aufklappen
 1. Am Handy im Browser öffnen: `https://DEINE-HA-ADRESSE/fixkosten/app/`
 2. Mit deinem Home-Assistant-Benutzer anmelden (2-Faktor geht auch)
 3. Im Browser-Menü **„Zum Startbildschirm“** – schon gibt es ein eigenes App-Symbol
-4. Unten **„👆 Fingerabdruck-Sperre einschalten“**. Nach 1 Minute im Hintergrund fragt die App wieder
+4. Unten **„👆 Fingerabdruck-Sperre einschalten“** (der Knopf erscheint nur, wenn dein Handy Fingerabdruck oder Face ID kann). Nach 1 Minute im Hintergrund fragt die App wieder
 
 **Ohne Netz?** Die App zeigt den zuletzt bekannten Stand. Was du einträgst oder abhakst, wartet im **Postausgang** (oben „⏳ wartet“) und wird von selbst nachgeschickt, sobald Home Assistant wieder erreichbar ist. Nichts zählt doppelt.
 
@@ -112,8 +116,9 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 **In der Karte (⚙️)** – wie bei der Einkaufsliste: Kästen nach Zweck zum Aufklappen, jede Zeile öffnet eine eigene Seite in der Karte (← zurück). Die PIN tippst du auf einem Zahlenfeld wie am Handy:
 - 🧮 **Rechnen & Warnung:** Haken am Monatsanfang automatisch zurücksetzen (Standard an), offene Stände von „Verfügbar“ abziehen (Standard aus), Warnung an/aus und Warngrenze
 - ⚡ **Schnellknöpfe** für Ausgaben, einer pro Zeile
-- 💾 **Daten:** Import & Sicherung (CSV einlesen und sichern, nur Admins), 📊 Rückblick, 💣 Werkseinstellungen (nur Admins, zwei Sicherheitsfragen, nur die PIN bleibt)
+- 💾 **Daten:** Import & Sicherung (CSV einlesen und sichern, nur Admins), 📜 Verlauf (an/aus, leeren), 📊 Rückblick, 💣 Werkseinstellungen (nur Admins, zwei Sicherheitsfragen, nur die PIN bleibt)
 - 🩺 **Gesundheit:** Alles ok?, Fehler-Protokoll, Ressourcen
+- 👁️ **Ansicht:** Ansicht für alle (Abschnitte ein-/ausblenden), Beschriftungen, Maskottchen (alle drei gelten für alle Geräte), Ruhiger Modus (nur dieses Gerät), in der Offline-App Hell / Dunkel
 - 📱 **Offline-App:** Anleitung und deine eigene App-Adresse mit „Kopieren“
 - 🔒 **Schutz** (4–8 Ziffern): Dann fragen ⚙️ und „Bearbeiten“ nach der PIN. Das 🔓 oben sperrt sofort wieder, sonst nach 10 Minuten Ruhe. 5× falsch = 1 Minute Pause.
 - 🛡️ Datenschutz, 🆕 Was ist neu und 💙 Credits

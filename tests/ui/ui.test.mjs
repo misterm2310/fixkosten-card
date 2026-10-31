@@ -309,7 +309,12 @@ if (await sr(`return !!h.querySelector('.ppad');`)) { await keys("4711✔"); awa
 await sr(`h.querySelector('[data-a="setgrp"][data-v="Ansicht"]').click();`);
 check("Ansicht: Gruppe mit Ansicht, Beschriftungen, Maskottchen, Ruhig", await sr(`return ["view", "labels", "mascot", "calm"].every((k) => h.querySelector('[data-a="sheet"][data-v="' + k + '"]')) && !h.querySelector('[data-a="sheet"][data-v="theme"]');`));
 await sr(`h.querySelector('[data-a="sheet"][data-v="mascot"]').click();`);
-check("Maskottchen: Vorschau mit 5 Gesichtern", await sr(`return h.querySelectorAll('.mascotprev svg.mascot').length === 5;`));
+check("Maskottchen: Vorschau mit 5 Gesichtern + 8 Kostümen", await sr(`return h.querySelectorAll('.mascotprev svg.mascot').length === 13 && h.querySelectorAll('.mascotprev span.now').length === 1;`));
+await shot("mascot-kostueme.png");
+check("Kostüme: Jahreszeit + Feiertage richtig", await p.evaluate(() => { const D = customElements.get("fixkosten-card").mascotDeco; if (!D) return false;
+  const t = (y, m, d) => D(new Date(y, m - 1, d, 12));
+  return t(2027, 4, 15) === "spring" && t(2027, 7, 1) === "summer" && t(2027, 9, 20) === "autumn" && t(2027, 2, 1) === "winter" && t(2027, 1, 10) === "winter"
+    && t(2027, 3, 28) === "bunny" && t(2027, 3, 25) === "bunny" && t(2027, 3, 30) === "spring" && t(2027, 10, 31) === "pumpkin" && t(2027, 12, 24) === "santa" && t(2027, 12, 31) === "party" && t(2027, 12, 28) === "winter"; }));
 await sr(`const x = h.querySelector('[data-a="setmascot"]'); x.checked = true; x.dispatchEvent(new Event('change'));`);
 await new Promise((r) => setTimeout(r, 80));
 check("Maskottchen: Sparschwein statt Geldbörse", await sr(`return !!h.querySelector('.head .mascotbox svg.mascot') && /mascot (happy|worried|shock|tired|sleep)/.test(h.querySelector('.head .mascotbox svg').getAttribute('class'));`));
@@ -380,6 +385,33 @@ await sr(`h.querySelector('[data-a="setgrp"][data-v="App & Info"]').click(); h.q
 check("Schalter „Ganze Karte sperren“ in Schutz", await sr(`return !!h.querySelector('[data-a="setlockall"]')?.checked;`));
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._send({ type: "settings", settings: { lock_all: false } }); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
 await new Promise((r) => setTimeout(r, 80));
+
+// 💱 Währung (beta.17)
+await sr(`h.querySelector('[data-a="tab"][data-v="set"]').click();`);
+await sr(`h.querySelector('[data-a="setgrp"][data-v="Rechnen"]')?.click(); h.querySelector('[data-a="sheet"][data-v="rechnen"]').click();`);
+check("Währung: Auswahl in Rechnen & Warnung, Euro vorgewählt", await sr(`const x = h.querySelector('select[data-a="setcur"]'); return !!x && x.value === "EUR" && x.options.length >= 4;`));
+await sr(`const x = h.querySelector('select[data-a="setcur"]'); x.value = "CHF"; x.dispatchEvent(new Event('change'));`);
+await new Promise((r) => setTimeout(r, 80));
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+check("Währung CHF: große Zahl als CHF geschrieben, kein €", await sr(`const t = h.querySelector('.big').textContent; return /CHF/.test(t) && !/€/.test(t) && !/€/.test(h.querySelector('.tiles').textContent);`), await sr(`return h.querySelector('.big').textContent;`));
+check("Währung CHF: Eingabefeld zeigt CHF", await sr(`return /CHF/.test(h.querySelector('form.add .amount').placeholder);`));
+await shot("12-waehrung-chf.png");
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._send({ type: "settings", settings: { currency: "EUR" } }); c._force = true; c._render(); });
+await new Promise((r) => setTimeout(r, 80));
+check("Währung zurück auf €", await sr(`return /€/.test(h.querySelector('.big').textContent);`));
+
+// 🌍 Englisch (beta.17): language: en → Wörterbuch laden, alles übersetzen, eigene Namen bleiben
+await p.evaluate(() => { const c = document.querySelector('#c1'); c.setConfig({ title: "Fixkosten", language: "en" }); });
+await p.waitForFunction(() => /Available/.test(document.querySelector('#c1').shadowRoot.querySelector('.hero .lbl')?.textContent || ""), null, { timeout: 4000 }).catch(() => {});
+check("Englisch: „Available“, Reiter Overview/Edit", await sr(`return /^Available/.test(h.querySelector('.hero .lbl').textContent) && [...h.querySelectorAll('.tab')].map((x) => x.textContent.trim()).join("|") === "Overview|Edit";`), await sr(`return h.querySelector('.hero .lbl').textContent;`));
+check("Englisch: eigene Namen bleiben deutsch (Schnellknopf „Bäckerei“)", await sr(`return [...h.querySelectorAll('.quick .chip')].some((x) => x.textContent.trim() === "Bäckerei");`));
+check("Englisch: Euro englisch geschrieben (€ vorn)", await sr(`return /^-?€/.test(h.querySelector('.big').textContent.trim());`), await sr(`return h.querySelector('.big').textContent;`));
+await shot("13-englisch.png");
+await sr(`h.querySelector('[data-a="tab"][data-v="set"]').click();`);
+check("Englisch: Einstellungen übersetzt", await sr(`const t = h.querySelector('ha-card').textContent; return /Calculation/.test(t) && /Health/.test(t) && !/Gesundheit|Rechnen/.test(t);`));
+await p.evaluate(() => { const c = document.querySelector('#c1'); c.setConfig({ title: "Fixkosten" }); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+await new Promise((r) => setTimeout(r, 80));
+check("Zurück auf Deutsch", await sr(`return /^Verfügbar/.test(h.querySelector('.hero .lbl').textContent);`));
 
 // 📱 Offline-App: Anmeldeseite lädt ohne Fehler
 const a = await b.newPage({ viewport: { width: 390, height: 760 }, deviceScaleFactor: shots ? 2 : 1 });

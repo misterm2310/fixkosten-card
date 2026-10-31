@@ -51,3 +51,6 @@ MAX_BOOKINGS_DAYS = 400   # 🧾 Tagesbuchungen so lange aufheben
 MAX_LOG = 300            # 📜 Verlauf: so viele Einträge merken
 MAX_HISTORY = 36          # 📊 Monatsrückblick: so viele Monate merken
 MAX_SEEN_OPS = 2000       # 🔁 schon verarbeitete Änderungen (gegen doppeltes Nachschicken aus der Offline-App)
+
+# 💱 Währungen: Code → Zeichen (für Texte im Verlauf)
+CURRENCIES = {"EUR": "€", "CHF": "CHF", "USD": "$", "GBP": "£", "PLN": "zł", "CZK": "Kč", "DKK": "kr", "SEK": "kr", "NOK": "kr", "HUF": "Ft"}

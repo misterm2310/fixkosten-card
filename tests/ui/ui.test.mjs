@@ -311,6 +311,28 @@ check("App: Anmeldeseite da", await a.evaluate(() => document.querySelector("h1"
 check("App: Icon lädt", await a.evaluate(() => { const i = document.querySelector(".login img"); return i && i.complete && i.naturalWidth === 192; }));
 if (shots) await a.screenshot({ path: path.join(shots, "6-app-anmeldung.png") });
 
+// 📚 Zweites Buch: Karte mit „buch“ fragt nach genau diesem Buch, eigener Postausgang, Editor zeigt alle Bücher
+const rb = await p.evaluate(async () => {
+  fake.msgs = [];
+  const c = document.createElement("fixkosten-card"); c.id = "c2"; c.setConfig({ buch: "Partnerin" }); document.body.append(c);
+  c.hass = document.querySelector("#c1")._hass;
+  await new Promise((res) => setTimeout(res, 80));
+  const sub = fake.msgs.find((m) => m.type === "fixkosten/subscribe");
+  const ed = document.createElement("fixkosten-card-editor"); document.body.append(ed);
+  ed.setConfig({ buch: "Partnerin" }); ed.hass = c._hass;
+  await new Promise((res) => setTimeout(res, 50));
+  const opts = [...ed.querySelectorAll('select[data-k="buch"] option')].map((o) => [o.textContent, o.selected]);
+  let changed = null; ed.addEventListener("config-changed", (e) => { changed = e.detail.config; });
+  const sel = ed.querySelector('select[data-k="buch"]'); sel.value = ""; sel.dispatchEvent(new Event("change"));
+  const out = { book: sub?.book, qk: c._qk, opts, changed, label: c.shadowRoot.querySelector(".hero .lbl")?.textContent || "" };
+  c.remove(); ed.remove();
+  return out;
+});
+check("Buch: Karte abonniert genau ihr Buch", rb.book === "Partnerin", JSON.stringify(rb));
+check("Buch: eigener Postausgang im Handy", rb.qk === "fixkosten_queue_partnerin", rb.qk);
+check("Buch: Editor zeigt beide Bücher, „Partnerin“ gewählt", rb.opts.length === 2 && rb.opts[1][0] === "Partnerin" && rb.opts[1][1], JSON.stringify(rb.opts));
+check("Buch: Editor zurück auf erstes Buch entfernt „buch“", rb.changed && !("buch" in rb.changed), JSON.stringify(rb.changed));
+
 check("Keine Fehler in der Konsole", errs.length === 0, errs.join(" | "));
 await b.close();
 srv.close();

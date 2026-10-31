@@ -12,7 +12,7 @@ from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, SIGNAL_UPDATE, VERSION
+from .const import DOMAIN, VERSION
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -70,7 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
 
 def device_info(entry: ConfigEntry) -> DeviceInfo:
-    return DeviceInfo(identifiers={(DOMAIN, entry.entry_id)}, name="Fixkosten", manufacturer="Mister-M",
+    return DeviceInfo(identifiers={(DOMAIN, entry.entry_id)}, name=entry.title or "Fixkosten", manufacturer="Mister-M",
                       sw_version=VERSION, entry_type=DeviceEntryType.SERVICE)
 
 
@@ -83,10 +83,11 @@ class FkSensor(SensorEntity):
         self.entity_description = desc
         self._attr_unique_id = f"{entry.entry_id}_{desc.key}"
         self._attr_device_info = device_info(entry)
-        self.entity_id = f"sensor.fixkosten_{_slug(desc.name)}"
+        self._entry_id = entry.entry_id
+        self.entity_id = f"sensor.{entity_prefix(hass, entry)}_{_slug(desc.name)}"
 
     async def async_added_to_hass(self) -> None:
-        self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_UPDATE, self._update))
+        self.async_on_remove(async_dispatcher_connect(self.hass, self._m.signal, self._update))
 
     @callback
     def _update(self) -> None:
@@ -94,7 +95,7 @@ class FkSensor(SensorEntity):
 
     @property
     def _m(self):
-        return self.hass.data[DOMAIN]["manager"]
+        return self.hass.data[DOMAIN]["books"][self._entry_id]
 
     @property
     def native_value(self) -> Any:
@@ -107,8 +108,14 @@ class FkSensor(SensorEntity):
         return self.entity_description.attrs(self._m.summary(), self._m.data)
 
 
+def entity_prefix(hass: HomeAssistant, entry: ConfigEntry) -> str:
+    """📚 Erstes Buch: sensor.fixkosten_… (wie bisher) · weitere: sensor.fixkosten_<name>_…"""
+    m = hass.data[DOMAIN]["books"][entry.entry_id]
+    return "fixkosten" if m.primary else f"fixkosten_{_slug(entry.title)}"
+
+
 def _slug(name: str) -> str:
     out = name.lower()
     for a, b in (("ä", "ae"), ("ö", "oe"), ("ü", "ue"), ("ß", "ss"), (" ", "_")):
         out = out.replace(a, b)
-    return out
+    return "".join(c if c.isalnum() or c == "_" else "_" for c in out).strip("_")

@@ -53,9 +53,11 @@ customElements.define("ha-icon", class extends HTMLElement {
 let cb = null;
 const hass = () => ({
   connected: fake.online, user: { name: "Test", is_admin: true }, states: {}, language: "de",
-  connection: { subscribeMessage: async (f) => { cb = f; setTimeout(() => f(JSON.parse(JSON.stringify(fake.data))), 10); return () => {}; } },
+  connection: { subscribeMessage: async (f, m) => { (fake.msgs ||= []).push(m); cb = f; setTimeout(() => f(JSON.parse(JSON.stringify(fake.data))), 10); return () => {}; } },
   callWS: async (msg) => {
     if (!fake.online) throw { code: "lost", message: "offline" };
+    (fake.msgs ||= []).push(msg);
+    if (msg.type === "fixkosten/books") return { books: [{ id: "e1", title: "Fixkosten", primary: true }, { id: "e2", title: "Partnerin", primary: false }] };
     if (msg.type === "fixkosten/apply") {
       // wie Home Assistant: erst neuen Stand schicken, dann die Antwort
       fake.applied.push(...msg.ops);

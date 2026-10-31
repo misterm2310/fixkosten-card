@@ -22,6 +22,7 @@
 - 🐷 **Pots**, 🧾 **open balances**, 🏦 **IBAN list** with copy button, 💵 **income** as info.
 - 📱 **Offline app** with fingerprint lock and 🔒 **PIN lock** for settings.
 - 📊 **Monthly review** for up to 3 years, 📥 **CSV** import and export.
+- 📚 **Several books** (like several plants): Devices & services → Fixkosten → Add entry, e.g. one per person. Each book has its own data, sensors (`sensor.fixkosten_<name>_…`) and PIN; pick it in the card editor (`buch:`) and use the card's visibility per user.
 
 ---
 
@@ -77,7 +78,7 @@ The PIN is stored only as a hash and checked by Home Assistant. It guards the di
 
 Sensors: `sensor.fixkosten_verfuegbar`, `…_offene_fixkosten`, `…_fixkosten_monat`, `…_einnahmen_monat`, `…_ueberschuss`, `…_ausgaben_offen`, `…_ausgaben_monat`, `…_offene_staende`, `…_gesamtvermoegen`, `…_naechste_abbuchung`, `binary_sensor.fixkosten_warnung`. IBANs never appear in a sensor.
 
-Actions: `fixkosten.abhaken`, `kontostand_setzen`, `buchung_hinzufuegen`, `topf_setzen`, `haken_zuruecksetzen`, `csv_import`, `daten_abrufen`.
+Actions: `fixkosten.abhaken`, `kontostand_setzen`, `buchung_hinzufuegen`, `topf_setzen`, `haken_zuruecksetzen`, `csv_import`, `daten_abrufen` – all with optional `buch` (empty = first book).
 
 </details>
 

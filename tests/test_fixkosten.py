@@ -338,3 +338,50 @@ async def test_import_kontostand_und_datum(hass, setup):
     from datetime import datetime
     upd = m.find("topf", "Bargeld")["updated"]
     assert datetime.fromtimestamp(upd / 1000).strftime("%d.%m.%Y") in ("23.10.2026", "24.10.2026")
+
+
+async def test_mehrere_buecher(hass, setup, hass_ws_client):
+    # 📚 Zweites Buch (wie eine zweite Anlage bei Solis): eigene Daten, eigene Sensoren, eigene PIN
+    from custom_components.fixkosten.books import get_manager
+
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    assert result["type"] == "form" and "name" in result["data_schema"].schema
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"name": "fixkosten"})
+    assert result["errors"] == {"name": "name_taken"}  # gleicher Name geht nicht
+    with patch("custom_components.fixkosten.frontend.add_extra_js_url"):
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], {"name": "Partnerin"})
+        await hass.async_block_till_done()
+    assert result["type"] == "create_entry" and result["data"]["store"].startswith("fixkosten.")
+    erstes, zweites = get_manager(hass), get_manager(hass, "partnerin")
+    assert erstes is mgr(hass) and zweites is not erstes and not zweites.primary
+    zweites.apply([{"type": "konto", "balance": 300}])
+    erstes.apply([{"type": "konto", "balance": 1000}])
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.fixkosten_partnerin_verfuegbar").state == "300.0"
+    assert float(hass.states.get("sensor.fixkosten_verfuegbar").state) == 1000.0 - erstes.summary()["fix_open"] - erstes.summary()["bookings_open"]
+    assert hass.states.get("binary_sensor.fixkosten_partnerin_warnung") is not None
+    # Aktion mit „buch“
+    await hass.services.async_call(DOMAIN, "kontostand_setzen", {"buch": "Partnerin", "kontostand": 42}, blocking=True)
+    assert zweites.summary()["balance"] == 42 and erstes.summary()["balance"] == 1000
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(DOMAIN, "kontostand_setzen", {"buch": "Gibtsnicht", "kontostand": 1}, blocking=True)
+    # Websocket mit „book“
+    client = await hass_ws_client(hass)
+    await client.send_json({"id": 1, "type": "fixkosten/books"})
+    msg = await client.receive_json()
+    assert [b["title"] for b in msg["result"]["books"]] == ["Fixkosten", "Partnerin"]
+    await client.send_json({"id": 2, "type": "fixkosten/apply", "book": "Partnerin", "ops": [{"type": "konto", "balance": 7}]})
+    assert (await client.receive_json())["success"]
+    assert zweites.summary()["balance"] == 7 and erstes.summary()["balance"] == 1000
+    await client.send_json({"id": 3, "type": "fixkosten/subscribe", "book": "Partnerin"})
+    assert (await client.receive_json())["success"]
+    ev = await client.receive_json()
+    assert ev["event"]["book"]["title"] == "Partnerin" and ev["event"]["konto"]["balance"] == 7
+    # Buch löschen räumt seine Daten weg, das erste bleibt
+    entry2 = hass.config_entries.async_get_entry(zweites.entry_id)
+    await zweites.async_save_now()
+    with patch("homeassistant.helpers.storage.Store.async_remove") as rm:
+        assert await hass.config_entries.async_remove(entry2.entry_id)
+        await hass.async_block_till_done()
+    assert rm.called
+    assert get_manager(hass) is erstes

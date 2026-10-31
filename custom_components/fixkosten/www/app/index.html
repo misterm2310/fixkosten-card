@@ -329,7 +329,7 @@ function update() {
   if (!card) {
     wrap.innerHTML = "";
     card = document.createElement("fixkosten-card");
-    card.setConfig({ title: "Fixkosten" });
+    card.setConfig({ title: "Fixkosten", ...(appBook() ? { buch: appBook() } : {}) });
     wrap.append(card);
     const foot = document.createElement("div");
     foot.className = "foot";
@@ -337,7 +337,7 @@ function update() {
     wrap.append(foot);
     document.getElementById("lockBtn").addEventListener("click", () => (lock ? lockDisable() : lockEnable()));
     document.getElementById("logoutBtn").addEventListener("click", () => {
-      const q = JSON.parse(localStorage.getItem("fixkosten_queue") || "[]");
+      const q = fkKeys("fixkosten_queue").flatMap((k) => JSON.parse(localStorage.getItem(k) || "[]"));
       if (confirm(q.length ? `Abmelden? ${q.length} noch nicht gesendete Änderung(en) gehen verloren. Alles andere bleibt in Home Assistant erhalten.` : "Abmelden? Deine Daten in Home Assistant bleiben erhalten – nur die Kopie in diesem Handy wird gelöscht.")) logout(false);
     });
   }
@@ -348,6 +348,10 @@ function update() {
   if (shortcut === "pay") { shortcut = null; setTimeout(() => card.shadowRoot?.querySelector('input[name="amount"]')?.focus(), 600); }
 }
 let shortcut = new URLSearchParams(location.search).get("do");
+// 📚 Welches Buch? ?buch=Partnerin (wird gemerkt, weil die App vom Startbildschirm ohne Zusatz startet; ?buch= leer = erstes Buch)
+(() => { const p = new URLSearchParams(location.search); if (p.has("buch")) { try { const b = (p.get("buch") || "").trim(); b ? localStorage.setItem("fkapp_buch", b) : localStorage.removeItem("fkapp_buch"); } catch (_) { /* egal */ } if (!shortcut) history.replaceState(null, "", BASE); } })();
+function appBook() { try { return localStorage.getItem("fkapp_buch") || ""; } catch (_) { return ""; } }
+function fkKeys(...pre) { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (pre.some((p) => k === p || k.startsWith(p + "_"))) out.push(k); } } catch (_) { /* egal */ } return out; }
 if (shortcut) history.replaceState(null, "", BASE);
 function logout(silent) {
   const refresh = auth?.refresh;
@@ -355,7 +359,7 @@ function logout(silent) {
   localStorage.removeItem(K.auth);
   if (!silent) {
     // 🔒 Alles Persönliche aus dem Handy löschen
-    for (const k of [K.user, "fixkosten_data", "fixkosten_queue", "fixkosten_hidden", LOCK_KEY]) localStorage.removeItem(k);
+    for (const k of [K.user, ...fkKeys("fixkosten_data", "fixkosten_queue"), "fixkosten_hidden", "fkapp_buch", LOCK_KEY]) localStorage.removeItem(k);
     user = null;
     if (refresh) fetch("/auth/token", { method: "POST", body: new URLSearchParams({ action: "revoke", token: refresh }) }).catch(() => {});
   }

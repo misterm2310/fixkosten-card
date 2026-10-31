@@ -1,5 +1,9 @@
 abhaken:
   fields:
+    buch:
+      example: "Partnerin"
+      selector:
+        text:
     name:
       required: true
       example: "Miete"
@@ -11,6 +15,10 @@ abhaken:
         boolean:
 kontostand_setzen:
   fields:
+    buch:
+      example: "Partnerin"
+      selector:
+        text:
     kontostand:
       required: true
       example: 1234.56
@@ -23,6 +31,10 @@ kontostand_setzen:
           unit_of_measurement: "€"
 buchung_hinzufuegen:
   fields:
+    buch:
+      example: "Partnerin"
+      selector:
+        text:
     name:
       example: "Bäckerei"
       selector:
@@ -39,6 +51,10 @@ buchung_hinzufuegen:
           unit_of_measurement: "€"
 topf_setzen:
   fields:
+    buch:
+      example: "Partnerin"
+      selector:
+        text:
     name:
       required: true
       example: "Sparkonto"
@@ -54,8 +70,17 @@ topf_setzen:
           mode: box
           unit_of_measurement: "€"
 haken_zuruecksetzen:
+  fields:
+    buch:
+      example: "Partnerin"
+      selector:
+        text:
 csv_import:
   fields:
+    buch:
+      example: "Partnerin"
+      selector:
+        text:
     text:
       selector:
         text:
@@ -69,3 +94,8 @@ csv_import:
       selector:
         boolean:
 daten_abrufen:
+  fields:
+    buch:
+      example: "Partnerin"
+      selector:
+        text:

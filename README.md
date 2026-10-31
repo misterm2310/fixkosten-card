@@ -165,6 +165,7 @@ Am 1. eines Monats um 00:00 merkt sich die Integration den alten Monat für den 
 ```yaml
 type: custom:fixkosten-card
 title: Fixkosten   # optional
+buch: Partnerin    # optional: welches Buch (leer = erstes Buch), auch im Karten-Editor wählbar
 privat: true       # optional: Beträge erst nach Antippen von 👁️ zeigen (z. B. fürs Küchen-Tablet)
 ```
 
@@ -190,7 +191,7 @@ privat: true       # optional: Beträge erst nach Antippen von 👁️ zeigen (z
 | `sensor.fixkosten_naechste_abbuchung` | Name des nächsten offenen Postens (Attribute: Betrag, Gruppe, ab Tag, fällig) |
 | `binary_sensor.fixkosten_warnung` | An, wenn „Verfügbar“ unter der Grenze aus ⚙️ liegt |
 
-IBANs tauchen bewusst in keinem Sensor auf.
+IBANs tauchen bewusst in keinem Sensor auf. Weitere Bücher bekommen den Namen dazwischen, z. B. sensor.fixkosten_partnerin_verfuegbar.
 
 | Aktion | Was sie tut |
 | --- | --- |
@@ -201,6 +202,24 @@ IBANs tauchen bewusst in keinem Sensor auf.
 | `fixkosten.haken_zuruecksetzen` | Alle Haken dieses Monats weg |
 | `fixkosten.csv_import` | `text` oder `datei`, optional `ersetzen` |
 | `fixkosten.daten_abrufen` | Gibt alle Zahlen zurück (für Skripte) |
+
+Alle Aktionen haben zusätzlich `buch` (z. B. `Partnerin`). Leer = erstes Buch.
+
+</details>
+
+---
+
+## 📚 Mehrere Bücher (z. B. eins pro Person)
+
+<details><summary>Wie bei mehreren Anlagen: jeder seine eigene Liste – <i>aufklappen</i></summary>
+
+1. **Einstellungen → Geräte & Dienste → Fixkosten → Eintrag hinzufügen**, Namen eingeben (z. B. „Partnerin“).
+2. Neue Karte anlegen, im Karten-Editor bei **„Welches Buch?“** das Buch wählen (oder `buch: Partnerin` im YAML).
+3. In der Karte unter **Sichtbarkeit** nur den passenden Benutzer anhaken – dann sieht jeder nur sein Buch.
+
+Jedes Buch hat **eigene** Fixkosten, Töpfe, Kontostand, PIN, Rückblick und Sensoren (`sensor.fixkosten_partnerin_…`). Das erste Buch bleibt genau wie bisher. Offline-App für ein anderes Buch: Adresse mit `?buch=Partnerin` öffnen (steht in dem Buch unter ⚙️ → Offline-App). Ein Buch löschen = Eintrag löschen, seine Daten gehen mit.
+
+**Ehrlich:** Das ist Ordnung, kein Tresor – ein HA-Admin kann technisch alle Bücher sehen.
 
 </details>
 

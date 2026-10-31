@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.11";
+const FK_VERSION = "0.1.0-beta.12";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -29,6 +29,7 @@ const FK_GUIDE = [
   { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Ausgaben, Einnahmen und was am Ende übrig war (bis zu 3 Jahre). Du findest ihn in <b>⚙️ → Daten → Rückblick</b>.` },
   { icon: "stethoscope", color: "#00897b", title: "Gesundheit, Fehler und Werkseinstellungen", text: `In ⚙️ → <b>🩺 Gesundheit</b>: <b>„Alles ok?“</b> sucht nach Dingen, die nicht zusammenpassen (Posten ohne Gruppe, alter Kontostand, vergessene Ausgaben …) und sagt, wie man es repariert. <b>Fehler-Protokoll</b> zeigt, was beim Speichern nicht geklappt hat. <b>Ressourcen</b> zeigt, wie viel Platz alles braucht.<br><b>💣 Werkseinstellungen</b> (⚙️ → Daten, nur Admins): alles zurück auf Anfang, nur die PIN bleibt. Zwei Sicherheitsfragen – vorher lieber „Als CSV sichern“.` },
   { icon: "eye-off-outline", color: "#607d8b", title: "Beträge verstecken", text: `Das 👁️ oben verschwimmt alle Beträge und IBANs, z. B. wenn jemand mitschaut. Nochmal tippen = wieder zeigen. Mit <code>privat: true</code> im Karten-YAML startet die Karte versteckt.` },
+  { icon: "book-multiple-outline", color: "#8e24aa", title: "Mehrere Bücher (eins pro Person)", text: `Wie bei mehreren Anlagen: <b>Einstellungen → Geräte &amp; Dienste → Fixkosten → Eintrag hinzufügen</b> und einen Namen geben (z. B. „Partnerin“). Jedes Buch hat eigene Fixkosten, Töpfe, Kontostand, PIN und Sensoren.<br>Neue Karte anlegen, im Karten-Editor bei <b>„Welches Buch?“</b> wählen und unter <b>Sichtbarkeit</b> nur die passende Person anhaken. Ehrlich: Ordnung, kein Tresor – ein HA-Admin kann alles sehen.` },
   { icon: "cellphone-lock", color: "#1e88e5", title: "Offline-App mit Fingerabdruck", text: `Deine Adresse für die App steht in ⚙️ → <b>„Offline-App“</b> (mit Kopieren-Knopf). Im Handy-Browser öffnen → anmelden → im Browser-Menü „Zum Startbildschirm“.<br>Ohne Netz siehst du den letzten Stand. Was du einträgst, wartet im <b>Postausgang</b> (oben „⏳ wartet“) und wird von selbst nachgeschickt. Nichts zählt doppelt.<br>Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. Ist sie an, sperrt das 🔒 Schloss oben die ganze App sofort. Abmelden löscht nur die Kopie im Handy, in Home Assistant bleibt alles erhalten.` },
   { icon: "shield-key-outline", color: "#455a64", title: "PIN-Sperre und Seitenleiste", text: `In ⚙️ unter <b>„Schutz (PIN)“</b> legst du eine PIN (4–8 Ziffern) fest. Dann fragen ⚙️ und „Bearbeiten“ danach. Übersicht, Abhaken und Ausgaben gehen weiter ohne PIN. Das 🔓 Schloss unter der Leiste (neben 🧮 und 👁️) sperrt sofort wieder (sonst nach 10 Minuten Ruhe). Die PIN tippst du wie am Handy auf dem Zahlenfeld ein.<br><b>PIN vergessen?</b> Kein Drama: Ein Admin geht auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.<br>Im selben Fenster schaltest du auch <b>„In der Seitenleiste anzeigen“</b> an oder aus.` },
   { icon: "upload", color: "#546e7a", title: "CSV einlesen und sichern", text: `In ⚙️ → <b>„Daten (CSV)“</b> (nur Admins): Datei wählen oder Text einfügen → „Einlesen“. Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b>. „Als CSV sichern“ lädt alles als Datei herunter.` },
@@ -36,6 +37,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.12", "📚 <b>Mehrere Bücher</b> (wie mehrere Anlagen bei Solis): Einstellungen → Geräte &amp; Dienste → Fixkosten → <b>Eintrag hinzufügen</b>, z. B. eins pro Person. Jedes Buch hat eigene Daten, Sensoren und PIN. Im Karten-Editor wählst du bei „Welches Buch?“, und mit der Sichtbarkeit der Karte sieht jeder nur sein eigenes. Dein bisheriges Buch bleibt genau wie es ist."],
   ["0.1.0-beta.11", "📂 Die Karte <b>merkt sich aufgeklappte Kategorien nicht mehr</b>: Beim Öffnen sieht sie immer gleich aus – Ausgaben offen, alles andere zu."],
   ["0.1.0-beta.10", "🔵 Die <b>blaue Zahl oben</b> zählt jetzt offene Fixkosten <b>und</b> Ausgaben, die noch nicht abgebucht sind. · 🐷 „Nicht mehr zurücklegen“ gibt es nur noch <b>im geöffneten Topf</b> (orangen Zettel dort antippen) – in der Liste passiert beim Antippen nichts aus Versehen."],
   ["0.1.0-beta.9", "🐷 <b>Orangen „geliehen“-Zettel antippen</b> = „nicht mehr zurücklegen“: der Zettel ist weg, das Geld gilt als ausgegeben. · 💳 <b>Ausgaben einklappbar</b> (Standard offen) – zugeklappt bleiben Schnellknöpfe und Eingabe da. · 💾 <b>CSV-Sicherung</b> hat jetzt den <b>Kontostand</b> (mit Datum) und das <b>Datum bei Töpfen</b> – beides kommt beim Einlesen wieder rein. · 🧹 „Bleibt nach Fixkosten“ ist weg (hat nur verwirrt)."],
@@ -489,7 +491,8 @@ class FixkostenCard extends HTMLElement {
     this._view = "home";
     this._open = null;          // welcher Eintrag gerade bearbeitet wird
     this._quickName = null;     // gewählter Schnellknopf
-    this._queue = store.get(QKEY, []);
+    this._qk = QKEY; this._dk = DKEY; // 📚 je Buch eigener Postausgang + eigener gemerkter Stand
+    this._queue = store.get(this._qk, []);
     this._server = null;        // letzter Stand von Home Assistant
     this._hidden = store.get(HKEY, null);
     this._openSec = new Set(); // 📂 nichts merken (Marco): beim Öffnen immer Standard – Ausgaben offen, Rest zu
@@ -524,18 +527,30 @@ class FixkostenCard extends HTMLElement {
 
   static getStubConfig() { return { title: "Fixkosten" }; }
   getCardSize() { return 8; }
+  static getConfigElement() { return document.createElement("fixkosten-card-editor"); }
   setConfig(config) {
     this._config = { title: "Fixkosten", ...config };
+    // 📚 Welches Buch? (leer = erstes Buch). Jedes Buch hat im Handy seinen eigenen Postausgang.
+    const book = String(this._config.buch || "").trim();
+    if (book !== (this._book ?? "")) {
+      const changed = this._book !== undefined;
+      this._book = book;
+      const sfx = book ? "_" + book.toLowerCase().replace(/[^a-z0-9äöüß]+/g, "_") : "";
+      this._qk = QKEY + sfx; this._dk = DKEY + sfx;
+      this._queue = store.get(this._qk, []);
+      if (changed) { this._unsub?.then((u) => u?.()).catch(() => {}); this._unsub = null; this._server = null; if (this._hass) { this._subscribe(); this._render(); } }
+    }
     if (this._hidden == null) this._hidden = !!this._config.privat; // 🙈 Beträge erst nach Antippen zeigen
   }
 
   get _app() { return !!window.__fkOfflineApp; }
+  _bk() { return this._book ? { book: this._book } : {}; } // 📚 an jede Anfrage: welches Buch
 
   set hass(hass) {
     const first = !this._hass;
     this._hass = hass;
     if (first) {
-      if (this._app) this._server = store.get(DKEY, null); // 📱 letzter Stand – auch ohne Netz
+      if (this._app) this._server = store.get(this._dk, null); // 📱 letzter Stand – auch ohne Netz
       this._subscribe();
       this._render();
     }
@@ -549,9 +564,9 @@ class FixkostenCard extends HTMLElement {
     if (this._unsub || !this._hass?.connection) return;
     this._unsub = this._hass.connection.subscribeMessage((data) => {
       this._server = data;
-      if (this._app) store.put(DKEY, data);
+      if (this._app) store.put(this._dk, data);
       this._render();
-    }, { type: "fixkosten/subscribe" }).catch((err) => { this._err = err?.message || String(err); this._unsub = null; this._render(); });
+    }, { type: "fixkosten/subscribe", ...this._bk() }).catch((err) => { this._err = err?.message || String(err); this._unsub = null; this._render(); });
   }
 
   // Der Stand, den man sieht = Stand von HA + alles, was noch im Postausgang liegt
@@ -569,7 +584,7 @@ class FixkostenCard extends HTMLElement {
   _send(op) {
     op = { op_id: uid(), ts: Date.now(), ...op };
     this._queue.push(op);
-    store.put(QKEY, this._queue);
+    store.put(this._qk, this._queue);
     this._render();
     this._flush();
   }
@@ -578,11 +593,11 @@ class FixkostenCard extends HTMLElement {
     this._flushing = true;
     try {
       const batch = this._queue.slice(0, 100);
-      const res = await this._hass.callWS({ type: "fixkosten/apply", ops: batch });
+      const res = await this._hass.callWS({ type: "fixkosten/apply", ops: batch, ...this._bk() });
       const done = new Set(batch.map((o) => o.op_id));
       const failed = (res?.results || []).filter((r) => !r.ok);
       this._queue = this._queue.filter((o) => !done.has(o.op_id));
-      store.put(QKEY, this._queue);
+      store.put(this._qk, this._queue);
       if (failed.length) this._toast("⚠️ " + failed.map((f) => f.error).join(", "));
       this._render();
       if (this._queue.length) setTimeout(() => this._flush(), 50);
@@ -709,7 +724,7 @@ class FixkostenCard extends HTMLElement {
     const quick = d.settings.quick || [];
     const openBookings = d.bookings.filter((b) => !b.cleared).sort((a, b) => b.ts - a.ts);
     const upd = s.balance_updated ? new Date(s.balance_updated).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }) : "nie";
-    let h = `<div class="hero" style="--hc:${hc}"><div class="lbl">Verfügbar · ${esc(this._monthName(d.month))}</div>
+    let h = `<div class="hero" style="--hc:${hc}"><div class="lbl">Verfügbar${d.book && !d.book.primary ? ` · ${esc(d.book.title)}` : ""} · ${esc(this._monthName(d.month))}</div>
       <div class="big" data-a="hide">${this._m(s.available)}</div><div class="bar"><i style="width:${pct.toFixed(0)}%"></i></div></div>
       <div class="tiles">
         <button class="tile click" data-a="balance"><span>${ic("bank-outline")}Konto ${upd}</span><b>${this._m(s.balance)}</b></button>
@@ -1062,7 +1077,7 @@ class FixkostenCard extends HTMLElement {
       ${res.length ? `<p><b>${res.length} ${res.length === 1 ? "Sache" : "Sachen"} gefunden:</b></p>` + res.map((x) => `<div class="finding"><b>⚠️ ${esc(x.t)}</b><div class="small" style="margin:2px 0 0">${x.fix}</div>${x.act ? `<div class="btnrow">${x.act}</div>` : ""}</div>`).join("") : `<p class="okmsg">✅ Alles ok – nichts gefunden. 🎉</p>`}`;
   }
   async _loadHealth() {
-    try { this._health = await this._hass.callWS({ type: "fixkosten/health" }); }
+    try { this._health = await this._hass.callWS({ type: "fixkosten/health", ...this._bk() }); }
     catch (_) { this._health = { errors: [], size: 0, counts: {}, offline: true }; }
     this._force = true; this._render();
   }
@@ -1081,7 +1096,7 @@ class FixkostenCard extends HTMLElement {
     const c = h.counts || {};
     const rows = [["Fixkosten", c.posten], ["Gruppen", c.groups], ["Einnahmen", c.einnahmen], ["Ausgaben (gemerkt)", c.bookings], ["Töpfe", c.toepfe], ["Offene Stände", c.staende], ["Meine Konten", c.konten], ["Rückblick (Monate)", c.history]];
     let local = 0;
-    try { for (const k of [DKEY, QKEY, OKEY, HKEY]) local += (localStorage.getItem(k) || "").length; } catch (_) { /* egal */ }
+    try { for (const k of [this._dk, this._qk, HKEY]) local += (localStorage.getItem(k) || "").length; } catch (_) { /* egal */ }
     return `<p class="small">So viel Platz brauchen die Fixkosten.</p>
       ${h.offline ? `<p class="small">📴 Ohne Netz sieht man nur den Platz auf diesem Gerät.</p>` : `<table><tr><td>In Home Assistant</td><td><b>${kb(h.size)}</b></td></tr>${rows.map(([l, n]) => `<tr><td>${l}</td><td>${n ?? 0}</td></tr>`).join("")}</table>`}
       <table><tr><td>Auf diesem Gerät</td><td><b>${kb(local)}</b></td></tr><tr><td>Im Postausgang</td><td>${this._queue.length}</td></tr></table>`;
@@ -1173,13 +1188,13 @@ class FixkostenCard extends HTMLElement {
     }
     else if (a === "sec") { const k = el.dataset.v; this._openSec.has(k) ? this._openSec.delete(k) : this._openSec.add(k); redraw(); }
     else if (a === "sheet") { this._sheet = el.dataset.v; redraw(); if (["errors", "stats"].includes(this._sheet)) this._loadHealth(); }
-    else if (a === "errclear") { this._hass.callWS({ type: "fixkosten/errors_clear" }).then(() => this._loadHealth(), () => this._toast("📴 Geht nur mit Netz")); }
+    else if (a === "errclear") { this._hass.callWS({ type: "fixkosten/errors_clear", ...this._bk() }).then(() => this._loadHealth(), () => this._toast("📴 Geht nur mit Netz")); }
     else if (a === "fixgroup") { const p = d.posten.find((x) => x.id === id); if (p && d.groups[0]) this._send({ type: "posten_save", item: { id, group: d.groups[0].id } }); }
     else if (a === "factory") {
       if (!confirm("Wirklich ALLES zurücksetzen?\n\nFixkosten, Gruppen, Einnahmen, Ausgaben, Töpfe, offene Stände, Konten, Kontostand, Rückblick und alle Schalter werden gelöscht. Nur die PIN bleibt.\n\nDas geht nicht rückgängig.")) return;
       if (!confirm("Letzte Frage: Wirklich ALLES auf Werkseinstellungen setzen?")) return;
-      this._queue = []; store.put(QKEY, this._queue);
-      this._hass.callWS({ type: "fixkosten/factory_reset" }).then(() => { this._toast("💣 Alles zurückgesetzt"); this._sheet = null; this._view = "home"; this._force = true; this._render(); }, (err) => this._toast("⚠️ " + (err?.message || "Das hat nicht geklappt")));
+      this._queue = []; store.put(this._qk, this._queue);
+      this._hass.callWS({ type: "fixkosten/factory_reset", ...this._bk() }).then(() => { this._toast("💣 Alles zurückgesetzt"); this._sheet = null; this._view = "home"; this._force = true; this._render(); }, (err) => this._toast("⚠️ " + (err?.message || "Das hat nicht geklappt")));
     }
     else if (a === "setgrp") { this._setOpen = this._setOpen === el.dataset.v ? null : el.dataset.v; redraw(); }
     else if (a === "appcopy") { const u = d.app_url || ""; (navigator.clipboard?.writeText(u) || Promise.reject()).then(() => this._toast("📋 Adresse kopiert"), () => prompt("Adresse zum Kopieren:", u)); }
@@ -1232,7 +1247,7 @@ class FixkostenCard extends HTMLElement {
 
   async _pin(type, payload) {
     if (this._hass?.connected === false) { this._toast("📴 Die PIN wird in Home Assistant geprüft – dafür braucht es Netz"); return null; }
-    try { return await this._hass.callWS({ type, ...payload }); }
+    try { return await this._hass.callWS({ type, ...payload, ...this._bk() }); }
     catch (err) { this._toast("⚠️ " + (err?.message || "Ging nicht")); return null; }
   }
 
@@ -1314,7 +1329,7 @@ class FixkostenCard extends HTMLElement {
     if (!text.trim()) { this._toast("Erst eine Datei wählen oder Text einfügen"); return; }
     if (replace && !confirm("Vorhandene Posten, Einnahmen und Töpfe werden ersetzt. Weiter?")) return;
     try {
-      const r = await this._hass.callWS({ type: "fixkosten/import", text, replace });
+      const r = await this._hass.callWS({ type: "fixkosten/import", text, replace, ...this._bk() });
       this._toast(`✅ Eingelesen: ${r.ausgaben} Fixkosten, ${r.einnahmen} Einnahmen, ${r.toepfe} Töpfe, ${r.staende} offene Stände, ${r.konten} Konten${r.uebersprungen ? `, ${r.uebersprungen} Zeilen übersprungen` : ""}`);
       this._view = "home"; this._sheet = null; this._force = true; this._render();
     } catch (err) { this._toast("⚠️ " + (err?.message || "Einlesen ging nicht (ohne Netz geht das nicht)")); }
@@ -1371,6 +1386,36 @@ class FixkostenCard extends HTMLElement {
 })();
 
 if (!customElements.get("fixkosten-card")) customElements.define("fixkosten-card", FixkostenCard);
+
+// ✏️ Karten-Editor: Titel, welches Buch, Beträge erst nach Antippen zeigen
+class FixkostenCardEditor extends HTMLElement {
+  setConfig(config) { this._config = { ...config }; this._draw(); }
+  set hass(hass) {
+    const first = !this._hass; this._hass = hass;
+    if (first) hass.callWS({ type: "fixkosten/books" }).then((r) => { this._books = r.books || []; this._draw(); }, () => { this._books = []; this._draw(); });
+  }
+  _set(key, value) {
+    const c = { ...this._config };
+    if (value === "" || value === false || value == null) delete c[key]; else c[key] = value;
+    this._config = c;
+    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: c }, bubbles: true, composed: true }));
+  }
+  _draw() {
+    if (!this._config) return;
+    const c = this._config, books = this._books || [];
+    const esc2 = (x) => String(x ?? "").replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+    const opts = books.map((b) => `<option value="${b.primary ? "" : esc2(b.title)}" ${(b.primary ? !c.buch : String(c.buch || "").toLowerCase() === b.title.toLowerCase()) ? "selected" : ""}>${esc2(b.title)}${b.primary ? " (erstes Buch)" : ""}</option>`).join("");
+    this.innerHTML = `<div style="display:grid;gap:12px;padding:4px 0">
+      <label style="display:grid;gap:4px">Titel<input data-k="title" value="${esc2(c.title || "")}" style="padding:8px;border-radius:8px;border:1px solid var(--divider-color,#ccc);background:none;color:inherit;font:inherit"></label>
+      <label style="display:grid;gap:4px">📚 Welches Buch?<select data-k="buch" style="padding:8px;border-radius:8px;border:1px solid var(--divider-color,#ccc);background:var(--card-background-color,#fff);color:inherit;font:inherit">${opts || `<option value="">Fixkosten</option>`}</select>
+        <small style="opacity:.7">Weitere Bücher: Einstellungen → Geräte &amp; Dienste → Fixkosten → Eintrag hinzufügen. Mit „Sichtbarkeit“ der Karte siehst du nur dein eigenes Buch.</small></label>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-k="privat" ${c.privat ? "checked" : ""}> 🙈 Beträge erst nach Antippen zeigen</label></div>`;
+    this.querySelector('[data-k="title"]').addEventListener("change", (e) => this._set("title", e.target.value));
+    this.querySelector('[data-k="buch"]').addEventListener("change", (e) => this._set("buch", e.target.value));
+    this.querySelector('[data-k="privat"]').addEventListener("change", (e) => this._set("privat", e.target.checked));
+  }
+}
+if (!customElements.get("fixkosten-card-editor")) customElements.define("fixkosten-card-editor", FixkostenCardEditor);
 window.customCards = window.customCards || [];
 if (!window.customCards.some((c) => c.type === "fixkosten-card")) {
   window.customCards.push({ type: "fixkosten-card", name: "Fixkosten", description: "Monatliche Fixkosten, Ausgaben und was noch verfügbar ist.", preview: false });

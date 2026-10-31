@@ -3,14 +3,16 @@
     "step": {
       "user": {
         "title": "Fixkosten",
-        "description": "Deine monatlichen Fixkosten in Home Assistant. Alles Weitere stellst du in der Karte ein.",
+        "description": "Deine monatlichen Fixkosten in Home Assistant. Wie bei mehreren Anlagen kannst du später weitere „Bücher“ anlegen (z. B. eins pro Person) – jedes mit eigenen Daten, Sensoren und PIN.",
         "data": {
-          "sidebar": "In der Seitenleiste anzeigen"
+          "sidebar": "In der Seitenleiste anzeigen",
+          "name": "Name des Buchs"
         }
       }
     },
-    "abort": {
-      "single_instance_allowed": "Fixkosten ist schon eingerichtet."
+    "error": {
+      "name_missing": "Bitte einen Namen eingeben (z. B. „Partnerin“).",
+      "name_taken": "Ein Buch mit diesem Namen gibt es schon."
     }
   },
   "options": {
@@ -40,6 +42,10 @@
         "erledigt": {
           "name": "Erledigt",
           "description": "An = abgehakt, aus = Haken weg."
+        },
+        "buch": {
+          "name": "Buch",
+          "description": "Nur bei mehreren Büchern: Name des Buchs (leer = erstes Buch)."
         }
       }
     },
@@ -50,6 +56,10 @@
         "kontostand": {
           "name": "Kontostand",
           "description": "Kontostand in Euro."
+        },
+        "buch": {
+          "name": "Buch",
+          "description": "Nur bei mehreren Büchern: Name des Buchs (leer = erstes Buch)."
         }
       }
     },
@@ -64,6 +74,10 @@
         "betrag": {
           "name": "Betrag",
           "description": "Betrag in Euro."
+        },
+        "buch": {
+          "name": "Buch",
+          "description": "Nur bei mehreren Büchern: Name des Buchs (leer = erstes Buch)."
         }
       }
     },
@@ -78,12 +92,22 @@
         "betrag": {
           "name": "Betrag",
           "description": "Stand in Euro."
+        },
+        "buch": {
+          "name": "Buch",
+          "description": "Nur bei mehreren Büchern: Name des Buchs (leer = erstes Buch)."
         }
       }
     },
     "haken_zuruecksetzen": {
       "name": "Haken zurücksetzen",
-      "description": "Alle Haken dieses Monats entfernen."
+      "description": "Alle Haken dieses Monats entfernen.",
+      "fields": {
+        "buch": {
+          "name": "Buch",
+          "description": "Nur bei mehreren Büchern: Name des Buchs (leer = erstes Buch)."
+        }
+      }
     },
     "csv_import": {
       "name": "CSV importieren",
@@ -100,12 +124,22 @@
         "ersetzen": {
           "name": "Ersetzen",
           "description": "An = vorhandene Posten, Einnahmen, Töpfe und offene Stände vorher löschen."
+        },
+        "buch": {
+          "name": "Buch",
+          "description": "Nur bei mehreren Büchern: Name des Buchs (leer = erstes Buch)."
         }
       }
     },
     "daten_abrufen": {
       "name": "Zahlen abrufen",
-      "description": "Gibt alle berechneten Zahlen zurück (für Skripte)."
+      "description": "Gibt alle berechneten Zahlen zurück (für Skripte).",
+      "fields": {
+        "buch": {
+          "name": "Buch",
+          "description": "Nur bei mehreren Büchern: Name des Buchs (leer = erstes Buch)."
+        }
+      }
     }
   }
 }

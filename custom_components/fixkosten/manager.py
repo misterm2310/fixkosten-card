@@ -10,6 +10,7 @@ Darum kann die Offline-App Änderungen sammeln und später nachschicken, ohne da
 from __future__ import annotations
 
 import csv
+from urllib.parse import quote
 import hashlib
 import hmac
 import io
@@ -106,9 +107,15 @@ def _empty() -> dict[str, Any]:
 class FixkostenManager:
     """Hält die Daten, rechnet und meldet Änderungen an Karte und Sensoren."""
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self, hass: HomeAssistant, store_key: str = STORAGE_KEY, entry_id: str = "", title: str = "Fixkosten") -> None:
         self.hass = hass
-        self._store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
+        # 📚 Mehrere Bücher (wie mehrere Anlagen bei Solis): das erste Buch behält den alten Speicher „fixkosten“
+        self.store_key = store_key
+        self.primary = store_key == STORAGE_KEY
+        self.entry_id = entry_id
+        self.title = title
+        self.signal = f"{SIGNAL_UPDATE}_{entry_id}" if entry_id else SIGNAL_UPDATE
+        self._store: Store = Store(hass, STORAGE_VERSION, store_key)
         self.data: dict[str, Any] = _empty()
         self._listeners: list[Callable[[], None]] = []
         self._unsub_time: CALLBACK_TYPE | None = None
@@ -189,7 +196,7 @@ class FixkostenManager:
         self._save()
         for cb in list(self._listeners):
             cb()
-        async_dispatcher_send(self.hass, SIGNAL_UPDATE)
+        async_dispatcher_send(self.hass, self.signal)
 
     # ------------------------------------------------------------------ 🧮 Rechnen
     def _counts_this_month(self, item: dict[str, Any]) -> bool:
@@ -275,6 +282,7 @@ class FixkostenManager:
         out["summary"] = self.summary()
         out["app_url"] = self._app_url()
         out["version"] = VERSION  # 🔄 damit die Karte merkt, wenn sie veraltet ist
+        out["book"] = {"id": self.entry_id, "title": self.title, "primary": self.primary}  # 📚 welches Buch
         return out
 
     def _app_url(self) -> str | None:
@@ -289,7 +297,7 @@ class FixkostenManager:
             return None
         except Exception:  # noqa: BLE001 – lieber keine Adresse als ein Fehler
             return None
-        return base.rstrip("/") + APP_URL
+        return base.rstrip("/") + APP_URL + ("" if self.primary else "?buch=" + quote(self.title))
 
     # ------------------------------------------------------------------ 🔒 PIN (wie bei der Einkaufsliste)
     @staticmethod

@@ -3,14 +3,16 @@
     "step": {
       "user": {
         "title": "Fixed costs",
-        "description": "Your monthly fixed costs in Home Assistant. Everything else is set up in the card.",
+        "description": "Your monthly fixed costs in Home Assistant. Like multiple plants, you can add more “books” later (e.g. one per person) – each with its own data, sensors and PIN.",
         "data": {
-          "sidebar": "Show in sidebar"
+          "sidebar": "Show in sidebar",
+          "name": "Name of the book"
         }
       }
     },
-    "abort": {
-      "single_instance_allowed": "Fixed costs is already set up."
+    "error": {
+      "name_missing": "Please enter a name (e.g. “Partner”).",
+      "name_taken": "A book with this name already exists."
     }
   },
   "options": {
@@ -40,6 +42,10 @@
         "erledigt": {
           "name": "Done",
           "description": "On = checked, off = unchecked."
+        },
+        "buch": {
+          "name": "Book",
+          "description": "Only with several books: name of the book (empty = first book)."
         }
       }
     },
@@ -50,6 +56,10 @@
         "kontostand": {
           "name": "Balance",
           "description": "Balance in euros."
+        },
+        "buch": {
+          "name": "Book",
+          "description": "Only with several books: name of the book (empty = first book)."
         }
       }
     },
@@ -64,6 +74,10 @@
         "betrag": {
           "name": "Amount",
           "description": "Amount in euros."
+        },
+        "buch": {
+          "name": "Book",
+          "description": "Only with several books: name of the book (empty = first book)."
         }
       }
     },
@@ -78,12 +92,22 @@
         "betrag": {
           "name": "Amount",
           "description": "Balance in euros."
+        },
+        "buch": {
+          "name": "Book",
+          "description": "Only with several books: name of the book (empty = first book)."
         }
       }
     },
     "haken_zuruecksetzen": {
       "name": "Reset checks",
-      "description": "Remove all checks of this month."
+      "description": "Remove all checks of this month.",
+      "fields": {
+        "buch": {
+          "name": "Book",
+          "description": "Only with several books: name of the book (empty = first book)."
+        }
+      }
     },
     "csv_import": {
       "name": "Import CSV",
@@ -100,12 +124,22 @@
         "ersetzen": {
           "name": "Replace",
           "description": "On = delete existing items, incomes, pots and open balances first."
+        },
+        "buch": {
+          "name": "Book",
+          "description": "Only with several books: name of the book (empty = first book)."
         }
       }
     },
     "daten_abrufen": {
       "name": "Get numbers",
-      "description": "Returns all calculated numbers (for scripts)."
+      "description": "Returns all calculated numbers (for scripts).",
+      "fields": {
+        "buch": {
+          "name": "Book",
+          "description": "Only with several books: name of the book (empty = first book)."
+        }
+      }
     }
   }
 }

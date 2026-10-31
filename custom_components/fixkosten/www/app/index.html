@@ -333,12 +333,12 @@ function update() {
     wrap.append(card);
     const foot = document.createElement("div");
     foot.className = "foot";
-    foot.innerHTML = `<button id="lockBtn"></button> <button id="logoutBtn">🚪 Abmelden</button><p class="small">Abmelden löscht die gemerkten Zahlen aus diesem Handy.</p>`;
+    foot.innerHTML = `<button id="lockBtn"></button> <button id="logoutBtn">🚪 Abmelden</button><p class="small">Abmelden meldet nur dieses Handy ab. Deine Daten in Home Assistant bleiben komplett erhalten, nur die Kopie hier im Handy wird gelöscht.</p>`;
     wrap.append(foot);
     document.getElementById("lockBtn").addEventListener("click", () => (lock ? lockDisable() : lockEnable()));
     document.getElementById("logoutBtn").addEventListener("click", () => {
       const q = JSON.parse(localStorage.getItem("fixkosten_queue") || "[]");
-      if (confirm(q.length ? `Abmelden? ${q.length} noch nicht gesendete Änderung(en) gehen verloren.` : "Abmelden? Die gemerkten Zahlen werden aus diesem Handy gelöscht.")) logout(false);
+      if (confirm(q.length ? `Abmelden? ${q.length} noch nicht gesendete Änderung(en) gehen verloren. Alles andere bleibt in Home Assistant erhalten.` : "Abmelden? Deine Daten in Home Assistant bleiben erhalten – nur die Kopie in diesem Handy wird gelöscht.")) logout(false);
     });
   }
   const lb = document.getElementById("lockBtn");

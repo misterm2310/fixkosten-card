@@ -48,7 +48,7 @@ privat: true   # optional: hide amounts until 👁️ is tapped
 3. Browser menu → **"Add to home screen"**
 4. Tap **"👆 Fingerabdruck-Sperre einschalten"** at the bottom. After 1 minute in the background the app asks again
 
-Offline, the app shows the last known state. Changes wait in an **outbox** and are sent automatically once Home Assistant is reachable again. Nothing is counted twice. **Logging out** wipes all numbers from the phone.
+Offline, the app shows the last known state. Changes wait in an **outbox** and are sent automatically once Home Assistant is reachable again. Nothing is counted twice. **Logging out** only removes the copy on the phone; your data in Home Assistant stays.
 Behind a reverse proxy only `/fixkosten/*`, `/auth/*` and `/api/*` are needed. Fingerprint requires **https**.
 
 </details>

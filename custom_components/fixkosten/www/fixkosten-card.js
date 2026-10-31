@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.6";
+const FK_VERSION = "0.1.0-beta.7";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -19,23 +19,24 @@ const REPO = "https://github.com/misterm2310/fixkosten-card";
 
 // 📖 Anleitung – einfach erklärt, Kapitel zum Aufklappen
 const FK_GUIDE = [
-  { icon: "cash-check", color: "#43a047", title: "Was heißt „Verfügbar“?", text: `Die große Zahl oben ist das Geld, das du diesen Monat <b>wirklich</b> noch ausgeben kannst:<br><b>Kontostand</b> − <b>Fixkosten, die noch nicht abgehakt sind</b> − <b>Ausgaben, die noch nicht abgebucht sind</b>.<br>Grün = alles gut · Gelb = wird knapp · Rot = unter deiner Warngrenze (⚙️ → „Rechnen & Warnung“, dort auch ganz ausschaltbar).` },
+  { icon: "cash-check", color: "#43a047", title: "Was heißt „Verfügbar“?", text: `Die große Zahl oben ist das Geld, das du diesen Monat <b>wirklich</b> noch ausgeben kannst:<br><b>Kontostand</b> − <b>Fixkosten, die noch nicht abgehakt sind</b> − <b>Ausgaben, die noch nicht abgebucht sind</b>.<br>Grün = im Plus · Rot = im Minus. Die Warngrenze (⚙️ → „Rechnen & Warnung“, dort auch ganz ausschaltbar) schaltet nur den Warn-Sensor für Automationen.` },
   { icon: "bank-outline", color: "#0288d1", title: "Kontostand eintragen", text: `Tippe auf die Kachel <b>„Konto“</b> und gib den Stand aus deiner Bank-App ein. Es öffnet sich eine eigene Seite, wie bei der Einkaufsliste. Das Datum auf der Kachel zeigt, wann du ihn zuletzt eingetragen hast.` },
   { icon: "calendar-month-outline", color: "#3949ab", title: "Fixkosten abhaken", text: `Deine Fixkosten stehen in Gruppen wie <b>„ab dem 1.“</b> und <b>„ab dem 15.“</b>. Die Gruppen sind <b>zugeklappt</b>: Tipp auf die Überschrift klappt sie auf (die Karte merkt sich das). Rechts steht „2 / 4“ und was noch offen ist.<br>Ist ein Posten vom Konto abgebucht: <b>Kreis antippen</b> ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️ → „Rechnen & Warnung“).<br>Hat ein Posten einen <b>festen Tag</b> (z. B. am 5.), steht oben ein Hinweis auf die nächste Abbuchung. <b>Pausierte</b> Posten (⏸️) stehen grau und abgehakt mit drin und zählen nicht mit.` },
   { icon: "credit-card-outline", color: "#ff9800", title: "Ausgaben", text: `Etwas bezahlt (Karte, PayPal, bar …), das noch nicht vom Konto abgebucht ist? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: den <b>grünen Haken ✓</b> antippen (lange drücken zeigt, was ein Knopf macht). Dann steckt er im Kontostand und fliegt aus der Rechnung. Vertippt? <b>Eintrag antippen</b> = Name und Betrag ändern. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein (einer pro Zeile).` },
   { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Ausgabe</b>, als <b>Kontostand</b> oder kopierst es.` },
-  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b>, <b>➕ Zurücklegen</b> oder Stand ändern. Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? Grünen Haken ✓ antippen. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
+  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter, in einem eigenen Feld: <b>Stand korrigieren</b> (z. B. nach dem Nachzählen). Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? Grünen Haken ✓ antippen. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
   { icon: "pencil-outline", color: "#00897b", title: "Bearbeiten", text: `Unter <b>„Bearbeiten“</b> legst du alles an (＋ Neu) oder tippst einen Eintrag zum Ändern an. Posten können auf <b>bestimmte Monate</b> beschränkt werden (z. B. Kfz-Steuer nur im März) oder <b>pausiert</b> werden. Neue Gruppen bekommen einen Starttag (1–28).<br><b>Reihenfolge ändern:</b> am Griff ⠿ vorne ziehen. Fixkosten kannst du so auch in eine andere Gruppe schieben. Das klappt auch bei Gruppen, Töpfen, Einnahmen, offenen Ständen und Konten.` },
   { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Ausgaben, Einnahmen und was am Ende übrig war (bis zu 3 Jahre). Du findest ihn in <b>⚙️ → Daten → Rückblick</b>.` },
   { icon: "stethoscope", color: "#00897b", title: "Gesundheit, Fehler und Werkseinstellungen", text: `In ⚙️ → <b>🩺 Gesundheit</b>: <b>„Alles ok?“</b> sucht nach Dingen, die nicht zusammenpassen (Posten ohne Gruppe, alter Kontostand, vergessene Ausgaben …) und sagt, wie man es repariert. <b>Fehler-Protokoll</b> zeigt, was beim Speichern nicht geklappt hat. <b>Ressourcen</b> zeigt, wie viel Platz alles braucht.<br><b>💣 Werkseinstellungen</b> (⚙️ → Daten, nur Admins): alles zurück auf Anfang, nur die PIN bleibt. Zwei Sicherheitsfragen – vorher lieber „Als CSV sichern“.` },
   { icon: "eye-off-outline", color: "#607d8b", title: "Beträge verstecken", text: `Das 👁️ oben verschwimmt alle Beträge und IBANs, z. B. wenn jemand mitschaut. Nochmal tippen = wieder zeigen. Mit <code>privat: true</code> im Karten-YAML startet die Karte versteckt.` },
-  { icon: "cellphone-lock", color: "#1e88e5", title: "Offline-App mit Fingerabdruck", text: `Deine Adresse für die App steht in ⚙️ → <b>„Offline-App“</b> (mit Kopieren-Knopf). Im Handy-Browser öffnen → anmelden → im Browser-Menü „Zum Startbildschirm“.<br>Ohne Netz siehst du den letzten Stand. Was du einträgst, wartet im <b>Postausgang</b> (oben „⏳ wartet“) und wird von selbst nachgeschickt. Nichts zählt doppelt.<br>Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. Ist sie an, sperrt das 🔒 Schloss oben die ganze App sofort. Abmelden löscht alle Zahlen aus dem Handy.` },
+  { icon: "cellphone-lock", color: "#1e88e5", title: "Offline-App mit Fingerabdruck", text: `Deine Adresse für die App steht in ⚙️ → <b>„Offline-App“</b> (mit Kopieren-Knopf). Im Handy-Browser öffnen → anmelden → im Browser-Menü „Zum Startbildschirm“.<br>Ohne Netz siehst du den letzten Stand. Was du einträgst, wartet im <b>Postausgang</b> (oben „⏳ wartet“) und wird von selbst nachgeschickt. Nichts zählt doppelt.<br>Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. Ist sie an, sperrt das 🔒 Schloss oben die ganze App sofort. Abmelden löscht nur die Kopie im Handy, in Home Assistant bleibt alles erhalten.` },
   { icon: "shield-key-outline", color: "#455a64", title: "PIN-Sperre und Seitenleiste", text: `In ⚙️ unter <b>„Schutz (PIN)“</b> legst du eine PIN (4–8 Ziffern) fest. Dann fragen ⚙️ und „Bearbeiten“ danach. Übersicht, Abhaken und Ausgaben gehen weiter ohne PIN. Das 🔓 Schloss unter der Leiste (neben 🧮 und 👁️) sperrt sofort wieder (sonst nach 10 Minuten Ruhe). Die PIN tippst du wie am Handy auf dem Zahlenfeld ein.<br><b>PIN vergessen?</b> Kein Drama: Ein Admin geht auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.<br>Im selben Fenster schaltest du auch <b>„In der Seitenleiste anzeigen“</b> an oder aus.` },
   { icon: "upload", color: "#546e7a", title: "CSV einlesen und sichern", text: `In ⚙️ → <b>„Daten (CSV)“</b> (nur Admins): Datei wählen oder Text einfügen → „Einlesen“. Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b>. „Als CSV sichern“ lädt alles als Datei herunter.` },
   { icon: "lock-outline", color: "#455a64", title: "Datenschutz", text: `Alles bleibt in <b>deinem</b> Home Assistant. Keine Cloud, kein Tracking, nichts geht ins Internet. IBANs stehen bewusst in keinem Sensor.` },
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.7", "🎛️ <b>Symbole wie bei der Einkaufsliste:</b> Emojis vorn an Knöpfen und Überschriften werden zu schlichten Linien-Symbolen, die Gruppen in ⚙️ haben farbige Kästchen mit weißem Symbol. · 🟢 <b>„Verfügbar“ ist im Plus immer grün</b>, rot nur im Minus. · 🐷 <b>Topf:</b> „Stand korrigieren“ hat jetzt ein eigenes Feld – der Betrag für Rausnehmen/Zurücklegen setzt nie mehr aus Versehen den Stand. · 🚪 Offline-App: klarer Text, dass <b>Abmelden</b> nur die Kopie im Handy löscht."],
   ["0.1.0-beta.6", "💵 <b>Einnahmen zum Abhaken</b> – so siehst du, ob der Lohn schon da ist (Haken gehen am Monatsanfang mit zurück). · 📊 Der <b>Rückblick</b> wohnt jetzt in ⚙️ → Daten, oben bleiben Übersicht und Bearbeiten. · 💣 <b>Werkseinstellungen</b> wie bei der Einkaufsliste (⚙️ → Daten, nur Admins, zwei Sicherheitsfragen, die PIN bleibt). · 🩺 Neue Gruppe <b>Gesundheit</b>: „Alles ok?“ findet z. B. Posten ohne Gruppe, alten Kontostand oder vergessene Ausgaben, dazu Fehler-Protokoll und Ressourcen. · 🎨 Symbole und Namen in ⚙️ wie bei der Einkaufsliste."],
   ["0.1.0-beta.5", "✅ „abgebucht“ und „beglichen“ sind nur noch ein <b>grüner Haken</b>. <b>Lange drücken</b> auf einen Symbol-Knopf zeigt, was er macht (wie bei der Einkaufsliste). · ↩️ Die <b>Zurück-Taste am Handy</b> geht in der Karte einen Schritt zurück (PIN → Einstellungen → Übersicht), statt alles zu schließen. · 🔕 <b>Warnung ausschaltbar</b> (⚙️ → Rechnen &amp; Warnung): dann bleibt „Verfügbar“ grün und der Warn-Sensor aus. · 🏦 Die Kachel <b>„Konto“</b> öffnet eine eigene Seite zum Eintragen. · 🗑️ <b>„Vorgemerkt“ ist weg</b> – die Ausgaben machen das schon. · 🐷 <b>Töpfe:</b> ➖ Rausnehmen und ➕ Zurücklegen (auch in Teilbeträgen), Geliehenes steht in Orange dabei."],
   ["0.1.0-beta.4", "🔢 <b>PIN wie am Handy:</b> Zahlenfeld mit Punkten, ⌫ und ✔ – genau wie bei der Einkaufsliste (am PC geht auch die Tastatur). · ⚙️ <b>Zahnrad oben in der Leiste</b>, darunter das 🔒 Schloss zum sofort Sperren (in der Offline-App mit Fingerabdruck-Sperre sperrt es die ganze App). · 🪟 Einstellungen, PIN und Anleitung öffnen als <b>Seite in der Karte</b> mit ← / ✕ oben rechts. · ↔️ Schnellknöpfe in einer Zeile zum <b>Wischen</b>. · 🔄 <b>„Neu laden“</b>-Hinweis, wenn eine neue Version da ist. · 🏦 <b>Meine Konten</b> zum Einklappen. · ⠿ <b>Gruppen</b> lassen sich jetzt auch verschieben. · 💳 „Kartenzahlungen“ heißen jetzt <b>„Ausgaben“</b> (Karte, PayPal, bar …) und lassen sich per Antippen <b>ändern</b>. · ⠿ Verschieben nur noch am Griff (ohne ▲▼). · 📖 Anleitung im Look der Einkaufsliste, mit Suche und „Was ist neu“."],
@@ -82,6 +83,70 @@ const pinTouch = () => { if (pinOpen()) PIN_LOCK.until = Date.now() + 10 * 60 * 
 const GROUP_COLORS = ["#1e88e5", "#fb8c00", "#8e24aa", "#00897b", "#e53935", "#6d4c41", "#3949ab"];
 const gcol = (d, gid) => { const i = d.groups.findIndex((g) => g.id === gid); return i < 0 ? "#9e9e9e" : GROUP_COLORS[i % GROUP_COLORS.length]; };
 const ic = (name) => `<ha-icon icon="mdi:${name}"></ha-icon>`;
+
+const FK_EMOJI_ICONS = {
+  "🏷": "mdi:tag-outline", "✏": "mdi:pencil-outline", "✍": "mdi:account-edit-outline", "📷": "mdi:camera-outline", "📖": "mdi:book-open-variant", "➕": "mdi:plus",
+  "📍": "mdi:map-marker-outline", "👁": "mdi:eye-outline", "🛒": "mdi:cart-outline", "✅": "mdi:check-circle-outline", "🔄": "mdi:sync", "🔁": "mdi:repeat",
+  "⚠": "mdi:alert-outline", "📋": "mdi:clipboard-text-outline", "📊": "mdi:chart-bar", "✔": "mdi:check", "🧂": "mdi:shaker-outline", "⏳": "mdi:timer-sand",
+  "⌛": "mdi:timer-sand", "🏪": "mdi:store-outline", "📧": "mdi:email-outline", "↩": "mdi:undo-variant", "⇄": "mdi:swap-horizontal",
+  "🤷": "mdi:map-marker-question-outline", "🕒": "mdi:clock-outline", "💡": "mdi:lightbulb-outline", "🧾": "mdi:receipt-text-outline", "🎉": "mdi:party-popper",
+  "👥": "mdi:account-group-outline", "👪": "mdi:account-multiple-outline", "👤": "mdi:account-outline", "⏲": "mdi:pot-steam-outline", "⏱": "mdi:timer-outline",
+  "🧲": "mdi:magnet", "🗓": "mdi:calendar-month-outline", "📅": "mdi:calendar-outline", "🚫": "mdi:cancel", "🥫": "mdi:food-variant", "📈": "mdi:chart-line",
+  "🧽": "mdi:delete-sweep-outline", "🧹": "mdi:broom", "💣": "mdi:nuke", "🔧": "mdi:wrench-outline", "📝": "mdi:note-text-outline", "⭐": "mdi:star-outline",
+  "⌨": "mdi:keyboard-outline", "🗞": "mdi:newspaper-variant-outline", "🖼": "mdi:image-outline", "🔒": "mdi:lock-outline", "🔓": "mdi:lock-open-variant-outline",
+  "📦": "mdi:package-variant-closed", "🔥": "mdi:fire", "🤖": "mdi:robot-happy-outline", "🔠": "mdi:format-size", "⚙": "mdi:cog-outline", "🗂": "mdi:shape-outline",
+  "🗺": "mdi:map-outline", "🧠": "mdi:brain", "🗣": "mdi:microphone-outline", "🌐": "mdi:web", "🍽": "mdi:silverware-fork-knife", "📄": "mdi:file-document-outline",
+  "🧮": "mdi:calculator-variant-outline", "🔊": "mdi:volume-high", "📳": "mdi:vibrate", "🎌": "mdi:flag-outline", "👋": "mdi:hand-wave-outline", "🔐": "mdi:key-outline",
+  "📏": "mdi:ruler", "✖": "mdi:close", "🗑": "mdi:delete-outline", "▥": "mdi:barcode", "🧩": "mdi:puzzle-outline", "🧰": "mdi:toolbox-outline", "🔢": "mdi:numeric", "🎨": "mdi:palette-outline", "🔀": "mdi:shuffle-variant", "✓": "mdi:check", "🍕": "mdi:pizza", "🍝": "mdi:pasta", "🥔": "mdi:food-variant", "🥚": "mdi:egg-outline", "🥦": "mdi:carrot", "🍗": "mdi:food-drumstick-outline", "🐟": "mdi:fish", "🍲": "mdi:pot-steam-outline", "💨": "mdi:weather-windy", "🍰": "mdi:cake-variant-outline", "🎛": "mdi:tune-variant", "💾": "mdi:content-save-outline", "🩺": "mdi:stethoscope", "📱": "mdi:cellphone", "🧪": "mdi:flask-outline", "👨‍🍳": "mdi:chef-hat", "🛍": "mdi:shopping-outline", "🪟": "mdi:window-open-variant", "✨": "mdi:creation-outline", "👆": "mdi:gesture-tap", "💳": "mdi:credit-card-outline", "🙏": "mdi:hand-heart-outline", "🐙": "mdi:github", "🐞": "mdi:bug-outline", "🔍": "mdi:magnify", "📥": "mdi:tray-arrow-down", "🕘": "mdi:history", "🌓": "mdi:theme-light-dark", "🛡": "mdi:shield-outline",
+};
+// 🎨 Farben zu den Symbolen (damit es nicht trist wird): nur außerhalb von Knöpfen/Links, dort gilt die Schriftfarbe des Knopfes
+const FK_EMOJI_COLORS = {
+  "🧹": "#fb8c00", "✍": "#5c6bc0", "📍": "#e53935", "🏷": "#d81b60", "🛒": "#43a047", "✅": "#43a047", "⚠": "#f9a825", "🔧": "#607d8b", "🥫": "#8d6e63",
+  "🧾": "#3949ab", "📖": "#1e88e5", "⭐": "#f9a825", "🔒": "#546e7a", "🔓": "#546e7a", "📷": "#1e88e5", "📝": "#6d4c41", "✏": "#6d4c41", "💡": "#f9a825",
+  "🎉": "#ab47bc", "🔥": "#ef6c00", "🕒": "#546e7a", "🌐": "#1e88e5", "🔊": "#1e88e5", "📊": "#00897b", "🧂": "#8d6e63", "🏪": "#43a047", "📧": "#1e88e5",
+  "🔄": "#1e88e5", "🔁": "#1e88e5", "📋": "#1e88e5", "🗓": "#43a047", "📅": "#43a047", "👥": "#8e24aa", "👪": "#8e24aa", "👤": "#8e24aa", "🧲": "#e53935",
+  "🚫": "#e53935", "🗑": "#e53935", "💣": "#b71c1c", "🧽": "#fb8c00", "📈": "#00897b", "🗞": "#d81b60", "🤖": "#5e35b1", "🧠": "#5e35b1", "🤷": "#78909c",
+  "⏳": "#fb8c00", "⌛": "#fb8c00", "↩": "#1e88e5", "⇄": "#1e88e5", "🔠": "#546e7a", "🗂": "#fb8c00", "🗺": "#43a047", "🗣": "#1e88e5", "📦": "#8d6e63",
+  "🍽": "#fb8c00", "📄": "#546e7a", "🧮": "#00897b", "📳": "#546e7a", "🎌": "#e53935", "👋": "#fb8c00", "🔐": "#546e7a", "📏": "#546e7a", "🧪": "#8e24aa",
+  "👨‍🍳": "#e53935", "🛍": "#43a047", "🪟": "#1e88e5", "✨": "#f9a825", "👆": "#1e88e5", "💳": "#00acc1", "🙏": "#ec407a", "🐞": "#e53935", "🔍": "#546e7a",
+  "📥": "#1e88e5", "🕘": "#546e7a", "🌓": "#546e7a", "🛡": "#455a64", "⌨": "#546e7a", "🖼": "#1e88e5", "⏲": "#ef6c00", "⏱": "#26a69a", "▥": "#6d4c41", "🍝": "#f9a825", "🥔": "#8d6e63", "🥚": "#fbc02d", "🥦": "#43a047", "🍗": "#bf6b3a", "🐟": "#1e88e5", "🍲": "#ef6c00", "💨": "#546e7a", "🧩": "#8e24aa", "🧰": "#546e7a", "🔢": "#1e88e5", "🎨": "#ec407a", "🔀": "#1e88e5",
+};
+// 🧩 Farben der großen Gruppen-Kästchen in den Einstellungen (Emoji der Gruppe → Farbe)
+const FK_GEM_COLORS = { "🧮": "#00897b", "📋": "#1e88e5", "🎛": "#8e24aa", "💾": "#43a047", "🩺": "#e53935", "👁": "#00897b", "📱": "#3949ab" };
+
+// 🐷 Extra-Symbole nur für die Fixkosten
+Object.assign(FK_EMOJI_ICONS, { "🐷": "mdi:piggy-bank-outline", "🏦": "mdi:bank-outline", "💵": "mdi:cash", "➖": "mdi:minus", "💰": "mdi:cash-multiple" });
+Object.assign(FK_EMOJI_COLORS, { "🐷": "#e91e63", "🏦": "#1e88e5", "💵": "#43a047", "💰": "#43a047" });
+const FK_EMOJI_RX = new RegExp("^\\s*(" + Object.keys(FK_EMOJI_ICONS).sort((a, b) => b.length - a.length).join("|") + ")\\uFE0F?(?=\\s|$)\\s*", "u");
+const FK_ICON_PARENTS = "button,h2,h3,h4,summary,legend,label,b,span,li,a,small,p,.lbl,.ic";
+const FK_ICON_SKIP = "option,select,textarea,input,ha-icon,style,script,[data-noicon]";
+// 🎛️ Wie bei der Einkaufsliste: Emoji vorn an Knöpfen/Überschriften → Linien-Symbol (sieht auf jedem Gerät gleich aus)
+function fkIconizeTree(root) {
+  if (!root) return;
+  const nodes = []; const w = document.createTreeWalker(root, 4 /* Text */); let n; while ((n = w.nextNode())) nodes.push(n);
+  for (const t of nodes) {
+    const p = t.parentElement;
+    if (!p || !p.matches(FK_ICON_PARENTS) || p.closest(FK_ICON_SKIP)) continue; // eigene Namen bekommen data-noicon
+    let first = p.firstChild; // das Emoji muss ganz vorn stehen
+    while (first && first !== t && ((first.nodeType === 3 && !first.data.trim()) || (p.tagName === "LABEL" && first.nodeType === 1 && first.matches("input")))) first = first.nextSibling;
+    if (first !== t) continue;
+    const m = FK_EMOJI_RX.exec(t.data);
+    if (!m) continue;
+    const key = m[1];
+    const ic = document.createElement("ha-icon");
+    ic.setAttribute("icon", FK_EMOJI_ICONS[key]);
+    ic.dataset.eli = "1";
+    const gem = p.classList.contains("gem"); // großes Kästchen in den Einstellungen: farbiger Grund, weißes Symbol
+    const plain = !gem && !p.closest("button,a,.tgl,.swline"); // Knöpfe und Links behalten ihre Schriftfarbe
+    const flex = /flex/.test(getComputedStyle(p).display || "");
+    ic.style.cssText = `--mdc-icon-size:${gem ? "1.25em" : "1.2em"};vertical-align:-.22em;flex:none;${flex || gem ? "" : "margin-right:.3em;"}${plain && FK_EMOJI_COLORS[key] ? `color:${FK_EMOJI_COLORS[key]};` : ""}`;
+    if (gem) { p.style.setProperty("background", FK_GEM_COLORS[key] || FK_EMOJI_COLORS[key] || "#607d8b"); p.style.color = "#fff"; }
+    const rest = t.data.slice(m[0].length);
+    t.data = rest;
+    if (p.tagName === "LABEL") { const wrap = document.createElement("span"); p.insertBefore(wrap, t); wrap.append(ic, t); }
+    else p.insertBefore(ic, t);
+  }
+}
 
 // 🧮 Taschenrechner: rechnet „12,50 + 3 × 2“ selbst aus (Punkt vor Strich, % = geteilt durch 100). Kein eval – sicher.
 function calcEval(expr) {
@@ -580,6 +645,7 @@ class FixkostenCard extends HTMLElement {
     this.shadowRoot.innerHTML = `<style>${CSS}</style>${top}<ha-card>${body}</ha-card>
       <div class="foot"><button class="${this._view === "guide" ? "on" : ""}" data-a="tab" data-v="${this._view === "guide" ? "home" : "guide"}">📖 Anleitung</button></div>
       ${this._undo ? `<div class="undobar" role="status"><span class="ut">${esc(this._undo.label)}</span><button class="ub" data-a="undo">↩️ Rückgängig</button></div>` : ""}`;
+    try { fkIconizeTree(this.shadowRoot); } catch (_) { /* Symbole sind nur Deko */ }
     this._bind();
     FK_CARDS.add(this);
     try { window.dispatchEvent(new CustomEvent("fixkosten-nav")); } catch (_) { /* egal */ }
@@ -621,8 +687,7 @@ class FixkostenCard extends HTMLElement {
 
   _homeView(d) {
     const s = d.summary;
-    const warn = d.settings.warn_below || 0;
-    const hc = d.settings.warn_enabled === false ? "var(--fk-green)" : s.available < warn ? "var(--fk-red)" : s.available < warn * 2 ? "var(--fk-yellow)" : "var(--fk-green)";
+    const hc = s.available < 0 ? "var(--fk-red)" : "var(--fk-green)"; // 🟢 im Plus immer grün, 🔴 nur im Minus (die Warngrenze steuert nur den Warn-Sensor)
     const pct = s.balance > 0 ? Math.max(0, Math.min(100, (s.available / Math.max(s.balance, 1)) * 100)) : 0;
     const quick = d.settings.quick || [];
     const openBookings = d.bookings.filter((b) => !b.cleared).sort((a, b) => b.ts - a.ts);
@@ -696,7 +761,9 @@ class FixkostenCard extends HTMLElement {
     return `<form class="edit" data-a="potmove" data-id="${esc(t.id)}" style="--cc:#e91e63"><div class="f"><div style="grid-column:1 / -1"><b>${esc(t.name)}</b> · jetzt drin: ${this._m(t.amount)}${lent > 0 ? ` · <span class="lenttxt">${this._m(lent)} geliehen</span>` : ""}</div>
       <label class="wide">Betrag (€)<input name="amount" inputmode="decimal" autocomplete="off" placeholder="z. B. 50" value="${lent > 0 ? numDe(lent) : ""}"></label></div>
       <div class="btnrow"><button class="btn" type="submit" name="act" value="take">${ic("minus")}Rausnehmen</button><button class="btn ok" type="submit" name="act" value="return">${ic("plus")}Zurücklegen</button></div>
-      <div class="btnrow end"><button class="btn small" type="submit" name="act" value="set">${ic("pencil-outline")}Als neuen Stand setzen</button><button type="button" class="btn small" data-a="cancel">${ic("close")}Abbrechen</button></div></form>`;
+      <div class="btnrow end"><button type="button" class="btn small" data-a="cancel">${ic("close")}Abbrechen</button></div></form>
+      <form class="edit potset" data-a="potset" data-id="${esc(t.id)}" style="--cc:#9e9e9e"><div class="f"><label class="wide">Stand korrigieren – so viel ist wirklich drin (€)<input name="stand" inputmode="decimal" autocomplete="off" value="${numDe(Number(t.amount) || 0)}"></label></div>
+      <div class="btnrow end"><button class="btn small" type="submit">${ic("pencil-outline")}Stand speichern</button></div></form>`;
   }
   // 🏦 Kontostand eintragen – eigene Seite wie bei der Einkaufsliste
   _kontoPage(d) {
@@ -918,7 +985,7 @@ class FixkostenCard extends HTMLElement {
       rechnen: { icon: "calculator-variant-outline", color: "#43a047", title: "Rechnen & Warnung", info: st.warn_enabled === false ? "Warnung aus" : `Warnung unter ${money(st.warn_below || 0)}`, html: () => `
         <label class="switch"><span>${ic("undo-variant")}Haken am Monatsanfang automatisch zurücksetzen</span><input type="checkbox" class="swchk" data-a="setreset" ${st.reset_checks !== false ? "checked" : ""}></label>
         <label class="switch"><span>${ic("file-document-alert-outline")}Offene Stände von „Verfügbar“ abziehen</span><input type="checkbox" class="swchk" data-a="setdebts" ${st.debts_subtract ? "checked" : ""}></label>
-        <label class="switch"><span>${ic("bell-outline")}Warnung an (Gelb/Rot und Warn-Sensor)</span><input type="checkbox" class="swchk" data-a="setwarnon" ${st.warn_enabled !== false ? "checked" : ""}></label>
+        <label class="switch"><span>${ic("bell-outline")}Warnung an (Warn-Sensor)</span><input type="checkbox" class="swchk" data-a="setwarnon" ${st.warn_enabled !== false ? "checked" : ""}></label>
         ${st.warn_enabled === false ? "" : `<div class="switch"><span>${ic("alert-circle-outline")}Warnen, wenn „Verfügbar“ unter</span><span><input data-a="setwarn" inputmode="decimal" value="${String(st.warn_below ?? 0).replace(".", ",")}" style="width:90px;text-align:right"> €</span></div>`}
         <div class="btnrow"><button class="btn" data-a="resetnow">${ic("undo-variant")}Alle Haken jetzt zurücksetzen</button></div>` },
       quick: { icon: "lightning-bolt-outline", color: "#fb8c00", title: "Schnellknöpfe", info: `${(st.quick || []).length} Knöpfe`, html: () => `
@@ -932,7 +999,7 @@ class FixkostenCard extends HTMLElement {
       app: { icon: "cellphone-arrow-down", color: "#3949ab", title: "Offline-App", info: "auch ohne Netz", html: () => `
         <p class="small">Eine eigene kleine App nur für die Fixkosten. Sie öffnet sich auch <b>ohne Netz</b>, zeigt den letzten Stand, lässt dich abhaken und eintragen und schickt alles nach, sobald wieder Netz da ist.</p>
         <ol class="small steps"><li>Auf dem Handy im <b>Browser</b> (Chrome oder Safari, nicht in der HA-App) die Adresse unten öffnen.</li><li>Einmal mit deinem Home-Assistant-Benutzer <b>anmelden</b>.</li><li>Im Browser-Menü <b>„Zum Startbildschirm hinzufügen“</b> – fertig, eigenes 💶-Symbol.</li></ol>
-        <p class="small">Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. <b>Abmelden</b> löscht alle Zahlen aus dem Handy. Es braucht eine <b>https</b>-Adresse (z. B. Nabu Casa).</p>
+        <p class="small">Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. <b>Abmelden</b> meldet nur das Handy ab – deine Daten in Home Assistant bleiben erhalten. Es braucht eine <b>https</b>-Adresse (z. B. Nabu Casa).</p>
         ${d.app_url ? `<p class="small"><b>Deine Adresse für die App:</b></p><input id="appUrl" readonly value="${esc(d.app_url)}" translate="no">
         <div class="btnrow"><button class="btn main" data-a="appcopy">${ic("content-copy")}Kopieren</button></div><p class="small">Kopieren, im Handy-Browser einfügen, fertig. Die Adresse funktioniert zu Hause und unterwegs.</p>`
         : `<p class="small">⚠️ Home Assistant kennt keine https-Adresse für unterwegs. Mit <b>Nabu Casa</b> (Einstellungen → Home Assistant Cloud → Fernzugriff) oder einer eigenen https-Adresse (Einstellungen → System → Netzwerk) klappt es. Zu Hause geht auch: <code>${esc(location.origin)}/fixkosten/app/</code></p>`}` },
@@ -1159,12 +1226,18 @@ class FixkostenCard extends HTMLElement {
       return;
     }
     if (a === "potmove") {
-      const v = parseMoney(data.amount), act = submitter?.value || "take";
-      if (Number.isNaN(v) || (!v && act !== "set") || String(data.amount || "").trim() === "") { this._toast("Bitte einen Betrag eintippen"); return; }
+      const v = parseMoney(data.amount), act = submitter?.value === "return" ? "return" : "take"; // ↵ Enter = Rausnehmen
+      if (Number.isNaN(v) || !v || String(data.amount || "").trim() === "") { this._toast("Bitte einen Betrag eintippen"); return; }
       const id = f.dataset.id;
       this._open = null; this.shadowRoot.activeElement?.blur(); this._force = true;
-      if (act === "set") this._send({ type: "topf_save", item: { id, amount: v } });
-      else { this._send({ type: act === "return" ? "topf_return" : "topf_take", id, amount: Math.abs(v) }); this._toast(act === "return" ? `➕ ${money(Math.abs(v))} zurückgelegt` : `➖ ${money(Math.abs(v))} rausgenommen`); }
+      this._send({ type: act === "return" ? "topf_return" : "topf_take", id, amount: Math.abs(v) }); this._toast(act === "return" ? `➕ ${money(Math.abs(v))} zurückgelegt` : `➖ ${money(Math.abs(v))} rausgenommen`);
+      return;
+    }
+    if (a === "potset") { // ✏️ Stand korrigieren: eigenes Feld, damit „Rausnehmen“ nie aus Versehen den Stand überschreibt
+      const v = parseMoney(data.stand);
+      if (Number.isNaN(v) || String(data.stand || "").trim() === "") { this._toast("Bitte den Stand eintippen"); return; }
+      this._open = null; this.shadowRoot.activeElement?.blur(); this._force = true;
+      this._send({ type: "topf_save", item: { id: f.dataset.id, amount: v } }); this._toast(`✏️ Stand jetzt ${money(v)}`);
       return;
     }
     if (a === "bsave") {

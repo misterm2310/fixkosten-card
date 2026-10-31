@@ -169,6 +169,15 @@ await p.waitForTimeout(50);
 await sr(`const f = h.querySelector('form[data-a="potmove"]'); f.querySelector('button[value="return"]').click();`);
 await p.waitForTimeout(80);
 check("Topf: Zurücklegen (Vorschlag = geliehen)", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_return" && o.id === "t2" && o.amount === 50)) && await sr(`return !h.querySelector('.item[data-id="t2"] .tag.lent');`));
+// ✏️ Topf: Stand korrigieren hat ein eigenes Feld (mit dem jetzigen Stand drin)
+await p.waitForTimeout(150);
+await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
+await p.waitForTimeout(50);
+check("Topf: kein „Als neuen Stand setzen“ mehr am Betragsfeld", await sr(`return !h.querySelector('form[data-a="potmove"] button[value="set"]') && !!h.querySelector('form[data-a="potset"] input[name="stand"]').value;`));
+await sr(`const f = h.querySelector('form[data-a="potset"]'); f.stand.value = "777"; f.requestSubmit();`);
+await p.waitForTimeout(80);
+check("Topf: Stand korrigieren schickt topf_save", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_save" && o.item?.id === "t2" && o.item?.amount === 777)));
+await p.waitForTimeout(150);
 // ↩️ Zurück-Taste am Handy: Einstellungen → Seite → zurück → zurück
 await sr(`h.querySelector('.topbar [data-a="tab"][data-v="set"]').click();`);
 await sr(`h.querySelector('[data-a="setgrp"][data-v="Rechnen"]').click(); h.querySelector('[data-a="sheet"][data-v="rechnen"]').click();`);
@@ -196,6 +205,7 @@ check("⚙️ wie Einkaufsliste: 4 Kästen, zugeklappt, ✕ oben", await sr(`ret
 await sr(`h.querySelector('[data-a="setgrp"][data-v="App & Info"]').click();`);
 check("Kasten aufklappen zeigt Zeilen mit bunten Symbolen", await sr(`return h.querySelectorAll('.lrow .ic').length === 5;`));
 await shot("5-einstellungen.png");
+check("⚙️ Gruppen-Kästchen: farbig mit Linien-Symbol statt Emoji (wie EL)", await sr(`const g = [...h.querySelectorAll('.lgroup .gem')]; return g.length === 4 && g.every((x) => x.querySelector('ha-icon') && !/\\p{Extended_Pictographic}/u.test(x.textContent) && x.style.background);`));
 await sr(`h.querySelector('[data-a="sheet"][data-v="app"]').click();`);
 check("Offline-App als Seite in der Karte, ← oben", await sr(`return /Zum Startbildschirm/.test(h.querySelector('.pagehost')?.textContent || '') && h.querySelector('.head [data-a="back"] ha-icon')?.getAttribute('icon') === 'mdi:arrow-left';`));
 await shot("5b-offline-app.png");

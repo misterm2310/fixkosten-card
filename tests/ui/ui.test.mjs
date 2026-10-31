@@ -163,6 +163,13 @@ await sr(`const f = h.querySelector('form[data-a="potmove"]'); f.amount.value = 
 await p.waitForTimeout(80);
 check("Topf: Rausnehmen schickt topf_take", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_take" && o.id === "t2" && o.amount === 50)));
 check("Topf: „geliehen“ in Orange", await sr(`const t = h.querySelector('.item[data-id="t2"] .tag.lent')?.textContent || ''; return /50,00/.test(t) && /geliehen/.test(t);`), await sr(`return h.querySelector('.item[data-id="t2"]')?.textContent || '-';`));
+p.once("dialog", (dl) => dl.accept());
+await sr(`h.querySelector('.item[data-id="t2"] .tag.lent').click();`);
+await p.waitForTimeout(80);
+check("Topf: orangen Zettel antippen = nicht mehr zurücklegen (topf_keep)", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_keep" && o.id === "t2")) && await sr(`return !h.querySelector('.item[data-id="t2"] .tag.lent');`));
+await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
+await p.waitForTimeout(50);
+await sr(`const f = h.querySelector('form[data-a="potmove"]'); f.amount.value = "50"; f.querySelector('button[value="take"]').click();`);
 await p.waitForTimeout(150);
 await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
 await p.waitForTimeout(50);
@@ -179,6 +186,17 @@ await sr(`const f = h.querySelector('form[data-a="potset"]'); f.stand.value = "7
 await p.waitForTimeout(80);
 check("Topf: Stand korrigieren schickt topf_save", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_save" && o.item?.id === "t2" && o.item?.amount === 777)));
 await p.waitForTimeout(150);
+// 💾 CSV-Export: Kontostand-Zeile + Datum bei Töpfen
+const csv = await p.evaluate(async () => { const c = document.querySelector('#c1') || document.querySelector('fixkosten-card'); let blob; const o = URL.createObjectURL; URL.createObjectURL = (b) => { blob = b; return "blob:x"; }; const ac = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () {}; c._export(c._data); URL.createObjectURL = o; HTMLAnchorElement.prototype.click = ac; return await blob.text(); });
+check("CSV hat Kontostand-Zeile", /\nkontostand;Konto;1500,00;\d\d\.\d\d\.\d{4}/.test(csv), csv.slice(0, 200));
+check("CSV hat Datum bei Töpfen", /\ntopf;[^;]+;[^;]+;\d\d\.\d\d\.\d{4}/.test(csv), csv);
+// 💳 Ausgaben einklappbar: Standard offen, zu = nur Liste weg, Eingabe bleibt
+check("Ausgaben: Standard offen", await sr(`return !!h.querySelector('[data-a="sec"][data-v="ausgaben_zu"]') && !!h.querySelector('.item[data-k="booking"]');`));
+await sr(`h.querySelector('[data-a="sec"][data-v="ausgaben_zu"]').click();`);
+await p.waitForTimeout(50);
+check("Ausgaben zugeklappt: Liste weg, Schnellknöpfe + Eingabe bleiben", await sr(`return !h.querySelector('.item[data-k="booking"]') && !!h.querySelector('form[data-a="booking"]') && !!h.querySelector('.quick .chip');`));
+await sr(`h.querySelector('[data-a="sec"][data-v="ausgaben_zu"]').click();`);
+await p.waitForTimeout(50);
 // ↩️ Zurück-Taste am Handy: Einstellungen → Seite → zurück → zurück
 await sr(`h.querySelector('.topbar [data-a="tab"][data-v="set"]').click();`);
 await sr(`h.querySelector('[data-a="setgrp"][data-v="Rechnen"]').click(); h.querySelector('[data-a="sheet"][data-v="rechnen"]').click();`);

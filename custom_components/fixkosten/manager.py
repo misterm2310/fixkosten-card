@@ -463,12 +463,18 @@ class FixkostenManager:
             if pot is None:
                 raise HomeAssistantError("Topf nicht gefunden")
             lent = float(pot.get("lent", 0) or 0)
+            pot["updated"] = ts  # 📅 Datum der letzten Änderung (steht auch im CSV)
             if t == "topf_take":
                 pot["amount"] = round(float(pot["amount"]) - amount, 2)
                 pot["lent"] = round(lent + amount, 2)
             else:
                 pot["amount"] = round(float(pot["amount"]) + amount, 2)
                 pot["lent"] = round(max(0.0, lent - amount), 2)
+        elif t == "topf_keep":  # 🐷 Geliehenes doch nicht zurücklegen: nur der orange Zettel geht weg (der Topf ist schon kleiner)
+            pot = next((x for x in d["toepfe"] if x["id"] == op.get("id")), None)
+            if pot is None:
+                raise HomeAssistantError("Topf nicht gefunden")
+            pot["lent"] = 0.0
         elif t == "booking_delete":
             d["bookings"] = [b for b in d["bookings"] if b["id"] != op["id"]]
         elif t == "restore":  # ↩️ Rückgängig nach dem Löschen: Eintrag kommt an seinen alten Platz zurück
@@ -585,7 +591,7 @@ class FixkostenManager:
 
     # ------------------------------------------------------------------ 📥 CSV-Import
     def import_csv(self, text: str, replace: bool = False) -> dict[str, int]:
-        """Spalten: Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz (Typ = ausgabe | einnahme | topf | stand | iban). Kopfzeile optional.
+        """Spalten: Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz (Typ = ausgabe | einnahme | topf | stand | iban | kontostand). Kopfzeile optional.
 
         Bei Einnahmen steht in Spalte 4 ein Datum als Info (Einnahmen sind nur Info, sie ändern „Verfügbar“ nicht)."""
         if not text or not text.strip():
@@ -596,7 +602,7 @@ class FixkostenManager:
         else:
             delim = ";" if sample.count(";") >= sample.count(",") else ","
         rows = list(csv.reader(io.StringIO(text.lstrip("﻿")), delimiter=delim))
-        counts = {"ausgaben": 0, "einnahmen": 0, "toepfe": 0, "staende": 0, "konten": 0, "uebersprungen": 0}
+        counts = {"ausgaben": 0, "einnahmen": 0, "toepfe": 0, "staende": 0, "konten": 0, "kontostand": 0, "uebersprungen": 0}
         if replace:
             self.data["posten"], self.data["einnahmen"], self.data["toepfe"], self.data["staende"] = [], [], [], []
             self.data["paid"], self.data["received"] = {}, {}
@@ -608,6 +614,15 @@ class FixkostenManager:
             cells = [c.strip() for c in row] + [""] * 6
             typ = cells[0].lower()
             if not any(cells) or typ in ("typ", "type") or typ.startswith("#"):
+                continue
+            if typ in ("kontostand", "saldo"):  # 🏦 Kontostand (mit Vorzeichen, darf auch mal im Minus sein)
+                try:
+                    self.data["konto"]["balance"] = parse_money(cells[2])
+                except HomeAssistantError:
+                    counts["uebersprungen"] += 1
+                    continue
+                self.data["konto"]["updated"] = ts
+                counts["kontostand"] += 1
                 continue
             kind = kinds.get(typ)
             if kind is None or not cells[1]:
@@ -630,7 +645,13 @@ class FixkostenManager:
             same = self.find(kind, cells[1])
             if same is not None:
                 item["id"] = same["id"]
-            self._save_item(kind, item, ts)
+            saved = self._save_item(kind, item, ts)
+            if kind in ("topf", "stand") and cells[3]:  # 📅 Datum aus Spalte 4 (TT.MM.JJJJ) behalten
+                try:
+                    day = datetime.strptime(cells[3], "%d.%m.%Y").replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+                    saved["updated"] = int(day.timestamp() * 1000)
+                except ValueError:
+                    pass
             counts[{"posten": "ausgaben", "einnahme": "einnahmen", "topf": "toepfe", "stand": "staende", "konto": "konten"}[kind]] += 1
         self._changed()
         return counts

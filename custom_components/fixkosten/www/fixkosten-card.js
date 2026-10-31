@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.8";
+const FK_VERSION = "0.1.0-beta.9";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -24,7 +24,7 @@ const FK_GUIDE = [
   { icon: "calendar-month-outline", color: "#3949ab", title: "Fixkosten abhaken", text: `Deine Fixkosten stehen in Gruppen wie <b>„ab dem 1.“</b> und <b>„ab dem 15.“</b>. Die Gruppen sind <b>zugeklappt</b>: Tipp auf die Überschrift klappt sie auf (die Karte merkt sich das). Rechts steht „2 / 4“ und was noch offen ist.<br>Ist ein Posten vom Konto abgebucht: <b>Kreis antippen</b> ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️ → „Rechnen & Warnung“).<br>Hat ein Posten einen <b>festen Tag</b> (z. B. am 5.), steht oben ein Hinweis auf die nächste Abbuchung. <b>Pausierte</b> Posten (⏸️) stehen grau und abgehakt mit drin und zählen nicht mit.` },
   { icon: "credit-card-outline", color: "#ff9800", title: "Ausgaben", text: `Etwas bezahlt (Karte, PayPal, bar …), das noch nicht vom Konto abgebucht ist? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: den <b>grünen Haken ✓</b> antippen (lange drücken zeigt, was ein Knopf macht). Dann steckt er im Kontostand und fliegt aus der Rechnung. Vertippt? <b>Eintrag antippen</b> = Name und Betrag ändern. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein (einer pro Zeile).` },
   { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Ausgabe</b>, als <b>Kontostand</b> oder kopierst es.` },
-  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter: <b>Stand korrigieren</b> mit grünem Haken ✓ (z. B. nach dem Nachzählen). Auf den Namen tippen klappt wieder zu. Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? Grünen Haken ✓ antippen. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
+  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter: <b>Stand korrigieren</b> mit grünem Haken ✓ (z. B. nach dem Nachzählen). Auf den Namen tippen klappt wieder zu. Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). Kommt es nicht mehr zurück: den <b>orangen Zettel antippen</b> → weg. „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? Grünen Haken ✓ antippen. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
   { icon: "pencil-outline", color: "#00897b", title: "Bearbeiten", text: `Unter <b>„Bearbeiten“</b> legst du alles an (＋ Neu) oder tippst einen Eintrag zum Ändern an. Posten können auf <b>bestimmte Monate</b> beschränkt werden (z. B. Kfz-Steuer nur im März) oder <b>pausiert</b> werden. Neue Gruppen bekommen einen Starttag (1–28).<br><b>Reihenfolge ändern:</b> am Griff ⠿ vorne ziehen. Fixkosten kannst du so auch in eine andere Gruppe schieben. Das klappt auch bei Gruppen, Töpfen, Einnahmen, offenen Ständen und Konten.` },
   { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Ausgaben, Einnahmen und was am Ende übrig war (bis zu 3 Jahre). Du findest ihn in <b>⚙️ → Daten → Rückblick</b>.` },
   { icon: "stethoscope", color: "#00897b", title: "Gesundheit, Fehler und Werkseinstellungen", text: `In ⚙️ → <b>🩺 Gesundheit</b>: <b>„Alles ok?“</b> sucht nach Dingen, die nicht zusammenpassen (Posten ohne Gruppe, alter Kontostand, vergessene Ausgaben …) und sagt, wie man es repariert. <b>Fehler-Protokoll</b> zeigt, was beim Speichern nicht geklappt hat. <b>Ressourcen</b> zeigt, wie viel Platz alles braucht.<br><b>💣 Werkseinstellungen</b> (⚙️ → Daten, nur Admins): alles zurück auf Anfang, nur die PIN bleibt. Zwei Sicherheitsfragen – vorher lieber „Als CSV sichern“.` },
@@ -36,6 +36,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.9", "🐷 <b>Orangen „geliehen“-Zettel antippen</b> = „nicht mehr zurücklegen“: der Zettel ist weg, das Geld gilt als ausgegeben. · 💳 <b>Ausgaben einklappbar</b> (Standard offen) – zugeklappt bleiben Schnellknöpfe und Eingabe da. · 💾 <b>CSV-Sicherung</b> hat jetzt den <b>Kontostand</b> (mit Datum) und das <b>Datum bei Töpfen</b> – beides kommt beim Einlesen wieder rein. · 🧹 „Bleibt nach Fixkosten“ ist weg (hat nur verwirrt)."],
   ["0.1.0-beta.8", "🐷 <b>Topf-Fenster schlank:</b> nur noch zwei Zeilen. Oben Betrag mit ➖ und ➕, darunter „Stand korrigieren“ mit grünem Haken ✓ und ✕. Nur Symbole – lange drücken zeigt, was ein Knopf macht. Auf den Topf-Namen tippen klappt wieder zu."],
   ["0.1.0-beta.7", "🎛️ <b>Symbole wie bei der Einkaufsliste:</b> Emojis vorn an Knöpfen und Überschriften werden zu schlichten Linien-Symbolen, die Gruppen in ⚙️ haben farbige Kästchen mit weißem Symbol. · 🟢 <b>„Verfügbar“ ist im Plus immer grün</b>, rot nur im Minus. · 🐷 <b>Topf:</b> „Stand korrigieren“ hat jetzt ein eigenes Feld – der Betrag für Rausnehmen/Zurücklegen setzt nie mehr aus Versehen den Stand. · 🚪 Offline-App: klarer Text, dass <b>Abmelden</b> nur die Kopie im Handy löscht."],
   ["0.1.0-beta.6", "💵 <b>Einnahmen zum Abhaken</b> – so siehst du, ob der Lohn schon da ist (Haken gehen am Monatsanfang mit zurück). · 📊 Der <b>Rückblick</b> wohnt jetzt in ⚙️ → Daten, oben bleiben Übersicht und Bearbeiten. · 💣 <b>Werkseinstellungen</b> wie bei der Einkaufsliste (⚙️ → Daten, nur Admins, zwei Sicherheitsfragen, die PIN bleibt). · 🩺 Neue Gruppe <b>Gesundheit</b>: „Alles ok?“ findet z. B. Posten ohne Gruppe, alten Kontostand oder vergessene Ausgaben, dazu Fehler-Protokoll und Ressourcen. · 🎨 Symbole und Namen in ⚙️ wie bei der Einkaufsliste."],
@@ -245,6 +246,7 @@ function applyLocal(d, op) {
     const p = d.toepfe.find((x) => x.id === op.id), v = Math.abs(parseMoney(op.amount)) || 0;
     if (p && v) { p.amount = Math.round(((Number(p.amount) || 0) + (t === "topf_take" ? -v : v)) * 100) / 100; p.lent = Math.max(0, Math.round(((Number(p.lent) || 0) + (t === "topf_take" ? v : -v)) * 100) / 100); }
   }
+  else if (t === "topf_keep") { const p = d.toepfe.find((x) => x.id === op.id); if (p) p.lent = 0; }
   else if (t === "booking_delete") d.bookings = d.bookings.filter((x) => x.id !== op.id);
   else if (t === "restore") {
     const key = op.kind === "booking" ? "bookings" : KIND[op.kind];
@@ -714,11 +716,12 @@ class FixkostenCard extends HTMLElement {
     if (fixed.length) { const n = fixed[0]; h += `<div class="next">${ic("calendar-clock")}<span><b>${n.day <= today ? "Fällig" : `Am ${n.day}.`}:</b> ${esc(n.name)} · ${this._m(n.amount)}</span></div>`; }
 
     // 💳 Ausgaben
-    h += this._gh("credit-card-outline", "#ff9800", "Ausgaben", `noch nicht abgebucht · ${this._m(-s.bookings_open)}`);
+    const bOpen = !this._openSec.has("ausgaben_zu"); // 💳 Standard offen – zugeklappt verschwindet nur die Liste, Schnellknöpfe + Eingabe bleiben
+    h += `<div class="ghead click" data-a="sec" data-v="ausgaben_zu"><span class="gdot" style="--gc:#ff9800">${ic("credit-card-outline")}</span><span>Ausgaben</span><span class="n">noch nicht abgebucht · ${this._m(-s.bookings_open)}${!bOpen && openBookings.length ? ` · ${openBookings.length}` : ""}</span><span class="chev">${ic(bOpen ? "chevron-up" : "chevron-down")}</span></div>`;
     h += `<div class="quick">${quick.map((q) => `<button class="chip ${this._quickName === q ? "on" : ""}" data-a="quick" data-v="${esc(q)}">${esc(q)}</button>`).join("")}</div>
       <form class="add" data-a="booking"><input name="name" placeholder="Wofür? z. B. Bäckerei" value="${esc(this._quickName || "")}" autocomplete="off">
       <input name="amount" class="amount" placeholder="0,00 €" inputmode="decimal" autocomplete="off" value="${esc(this._prefAmount || "")}"><button class="addbtn" type="submit" title="Eintragen">${ic("plus")}</button></form>`;
-    h += openBookings.length ? openBookings.map((b) => this._open?.kind === "booking" && this._open.id === b.id ? this._bookingForm(b) : `<div class="item click" style="--cc:#ff9800" data-a="open" data-k="booking" data-id="${esc(b.id)}" title="Antippen = ändern"><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${b.by ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
+    if (bOpen) h += openBookings.length ? openBookings.map((b) => this._open?.kind === "booking" && this._open.id === b.id ? this._bookingForm(b) : `<div class="item click" style="--cc:#ff9800" data-a="open" data-k="booking" data-id="${esc(b.id)}" title="Antippen = ändern"><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${b.by ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
       <div class="amt">${this._m(-b.amount, "neg")}</div>
       <button class="iconbtn okbtn" data-a="clear" data-id="${esc(b.id)}" title="✓ Ist jetzt auf dem Konto abgebucht" aria-label="abgebucht">${ic("check-bold")}</button>
       <button class="iconbtn" data-a="bdel" data-id="${esc(b.id)}" title="Löschen">${ic("close")}</button></div>`).join("") : `<div class="empty">Nichts offen 🎉</div>`;
@@ -741,7 +744,6 @@ class FixkostenCard extends HTMLElement {
     if (d.einnahmen.length) {
       h += this._ghc("einnahmen", "cash-plus", "var(--fk-green)", "Einnahmen (Info)", this._m(s.income_total, "pos"));
       if (this._openSec.has("einnahmen")) h += d.einnahmen.filter((e) => countsThisMonth(d, e)).map((e) => { const on = !!d.received?.[e.id]?.paid; return `<div class="item ${on ? "done" : ""}" style="--cc:var(--fk-green)"><button class="chk ${on ? "on" : ""}" data-a="recv" data-id="${esc(e.id)}" aria-label="ist gebucht" title="${on ? "Ist gebucht ✓ – antippen = doch nicht" : "Antippen, wenn es auf dem Konto ist"}">${on ? ic("check") : ""}</button><div class="n"><b>${esc(e.name)}</b>${e.date ? `<div class="meta"><span class="tag">${esc(e.date)}</span></div>` : ""}</div><div class="amt">${this._m(e.amount, "pos")}</div></div>`; }).join("");
-      h += `<div class="sum"><span>Bleibt nach Fixkosten</span>${this._m(s.surplus, s.surplus < 0 ? "neg" : "pos")}</div>`;
     }
     // 🧾 Offene Stände
     if (d.staende.length) {
@@ -753,7 +755,7 @@ class FixkostenCard extends HTMLElement {
     if (d.toepfe.length) {
       h += this._ghc("toepfe", "piggy-bank-outline", "#e91e63", "Töpfe", this._m(s.pots_total));
       if (this._openSec.has("toepfe")) h += d.toepfe.map((t) => this._open?.kind === "pot" && this._open.id === t.id ? this._potForm(t)
-        : `<div class="item click" style="--cc:#e91e63" data-a="open" data-k="pot" data-id="${esc(t.id)}" title="Antippen = rausnehmen, zurücklegen oder Stand ändern"><div class="n"><b>${esc(t.name)}</b>${t.lent > 0 ? `<div class="meta"><span class="tag lent">${this._m(t.lent)} geliehen</span></div>` : ""}</div><div class="amt">${this._m(t.amount)}</div></div>`).join("");
+        : `<div class="item click" style="--cc:#e91e63" data-a="open" data-k="pot" data-id="${esc(t.id)}" title="Antippen = rausnehmen, zurücklegen oder Stand ändern"><div class="n"><b>${esc(t.name)}</b>${t.lent > 0 ? `<div class="meta"><span class="tag lent" data-a="lentoff" data-id="${esc(t.id)}" title="Antippen = nicht mehr zurücklegen">${this._m(t.lent)} geliehen</span></div>` : ""}</div><div class="amt">${this._m(t.amount)}</div></div>`).join("");
       h += `<div class="sum"><span>Komplett (Verfügbar + Töpfe)</span>${this._m(s.total)}</div>`;
     }
     // 🏦 Meine Konten (nur Info)
@@ -999,7 +1001,7 @@ class FixkostenCard extends HTMLElement {
         <p class="small">Die Knöpfe über „Wofür?“ bei den Ausgaben. <b>Ein Knopf pro Zeile</b> (Kommas sind erlaubt).</p>
         <textarea data-a="quicktext" rows="8">${esc((st.quick || []).join("\n"))}</textarea>
         <div class="btnrow end"><button class="btn main" data-a="quicksave">${ic("content-save-outline")}Speichern</button></div>` },
-      csv: { icon: "database-import-outline", color: "#1e88e5", title: "Import & Sicherung", info: admin ? "CSV einlesen & sichern" : "nur Admins", html: () => admin ? `<p class="small">Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b> – Typ = ausgabe, einnahme, topf, stand (offener Stand) oder iban (Konto-Info, IBAN in Spalte 3). Gruppe = 1 oder 15 (oder der Name). Zahlart = ü, d, l, p, a, g, b oder -.</p>
+      csv: { icon: "database-import-outline", color: "#1e88e5", title: "Import & Sicherung", info: admin ? "CSV einlesen & sichern" : "nur Admins", html: () => admin ? `<p class="small">Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b> – Typ = ausgabe, einnahme, topf, stand (offener Stand), iban (Konto-Info, IBAN in Spalte 3) oder kontostand (Betrag, Datum in Spalte 4). Gruppe = 1 oder 15 (oder der Name). Zahlart = ü, d, l, p, a, g, b oder -.</p>
         <input type="file" accept=".csv,text/csv,text/plain" data-a="file"><textarea data-a="csv" rows="5" style="margin-top:6px" placeholder="ausgabe;Miete;800,00;1;d"></textarea>
         <label class="switch"><span>vorhandene Posten, Einnahmen, Töpfe und offenen Stände vorher löschen</span><input type="checkbox" class="swchk" data-a="csvreplace"></label>
         <div class="btnrow"><button class="btn main" data-a="import">${ic("upload")}Einlesen</button><button class="btn" data-a="export">${ic("download")}Als CSV sichern</button></div>` : `<p class="small">Nur für Admins.</p>` },
@@ -1178,6 +1180,11 @@ class FixkostenCard extends HTMLElement {
     else if (a === "quicksave") { const t = this.shadowRoot.querySelector('[data-a="quicktext"]')?.value || ""; this._send({ type: "settings", settings: { quick: t.split("\n").map((x) => x.trim()).filter(Boolean) } }); this._toast("⚡ Schnellknöpfe gespeichert"); }
     else if (a === "hide") { this._hidden = !this._hidden; store.put(HKEY, this._hidden); redraw(); }
     else if (a === "tab") { this._view = el.dataset.v; this._open = null; this._sheet = null; if (this._pad?.step !== "unlock") this._pad = null; redraw(); }
+    else if (a === "lentoff") { // 🐷 Geliehenes nicht mehr zurücklegen: Zettel weg, Geld gilt als ausgegeben
+      const t = d.toepfe.find((x) => x.id === id);
+      if (!t || !confirm(`${money(t.lent)} aus „${t.name}“ nicht mehr zurücklegen?\n\nDer orange Zettel verschwindet, das Geld gilt als ausgegeben. Der Topf-Stand bleibt wie er ist.`)) return;
+      this._send({ type: "topf_keep", id }); this._toast("✓ Zettel weg – Geld gilt als ausgegeben");
+    }
     else if (a === "recv") this._send({ type: "received", id, value: !d.received?.[id]?.paid, month: d.month });
     else if (a === "paid") this._send({ type: "paid", id, value: !d.paid[id]?.paid, month: d.month });
     else if (a === "quick") { this._quickName = this._quickName === el.dataset.v ? null : el.dataset.v; redraw(); setTimeout(() => this.shadowRoot.querySelector('input[name="amount"]')?.focus(), 30); }
@@ -1311,11 +1318,14 @@ class FixkostenCard extends HTMLElement {
     const num = (v) => String((Number(v) || 0).toFixed(2)).replace(".", ",");
     const gday = (id) => d.groups.find((g) => g.id === id)?.start_day || "";
     const q = (x) => /[;"\n]/.test(String(x)) ? `"${String(x).replace(/"/g, '""')}"` : String(x ?? "");
+    const day = (ms) => ms ? new Date(ms).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) : ""; // 📅 TT.MM.JJJJ
+    const upd = day(d.summary?.balance_updated);
     const lines = ["Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz",
+      ["kontostand", "Konto", num(d.summary?.balance), upd, "", ""].map(q).join(";"), // 🏦 Kontostand mit Datum (für Tabellen & Sicherung)
       ...d.posten.map((p) => ["ausgabe", p.name, num(p.amount), gday(p.group), (PAY[p.pay] || PAY.keine)[1], p.note || ""].map(q).join(";")),
       ...d.einnahmen.map((e) => ["einnahme", e.name, num(e.amount), e.date || "", (PAY[e.pay] || PAY.keine)[1], e.note || ""].map(q).join(";")),
-      ...d.toepfe.map((t) => ["topf", t.name, num(t.amount), "", "", ""].map(q).join(";")),
-      ...d.staende.map((x) => ["stand", x.name, num(x.amount), "", "", x.note || ""].map(q).join(";")),
+      ...d.toepfe.map((t) => ["topf", t.name, num(t.amount), day(t.updated), "", ""].map(q).join(";")),
+      ...d.staende.map((x) => ["stand", x.name, num(x.amount), day(x.updated), "", x.note || ""].map(q).join(";")),
       ...d.konten.map((k) => ["iban", k.name, k.iban, "", "", k.note || ""].map(q).join(";"))];
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob(["﻿" + lines.join("\n")], { type: "text/csv" }));

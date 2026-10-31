@@ -34,7 +34,7 @@
 | 💳 **Ausgaben** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: grüner Haken ✓. Eintrag antippen = ändern. Lange drücken auf einen Symbol-Knopf zeigt, was er macht |
 | 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Ausgabe, Kontostand oder kopieren. Rechnet selbst, ohne `eval` |
 | 💵 **Einnahmen** | Nur zur Info (Lohn, Nebenjob …), mit Kreis zum Abhaken, sobald sie auf dem Konto sind. Zeigt, was nach den Fixkosten übrig bleibt |
-| 🐷 **Töpfe** | Was wo liegt: Sparkonto, Bargeld zu Hause, PayPal … plus „Komplett“ = Verfügbar + alle Töpfe. ➖ Rausnehmen und ➕ Zurücklegen, Geliehenes steht in Orange dabei |
+| 🐷 **Töpfe** | Was wo liegt: Sparkonto, Bargeld zu Hause, PayPal … plus „Komplett“ = Verfügbar + alle Töpfe. ➖ Rausnehmen und ➕ Zurücklegen, Geliehenes steht in Orange dabei (antippen = nicht mehr zurücklegen) |
 | 🧾 **Offene Stände** | Was du noch begleichen musst. Auf Wunsch auch von „Verfügbar“ abziehen |
 | 🏦 **Meine Konten** | IBAN-Liste zum schnellen Kopieren (📋) |
 | 👁️ **Verstecken** | Ein Tipp verschwimmt alle Beträge, z. B. wenn jemand mitschaut |
@@ -136,12 +136,13 @@ Spalten (Semikolon): `Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz`
 | --- | --- | --- |
 | `ausgabe` | Fixkosten-Posten | Gruppe: `1`, `15` (oder Name). Neue Starttage legen eine Gruppe an |
 | `einnahme` | Einnahme (nur Info) | Datum als Text |
-| `topf` | Stand eines Topfs | – |
-| `stand` | offener Stand | – |
+| `topf` | Stand eines Topfs | Datum der letzten Änderung (`TT.MM.JJJJ`, optional) |
+| `stand` | offener Stand | Datum (optional) |
 | `iban` | Konto-Info, IBAN steht in Spalte 3 | – |
+| `kontostand` | Kontostand (darf negativ sein) | Datum (optional) |
 
 Zahlart-Kürzel: `ü` Überweisung · `d` Dauerauftrag · `l` Lastschrift · `p` PayPal · `a` Amex · `g` Google · `b` Bar · `-` keine.
-Beträge gehen deutsch (`1.234,56 €`) oder mit Punkt. Minus wird ignoriert. Beispiel: [beispiel-fixkosten.csv](beispiel-fixkosten.csv)
+Beträge gehen deutsch (`1.234,56 €`) oder mit Punkt. Minus wird ignoriert (außer beim Kontostand). Beispiel: [beispiel-fixkosten.csv](beispiel-fixkosten.csv)
 
 Einlesen: in der Karte unter ⚙️ (nur Admins) oder per Aktion `fixkosten.csv_import` mit `datei: fixkosten.csv` (im config-Ordner).
 

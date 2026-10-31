@@ -40,7 +40,8 @@ DEFAULT_SETTINGS = {
     "currency": "EUR",
     "log_on": True,         # 📜 Verlauf: wer hat wann was geändert (Schalter)
     "labels": False,        # 🔤 Beschriftungen unter den Symbol-Knöpfen (für alle)
-    "mascot": False,        # 🐷 Maskottchen Sparschwein oben links (für alle)
+    "mascot": False,
+    "veil": True,           # 🙈 Einnahmen, Töpfe und „Komplett“ verschleiern (Schalter, für alle)        # 🐷 Maskottchen Sparschwein oben links (für alle)
     "view": {},             # 👁️ Ansicht für alle: Abschnitt → False = ausgeblendet
     "quick": ["Bäckerei", "Netto, Lidl & Co.", "Amazon", "PayPal", "Mc Donalds & BK", "Sonstiges"],  # ⚡ Schnellknöpfe
 }

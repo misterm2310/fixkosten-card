@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.15";
+const FK_VERSION = "0.1.0-beta.16";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -38,6 +38,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.16", "🔒 <b>Ganze Karte mit PIN sperren</b> (⚙️ → App &amp; Info → Schutz, Standard aus): Dann zeigt die Karte zuerst das Zahlenfeld – erst nach der PIN sieht man Zahlen. Nach 10 Minuten Ruhe oder mit 🔒 ist sie wieder zu."],
   ["0.1.0-beta.15", "🙈 Verschwommen sind jetzt nur noch die <b>Summen</b>: hinter „Einnahmen“, hinter „Töpfe“ und bei „Komplett“. Die einzelnen Einnahmen und Töpfe sind wieder klar zu sehen."],
   ["0.1.0-beta.14", "🙈 <b>Einnahmen, Töpfe und „Komplett“ sind verschwommen</b>, falls jemand mitschaut. Am PC Maus drüber = zeigen, am Handy auf den Betrag drücken = <b>4 Sekunden</b> sichtbar, dann verschwimmt er wieder. Abschaltbar in ⚙️ → Ansicht → „Ansicht – für alle“."],
   ["0.1.0-beta.13", "📜 <b>Verlauf</b> (⚙️ → Daten): wer hat wann was geändert – abgehakt, Kontostand, Ausgaben, Töpfe (die letzten 300, ausschaltbar). · 👁️ Neue Gruppe <b>Ansicht</b> wie bei der Einkaufsliste: Abschnitte für alle ein- und ausblenden, <b>Beschriftungen</b> unter den Symbol-Knöpfen, <b>Ruhiger Modus</b> und in der Offline-App <b>Hell / Dunkel</b>. · 👆 Der Knopf <b>„Fingerabdruck-Sperre“</b> erscheint in der Offline-App nur noch, wo es auch geht (Fingerabdruck oder Face ID und https). · 🐷 <b>Maskottchen Sparschwein</b> (Standard aus): freut sich im Plus, guckt skeptisch knapp über der Warngrenze, erschrickt im Minus und hüpft, wenn alle Fixkosten abgehakt sind."],
@@ -737,7 +738,10 @@ class FixkostenCard extends HTMLElement {
       : `<button class="pill off" data-a="tab" data-v="home">${this._app ? "📴 offline – letzter Stand" : "🔴 keine Verbindung"}</button>`;
     // 🟢 Leiste ÜBER der Karte (mit ⚙️ wie bei der Einkaufsliste) und Knöpfe UNTER der Karte
     const top = `<div class="topbar">${pill}<span class="grow">${this._greet()}</span>${d ? `<button class="iconbtn ${this._view === "set" ? "on" : ""}" data-a="tab" data-v="set" title="Einstellungen">${ic("cog-outline")}<span class="lbl">Einstellungen</span></button>` : ""}<span class="ver" translate="no">v${FK_VERSION}</span></div>`;
-    const locked = !!(d && d.pin && !pinOpen() && (this._view === "edit" || this._view === "set"));
+    const lockAll = !!(d && d.pin && d.settings?.lock_all && !(this._app && window.__fkAppLock?.on?.())); // in der Offline-App mit Fingerabdruck reicht der Fingerabdruck // 🔒 ganze Karte gesperrt (Schalter in ⚙️ → Schutz)
+    const locked = !!(d && d.pin && !pinOpen() && (lockAll || this._view === "edit" || this._view === "set"));
+    this._lockAll = lockAll && locked;
+    if (lockAll && !locked) { clearTimeout(this._relockT); this._relockT = setTimeout(() => { this._force = true; this._render(); }, Math.max(1000, PIN_LOCK.until - Date.now() + 500)); } // ⏳ nach 10 Min. Ruhe wieder zu
     if (locked && this._pad?.step !== "unlock") this._pad = { purpose: "unlock", step: "unlock", buf: "", back: "home" };
     if (!locked && this._pad?.step === "unlock") this._pad = null;
     const page = !d ? null : this._pad ? this._padPage(d) : this._view === "guide" ? { icon: "book-open-variant", color: "#3949ab", title: "Anleitung", html: this._guideView() }
@@ -746,10 +750,11 @@ class FixkostenCard extends HTMLElement {
     if (this._view !== "set") this._setOpen = null; // 🗂️ wie bei der Einkaufsliste: wer die Einstellungen verlässt, findet beim nächsten Mal alles zugeklappt
     // ✕ / ← oben rechts wie bei der Einkaufsliste: ✕ = zurück zur Übersicht, ← = eine Stufe zurück
     const deeper = !!(this._pad ? this._pad.back === "sheet" : this._view === "set" && this._sheet);
-    const showBack = !!(d && (this._view === "set" || this._view === "guide" || this._view === "konto" || this._pad));
+    const showBack = !!(d && !this._lockAll && (this._view === "set" || this._view === "guide" || this._view === "konto" || this._pad));
     const appLock = this._app && !!window.__fkAppLock?.on?.();
     const isLocked = d?.pin && !pinOpen();
-    const tools = `<button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}${this._lb("Rechner")}</button>
+    if (this._lockAll) this._calc = null; // 🔒 gesperrt: kein Rechner (der kennt „Verfügbar“)
+    const tools = this._lockAll ? "" : `<button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}${this._lb("Rechner")}</button>
       <button class="iconbtn ${this._hidden ? "on" : ""}" data-a="hide" title="Beträge ${this._hidden ? "zeigen" : "verstecken"}">${ic(this._hidden ? "eye-off-outline" : "eye-outline")}${this._lb(this._hidden ? "Zeigen" : "Verstecken")}</button>
       <button class="iconbtn" data-a="lock" title="${appLock ? "App jetzt sperren" : isLocked ? "Gesperrt – PIN nötig für ⚙️ und Bearbeiten" : "Jetzt sperren"}">${ic(isLocked && !appLock ? "lock-outline" : "lock-open-variant-outline")}${this._lb(isLocked && !appLock ? "Gesperrt" : "Sperren")}</button>
       ${showBack ? `<button class="iconbtn" data-a="back" title="${deeper ? "Zurück" : "Schließen"}">${ic(deeper ? "arrow-left" : "close")}${this._lb(deeper ? "Zurück" : "Schließen")}</button>` : ""}`;
@@ -765,7 +770,7 @@ class FixkostenCard extends HTMLElement {
       this._prevOpenFix = openFix;
       const logo = d.settings.mascot ? `<span class="logo mascotbox ${hop ? "hop" : ""}" data-a="tab" data-v="home" title="Zurück zur Übersicht">${fkMascotSvg(fkMascotMood(d), fkMascotDeco())}</span>`
         : `<span class="logo" data-a="tab" data-v="home" title="Zurück zur Übersicht">${ic("wallet-outline")}</span>`;
-      body = `<div class="head"><div class="title">${logo}${open ? `<span class="badge" data-a="tab" data-v="home" title="noch offen: ${openFix} Fixkosten, ${openBk} Ausgaben">${open}</span>` : ""}</div>${tools}</div>`;
+      body = `<div class="head"><div class="title">${logo}${open && !this._lockAll ? `<span class="badge" data-a="tab" data-v="home" title="noch offen: ${openFix} Fixkosten, ${openBk} Ausgaben">${open}</span>` : ""}</div>${tools}</div>`;
       body += this._updHtml(d);
       if (!page && this._view !== "set") body += `<div class="tabs">${tabs.map(([k, i, l]) => `<button class="tab ${this._view === k ? "active" : ""}" data-a="tab" data-v="${k}">${ic(i)}${l}</button>`).join("")}</div>`;
       if (this._calc) body += this._calcView(d);
@@ -1064,7 +1069,7 @@ class FixkostenCard extends HTMLElement {
     const p = this._pad;
     const what = this._view === "set" ? "⚙️ Einstellungen" : "Bearbeiten";
     const t = {
-      unlock: ["PIN eingeben", `Für <b>${what}</b> brauchst du die PIN. Die Übersicht und das Abhaken gehen auch ohne.`],
+      unlock: ["PIN eingeben", this._lockAll ? "Die Fixkosten sind gesperrt. Mit der PIN geht's weiter." : `Für <b>${what}</b> brauchst du die PIN. Die Übersicht und das Abhaken gehen auch ohne.`],
       old: ["Alte PIN", p.purpose === "off" ? "Zum Ausschalten erst die jetzige PIN eintippen." : "Erst die jetzige PIN eintippen."],
       new: ["Neue PIN", "4 bis 8 Ziffern, dann ✔."],
       new2: ["Neue PIN nochmal", "Zur Sicherheit noch einmal dieselbe PIN."],
@@ -1073,7 +1078,7 @@ class FixkostenCard extends HTMLElement {
     return { icon: "lock-outline", color: "#f4511e", title: t[0], html: `<div class="pinpad"><p class="small">${t[1]}</p>
       <div class="pdots">${p.buf ? "●".repeat(p.buf.length) : "&nbsp;"}</div>
       <div class="ppad">${keys.map((k) => `<button type="button" class="btn ${k === "✔" ? "primary" : ""}" data-a="pkey" data-v="${k}" aria-label="${k === "⌫" ? "Löschen" : k === "✔" ? "OK" : k}">${k}</button>`).join("")}</div>
-      <button type="button" class="btn pcancel" data-a="back">Abbrechen</button>
+      ${this._lockAll ? "" : `<button type="button" class="btn pcancel" data-a="back">Abbrechen</button>`}
       ${p.step === "unlock" ? `<p class="small" style="margin-top:16px">PIN vergessen? Ein Admin geht in Home Assistant auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.</p>` : ""}</div>` };
   }
   _padPress(k) {
@@ -1109,6 +1114,7 @@ class FixkostenCard extends HTMLElement {
   _pinSetHtml(d) {
     return `<p class="small">${d.pin ? "🔒 PIN ist <b>an</b>. ⚙️ und „Bearbeiten“ fragen nach der PIN." : "Mit einer PIN (4–8 Ziffern) sperrst du ⚙️ und „Bearbeiten“, z. B. auf dem Wand-Tablet. Abhaken und Ausgaben gehen weiter ohne PIN."}</p>
       <div class="btnrow">${d.pin ? `<button class="btn main" data-a="padstart" data-v="set">${ic("lock-reset")}PIN ändern</button><button class="btn" data-a="padstart" data-v="off">${ic("lock-open-variant-outline")}PIN ausschalten</button>` : `<button class="btn main" data-a="padstart" data-v="set">${ic("lock-outline")}PIN einschalten</button>`}</div>
+      ${d.pin ? `<label class="switch"><span>${ic("lock-outline")}<span class="vt"><b>Ganze Karte sperren</b><small>Aus = nur ⚙️ und Bearbeiten. An = ohne PIN sieht man gar nichts.</small></span></span><input type="checkbox" class="swchk" data-a="setlockall" ${d.settings.lock_all ? "checked" : ""}></label>` : ""}
       <p class="small">Die PIN tippst du wie am Handy auf dem Zahlenfeld ein. Sie liegt nur als Prüfsumme in Home Assistant. Vergessen? Admin → <b>Geräte & Dienste → Fixkosten → Konfigurieren → „PIN zurücksetzen“</b>. 5× falsch = 1 Minute Pause.</p>`;
   }
 
@@ -1382,6 +1388,7 @@ class FixkostenCard extends HTMLElement {
       el.classList.add("peek");
       this._peekT = setTimeout(() => { this._peek = null; this.shadowRoot.querySelectorAll(".veil.peek").forEach((x) => x.classList.remove("peek")); }, 4000);
     }
+    else if (a === "setlockall") this._send({ type: "settings", settings: { lock_all: el.checked } });
     else if (a === "setveil") this._send({ type: "settings", settings: { veil: el.checked } });
     else if (a === "setcalm") { store.put(CALMKEY, el.checked); redraw(); }
     else if (a === "theme") { // 🌓 nur Offline-App

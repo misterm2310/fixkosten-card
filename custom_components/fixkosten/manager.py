@@ -594,7 +594,7 @@ class FixkostenManager:
                 d["settings"]["warn_enabled"] = bool(s["warn_enabled"])
             if "warn_below" in s:
                 d["settings"]["warn_below"] = parse_money(s["warn_below"])
-            for flag in ("log_on", "labels", "mascot", "veil"):  # 📜 🔤 🐷 einfache Schalter
+            for flag in ("log_on", "labels", "mascot", "veil", "lock_all"):  # 📜 🔤 🐷 einfache Schalter
                 if flag in s:
                     d["settings"][flag] = bool(s[flag])
             if isinstance(s.get("view"), dict):  # 👁️ Abschnitte ein-/ausblenden (für alle)

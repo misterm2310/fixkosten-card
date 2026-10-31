@@ -90,8 +90,6 @@ def _register_services(hass: HomeAssistant) -> None:
 
     async def kontostand(call: ServiceCall) -> None:
         op = {"type": "konto", "balance": call.data["kontostand"]}
-        if "vorgemerkt" in call.data:
-            op["pending"] = call.data["vorgemerkt"]
         _check(get_manager(hass).apply([op], await _user_name(hass, call)))
 
     async def buchung(call: ServiceCall) -> None:

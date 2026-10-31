@@ -239,16 +239,16 @@ class FixkostenManager:
         mk = d["month"]
         bookings_month = sum(b["amount"] for b in d["bookings"] if b.get("month") == mk)
         debts = sum(x["amount"] for x in d["staende"])
-        available = float(konto.get("balance", 0)) + float(konto.get("pending", 0)) - fix_open - bookings_open
+        available = float(konto.get("balance", 0)) - fix_open - bookings_open  # „Vorgemerkt“ gibt es nicht mehr (doppelt mit Ausgaben)
         if d["settings"].get("debts_subtract"):
             available -= debts
         pots = sum(t["amount"] for t in d["toepfe"])
+        lent = sum(float(t.get("lent", 0) or 0) for t in d["toepfe"])  # 🐷 aus Töpfen geliehen, noch nicht zurückgelegt
         return {
             "month": mk,
             "today": today,
             "available": round(available, 2),
             "balance": round(float(konto.get("balance", 0)), 2),
-            "pending": round(float(konto.get("pending", 0)), 2),
             "balance_updated": since,
             "fix_total": round(fix_total, 2),
             "fix_open": round(fix_open, 2),
@@ -258,9 +258,10 @@ class FixkostenManager:
             "bookings_open": round(bookings_open, 2),
             "bookings_month": round(bookings_month, 2),
             "pots_total": round(pots, 2),
+            "pots_lent": round(lent, 2),
             "debts": round(debts, 2),
             "total": round(pots + available, 2),  # 💰 wie in der Tabelle: was verfügbar ist + alle Töpfe
-            "warn": available < float(d["settings"].get("warn_below", 0) or 0),
+            "warn": d["settings"].get("warn_enabled", True) is not False and available < float(d["settings"].get("warn_below", 0) or 0),
             "next": next_item,
             "groups": group_info,
         }
@@ -404,8 +405,6 @@ class FixkostenManager:
             if "balance" in op:
                 d["konto"]["balance"] = parse_money(op["balance"])
                 d["konto"]["updated"] = ts
-            if "pending" in op:
-                d["konto"]["pending"] = parse_money(op["pending"])
         elif t == "booking_add":
             amount = parse_money(op["amount"])
             if amount == 0:
@@ -428,6 +427,20 @@ class FixkostenManager:
                         if amount == 0:
                             raise HomeAssistantError("Betrag fehlt")
                         b["amount"] = amount
+        elif t in ("topf_take", "topf_return"):  # 🐷 Geld aus dem Topf nehmen / wieder zurücklegen
+            amount = abs(parse_money(op.get("amount", 0)))
+            if amount == 0:
+                raise HomeAssistantError("Betrag fehlt")
+            pot = next((x for x in d["toepfe"] if x["id"] == op.get("id")), None)
+            if pot is None:
+                raise HomeAssistantError("Topf nicht gefunden")
+            lent = float(pot.get("lent", 0) or 0)
+            if t == "topf_take":
+                pot["amount"] = round(float(pot["amount"]) - amount, 2)
+                pot["lent"] = round(lent + amount, 2)
+            else:
+                pot["amount"] = round(float(pot["amount"]) + amount, 2)
+                pot["lent"] = round(max(0.0, lent - amount), 2)
         elif t == "booking_delete":
             d["bookings"] = [b for b in d["bookings"] if b["id"] != op["id"]]
         elif t == "restore":  # ↩️ Rückgängig nach dem Löschen: Eintrag kommt an seinen alten Platz zurück
@@ -460,6 +473,8 @@ class FixkostenManager:
                 d["settings"]["quick"] = [str(x).strip()[:30] for x in s["quick"] if str(x).strip()][:16]
             if "debts_subtract" in s:
                 d["settings"]["debts_subtract"] = bool(s["debts_subtract"])
+            if "warn_enabled" in s:  # 🔕 Warnung an/aus
+                d["settings"]["warn_enabled"] = bool(s["warn_enabled"])
             if "warn_below" in s:
                 d["settings"]["warn_below"] = parse_money(s["warn_below"])
         else:

@@ -70,6 +70,14 @@ await sr(`const f = h.querySelector('form[data-a="bsave"]'); f.name.value = "Tan
 await p.waitForTimeout(80);
 check("Ausgabe ändern schickt Name und Betrag", await p.evaluate(() => fake.applied.some((o) => o.type === "booking_edit" && o.id === "b1" && o.name === "Tanken" && o.amount === 23.4)), await p.evaluate(() => JSON.stringify(fake.applied.filter((o) => o.type === "booking_edit"))));
 
+check("„abgebucht“ ist nur ein grüner Haken", await sr(`const b = h.querySelector('[data-a="clear"]'); return !!b && !b.innerText.trim() && /abgebucht/.test(b.title);`));
+// 👆 lange drücken zeigt den Namen, löst aber nichts aus
+const cb = await p.evaluate(() => { const r = document.querySelector('#c1').shadowRoot.querySelector('[data-a="clear"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+const nApplied = await p.evaluate(() => fake.applied.length);
+await p.mouse.move(cb.x, cb.y); await p.mouse.down(); await p.waitForTimeout(700); await p.mouse.up();
+await p.waitForTimeout(80);
+check("Lange drücken zeigt Info statt abzubuchen", await p.evaluate((n) => toasts.some((t) => /abgebucht/.test(t)) && fake.applied.length === n, nApplied), await p.evaluate(() => toasts.join(" | ")));
+
 // ↩️ Löschen mit Rückgängig
 await sr(`h.querySelector('[data-a="bdel"][data-id="b1"]').click();`);
 await p.waitForTimeout(80);
@@ -131,6 +139,40 @@ await shot("3-bearbeiten.png");
 await sr(`h.querySelector('[data-a="tab"][data-v="hist"]').click();`);
 check("Rückblick: 4 Monate", await sr(`return h.querySelectorAll('.hist .m').length === 4;`));
 await shot("4-rueckblick.png");
+
+// 🏦 Kontostand auf eigener Seite
+await sr(`h.querySelector('[data-a="tab"][data-v="home"]').click();`);
+await sr(`h.querySelector('[data-a="balance"]').click();`);
+check("Konto: eigene Seite, kein „Vorgemerkt“", await sr(`return !!h.querySelector('.pagehost form[data-a="kontosave"]') && !/orgemerkt/.test(h.innerHTML);`));
+await shot("4c-konto.png");
+await sr(`const f = h.querySelector('form[data-a="kontosave"]'); f.balance.value = "1500,00"; f.requestSubmit();`);
+await p.waitForTimeout(80);
+check("Konto speichern schickt Stand", await p.evaluate(() => fake.applied.some((o) => o.type === "konto" && o.balance === 1500)) && await sr(`return !!h.querySelector('.big');`));
+// 🐷 Topf: rausnehmen
+await sr(`h.querySelector('[data-a="sec"][data-v="toepfe"]').click();`);
+await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
+await shot("4d-topf.png");
+await sr(`const f = h.querySelector('form[data-a="potmove"]'); f.amount.value = "50"; f.querySelector('button[value="take"]').click();`);
+await p.waitForTimeout(80);
+check("Topf: Rausnehmen schickt topf_take", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_take" && o.id === "t2" && o.amount === 50)));
+check("Topf: „geliehen“ in Orange", await sr(`const t = h.querySelector('.item[data-id="t2"] .tag.lent')?.textContent || ''; return /50,00/.test(t) && /geliehen/.test(t);`), await sr(`return h.querySelector('.item[data-id="t2"]')?.textContent || '-';`));
+await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
+await sr(`const f = h.querySelector('form[data-a="potmove"]'); f.querySelector('button[value="return"]').click();`);
+await p.waitForTimeout(80);
+check("Topf: Zurücklegen (Vorschlag = geliehen)", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_return" && o.id === "t2" && o.amount === 50)) && await sr(`return !h.querySelector('.item[data-id="t2"] .tag.lent');`));
+// ↩️ Zurück-Taste am Handy: Einstellungen → Seite → zurück → zurück
+await sr(`h.querySelector('.topbar [data-a="tab"][data-v="set"]').click();`);
+await sr(`h.querySelector('[data-a="setgrp"][data-v="Rechnen"]').click(); h.querySelector('[data-a="sheet"][data-v="rechnen"]').click();`);
+await p.waitForTimeout(300);
+check("Zurück-Merkzettel im Verlauf", await p.evaluate(() => !!history.state?.fkCardGuard));
+check("Warnung ausschaltbar", await sr(`return !!h.querySelector('[data-a="setwarnon"]');`));
+await sr(`const c = h.querySelector('[data-a="setwarnon"]'); c.checked = false; c.dispatchEvent(new Event('change'));`);
+await p.waitForTimeout(80);
+check("Warnung aus schickt Einstellung, Grenze verschwindet", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.warn_enabled === false)) && await sr(`return !h.querySelector('[data-a="setwarn"]');`));
+await p.goBack(); await p.waitForTimeout(300);
+check("Zurück: Seite zu, Einstellungen bleiben", await sr(`return !h.querySelector('.pagehost') && h.querySelectorAll('.lgbox').length === 3;`));
+await p.goBack(); await p.waitForTimeout(300);
+check("Zurück: dann Übersicht", await sr(`return !!h.querySelector('.big');`));
 
 // 🔄 Neue Version: Hinweis mit „Neu laden“
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._server.version = "9.9.9"; c._force = true; c._render(); });

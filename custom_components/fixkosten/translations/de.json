@@ -50,10 +50,6 @@
         "kontostand": {
           "name": "Kontostand",
           "description": "Kontostand in Euro."
-        },
-        "vorgemerkt": {
-          "name": "Vorgemerkt",
-          "description": "Vorgemerkte Umsätze in Euro (minus = geht noch ab)."
         }
       }
     },

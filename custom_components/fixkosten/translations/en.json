@@ -50,10 +50,6 @@
         "kontostand": {
           "name": "Balance",
           "description": "Balance in euros."
-        },
-        "vorgemerkt": {
-          "name": "Pending",
-          "description": "Pending transactions in euros (minus = still to be debited)."
         }
       }
     },

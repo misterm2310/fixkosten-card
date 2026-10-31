@@ -46,7 +46,7 @@ def _pots_attrs(s: dict[str, Any], d: dict[str, Any]) -> dict[str, Any]:
 
 
 def _avail_attrs(s: dict[str, Any], d: dict[str, Any]) -> dict[str, Any]:
-    return {"kontostand": s["balance"], "vorgemerkt": s["pending"], "offene_fixkosten": s["fix_open"],
+    return {"kontostand": s["balance"], "offene_fixkosten": s["fix_open"],
             "kartenzahlungen_offen": s["bookings_open"], "monat": s["month"]}
 
 

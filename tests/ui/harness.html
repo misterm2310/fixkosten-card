@@ -32,7 +32,7 @@ window.fake = {
     toepfe: [{ id: "t1", name: "Sparkonto", amount: 1000 }, { id: "t2", name: "Bargeld zu Hause", amount: 150 }, { id: "t3", name: "PayPal", amount: 0 }],
     staende: [{ id: "s1", name: "Kumpel Tim", amount: 40, note: "Pizza" }],
     konten: [{ id: "k1", name: "Girokonto", iban: "DE00 1234 5678 9012 3456 78", note: "Beispiel" }],
-    konto: { balance: 1500, pending: 0, updated: Date.now() - 86400000 },
+    konto: { balance: 1500, updated: Date.now() - 86400000 },
     paid: { p1: { paid: true, ts: 1 }, p2: { paid: true, ts: 1 } },
     bookings: [{ id: "b1", name: "Supermarkt", amount: 23.4, ts: Date.now() - 3600000, month: mk, cleared: false }],
     history: [
@@ -63,6 +63,8 @@ const hass = () => ({
         if (o.type === "booking_add") fake.data.bookings.push({ id: o.op_id, name: o.name, amount: o.amount, ts: o.ts, month: mk, cleared: false });
         if (o.type === "paid") fake.data.paid[o.id] = { paid: o.value, ts: o.ts };
         if (o.type === "booking_edit") { const b = fake.data.bookings.find((x) => x.id === o.id); if (b) Object.assign(b, { name: o.name, amount: o.amount }); }
+        if (o.type === "topf_take" || o.type === "topf_return") { const t = fake.data.toepfe.find((x) => x.id === o.id); const v = o.type === "topf_take" ? o.amount : -o.amount; t.amount -= v; t.lent = Math.max(0, (t.lent || 0) + v); }
+        if (o.type === "settings") Object.assign(fake.data.settings, o.settings);
         if (o.type === "booking_delete") fake.data.bookings = fake.data.bookings.filter((b) => b.id !== o.id);
         if (o.type === "restore" && o.kind === "booking") fake.data.bookings.splice(o.index, 0, o.item);
         if (o.type === "order" && o.kind === "posten") { const pos = new Map(o.ids.map((x, i) => [x, i])); fake.data.posten.sort((a, b) => (pos.get(a.id) ?? 99) - (pos.get(b.id) ?? 99)); for (const x of fake.data.posten) if (o.groups[x.id]) x.group = o.groups[x.id]; }

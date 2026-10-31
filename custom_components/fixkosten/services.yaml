@@ -21,14 +21,6 @@ kontostand_setzen:
           step: 0.01
           mode: box
           unit_of_measurement: "€"
-    vorgemerkt:
-      selector:
-        number:
-          min: -100000
-          max: 100000
-          step: 0.01
-          mode: box
-          unit_of_measurement: "€"
 buchung_hinzufuegen:
   fields:
     name:

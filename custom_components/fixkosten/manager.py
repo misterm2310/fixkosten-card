@@ -41,6 +41,7 @@ from .const import (
     SIGNAL_UPDATE,
     STORAGE_KEY,
     STORAGE_VERSION,
+    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -199,7 +200,7 @@ class FixkostenManager:
         """Alle Zahlen für Karte und Sensoren (Beträge immer positiv = Geld, das weggeht/reinkommt)."""
         d = self.data
         today = dt_util.now().day
-        groups = sorted(d["groups"], key=lambda g: g.get("start_day", 1))
+        groups = list(d["groups"])  # ⠿ Reihenfolge wie in der Liste (per Ziehen änderbar)
         paid = d["paid"]
 
         group_info = []
@@ -233,7 +234,7 @@ class FixkostenManager:
 
         konto = d["konto"]
         since = konto.get("updated", 0) or 0
-        # 💳 Kartenzahlungen zählen ab, bis sie als „abgebucht“ markiert sind (dann stecken sie im Kontostand)
+        # 💳 Ausgaben zählen ab, bis sie als „abgebucht“ markiert sind (dann stecken sie im Kontostand)
         bookings_open = sum(b["amount"] for b in d["bookings"] if not b.get("cleared"))
         mk = d["month"]
         bookings_month = sum(b["amount"] for b in d["bookings"] if b.get("month") == mk)
@@ -270,6 +271,7 @@ class FixkostenManager:
         out["pin"] = bool(self.data.get("pin"))
         out["summary"] = self.summary()
         out["app_url"] = self._app_url()
+        out["version"] = VERSION  # 🔄 damit die Karte merkt, wenn sie veraltet ist
         return out
 
     def _app_url(self) -> str | None:
@@ -416,6 +418,16 @@ class FixkostenManager:
             for b in d["bookings"]:
                 if b["id"] == op["id"]:
                     b["cleared"] = bool(op.get("value", True))
+        elif t == "booking_edit":  # ✏️ Name/Betrag nachträglich ändern
+            for b in d["bookings"]:
+                if b["id"] == op["id"]:
+                    if "name" in op:
+                        b["name"] = str(op.get("name") or "Ausgabe").strip()[:60]
+                    if "amount" in op:
+                        amount = parse_money(op["amount"])
+                        if amount == 0:
+                            raise HomeAssistantError("Betrag fehlt")
+                        b["amount"] = amount
         elif t == "booking_delete":
             d["bookings"] = [b for b in d["bookings"] if b["id"] != op["id"]]
         elif t == "restore":  # ↩️ Rückgängig nach dem Löschen: Eintrag kommt an seinen alten Platz zurück
@@ -429,7 +441,7 @@ class FixkostenManager:
                 d[key].insert(idx, dict(item))
         elif t == "order":  # ⠿ Reihenfolge per Ziehen (Posten auch in eine andere Gruppe)
             kind = op.get("kind")
-            if kind not in LIST_KINDS or kind == "gruppe":
+            if kind not in LIST_KINDS:
                 raise HomeAssistantError("Diese Liste kann man nicht sortieren")
             key = LIST_KINDS[kind]
             pos = {str(i): n for n, i in enumerate(op.get("ids") or [])}
@@ -444,7 +456,7 @@ class FixkostenManager:
             s = op.get("settings") or {}
             if "reset_checks" in s:
                 d["settings"]["reset_checks"] = bool(s["reset_checks"])
-            if "quick" in s:  # ⚡ Schnellknöpfe für Kartenzahlungen
+            if "quick" in s:  # ⚡ Schnellknöpfe für Ausgaben
                 d["settings"]["quick"] = [str(x).strip()[:30] for x in s["quick"] if str(x).strip()][:16]
             if "debts_subtract" in s:
                 d["settings"]["debts_subtract"] = bool(s["debts_subtract"])

@@ -12,6 +12,6 @@
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
   ],
   "shortcuts": [
-    { "name": "Kartenzahlung eintragen", "short_name": "Zahlung", "url": "/fixkosten/app/?do=pay" }
+    { "name": "Ausgabe eintragen", "short_name": "Zahlung", "url": "/fixkosten/app/?do=pay" }
   ]
 }

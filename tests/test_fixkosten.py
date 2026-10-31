@@ -263,7 +263,12 @@ async def test_order_restore_and_day(hass, setup):
     assert order[:3] == [handy, strom, miete] and len(order) == len(ids)  # Unbekannte bleiben hinten
     assert m.find("posten", "Miete")["group"] == "g15"
     assert m.find("posten", "Strom")["group"] == "g01"  # unbekannte Gruppe wird ignoriert
-    assert not m.apply([{"type": "order", "kind": "gruppe", "ids": []}])[0]["ok"]
+    assert m.apply([{"type": "order", "kind": "gruppe", "ids": [g["id"] for g in reversed(m.data["groups"])]}])[0]["ok"]  # ⠿ Gruppen lassen sich auch verschieben
+    assert m.data["groups"][0]["id"] == "g15" and m.summary()["groups"][0]["id"] == "g15"  # Liste bestimmt die Reihenfolge
+    m.apply([{"type": "booking_add", "op_id": "b1", "name": "Bäckerei", "amount": 5}])
+    m.apply([{"type": "booking_edit", "id": "b1", "name": "Tanken", "amount": "40,10"}])
+    assert [(b["name"], b["amount"]) for b in m.data["bookings"] if b["id"] == "b1"] == [("Tanken", 40.1)]
+    m.apply([{"type": "booking_delete", "id": "b1"}])
 
     topf = dict(m.find("topf", "Sparkonto"))
     m.apply([{"type": "topf_delete", "id": topf["id"]}])

@@ -58,8 +58,8 @@
       }
     },
     "buchung_hinzufuegen": {
-      "name": "Kartenzahlung eintragen",
-      "description": "Kartenzahlung eintragen, die noch nicht abgebucht ist. Zählt sofort von „Verfügbar“ ab.",
+      "name": "Ausgabe eintragen",
+      "description": "Ausgabe eintragen, die noch nicht abgebucht ist. Zählt sofort von „Verfügbar“ ab.",
       "fields": {
         "name": {
           "name": "Name",

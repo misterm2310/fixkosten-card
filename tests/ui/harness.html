@@ -62,6 +62,7 @@ const hass = () => ({
       for (const o of msg.ops) {
         if (o.type === "booking_add") fake.data.bookings.push({ id: o.op_id, name: o.name, amount: o.amount, ts: o.ts, month: mk, cleared: false });
         if (o.type === "paid") fake.data.paid[o.id] = { paid: o.value, ts: o.ts };
+        if (o.type === "booking_edit") { const b = fake.data.bookings.find((x) => x.id === o.id); if (b) Object.assign(b, { name: o.name, amount: o.amount }); }
         if (o.type === "booking_delete") fake.data.bookings = fake.data.bookings.filter((b) => b.id !== o.id);
         if (o.type === "restore" && o.kind === "booking") fake.data.bookings.splice(o.index, 0, o.item);
         if (o.type === "order" && o.kind === "posten") { const pos = new Map(o.ids.map((x, i) => [x, i])); fake.data.posten.sort((a, b) => (pos.get(a.id) ?? 99) - (pos.get(b.id) ?? 99)); for (const x of fake.data.posten) if (o.groups[x.id]) x.group = o.groups[x.id]; }

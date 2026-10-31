@@ -258,7 +258,7 @@ class FixkostenManager:
             "bookings_month": round(bookings_month, 2),
             "pots_total": round(pots, 2),
             "debts": round(debts, 2),
-            "total": round(pots + float(konto.get("balance", 0)), 2),
+            "total": round(pots + available, 2),  # 💰 wie in der Tabelle: was verfügbar ist + alle Töpfe
             "warn": available < float(d["settings"].get("warn_below", 0) or 0),
             "next": next_item,
             "groups": group_info,

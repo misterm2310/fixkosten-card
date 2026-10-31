@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Kartenzahlung, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.2";
+const FK_VERSION = "0.1.0-beta.3";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -24,7 +24,7 @@ const FK_GUIDE = [
   { icon: "calendar-month-outline", color: "#3949ab", title: "Fixkosten abhaken", text: `Deine Fixkosten stehen in Gruppen wie <b>„ab dem 1.“</b> und <b>„ab dem 15.“</b>. Die Gruppen sind <b>zugeklappt</b>: Tipp auf die Überschrift klappt sie auf (die Karte merkt sich das). Rechts steht „2 / 4“ und was noch offen ist.<br>Ist ein Posten vom Konto abgebucht: <b>Kreis antippen</b> ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️ → „Rechnen & Warnung“).<br>Hat ein Posten einen <b>festen Tag</b> (z. B. am 5.), steht oben ein Hinweis auf die nächste Abbuchung. <b>Pausierte</b> Posten (⏸️) stehen grau und abgehakt mit drin und zählen nicht mit.` },
   { icon: "credit-card-outline", color: "#ff9800", title: "Kartenzahlungen", text: `Mit Karte bezahlt? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: <b>„✓ abgebucht“</b>. Dann steckt er im Kontostand und fliegt aus der Rechnung. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein (einer pro Zeile).` },
   { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Kartenzahlung</b>, als <b>Kontostand</b> oder kopierst es.` },
-  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = Stand ändern. „Komplett“ = Konto + alle Töpfe.<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? „✓ beglichen“. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht.` },
+  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = Stand ändern. „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Kartenzahlungen).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? „✓ beglichen“. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht.` },
   { icon: "pencil-outline", color: "#00897b", title: "Bearbeiten", text: `Unter <b>„Bearbeiten“</b> legst du alles an (＋ Neu) oder tippst einen Eintrag zum Ändern an. Posten können auf <b>bestimmte Monate</b> beschränkt werden (z. B. Kfz-Steuer nur im März) oder <b>pausiert</b> werden. Neue Gruppen bekommen einen Starttag (1–28).<br><b>Reihenfolge ändern:</b> am Griff ⠿ ziehen oder ▲▼ tippen. Fixkosten kannst du so auch in eine andere Gruppe schieben. Das klappt auch bei Töpfen, Einnahmen, offenen Ständen und Konten.` },
   { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Kartenzahlungen, Einnahmen und was am Ende übrig war (bis zu 3 Jahre).` },
   { icon: "eye-off-outline", color: "#607d8b", title: "Beträge verstecken", text: `Das 👁️ oben verschwimmt alle Beträge und IBANs, z. B. wenn jemand mitschaut. Nochmal tippen = wieder zeigen. Mit <code>privat: true</code> im Karten-YAML startet die Karte versteckt.` },
@@ -59,6 +59,9 @@ const store = {
 const PIN_LOCK = { until: 0 };
 const pinOpen = () => PIN_LOCK.until > Date.now();
 const pinTouch = () => { if (pinOpen()) PIN_LOCK.until = Date.now() + 10 * 60 * 1000; };
+// 🎨 Farben wie bei der Einkaufsliste: jede Gruppe bekommt ihre Farbe (Streifen links + Punkt im Kopf)
+const GROUP_COLORS = ["#1e88e5", "#fb8c00", "#8e24aa", "#00897b", "#e53935", "#6d4c41", "#3949ab"];
+const gcol = (d, gid) => { const i = [...d.groups].sort((a, b) => a.start_day - b.start_day).findIndex((g) => g.id === gid); return i < 0 ? "#9e9e9e" : GROUP_COLORS[i % GROUP_COLORS.length]; };
 const ic = (name) => `<ha-icon icon="mdi:${name}"></ha-icon>`;
 
 // 🧮 Taschenrechner: rechnet „12,50 + 3 × 2“ selbst aus (Punkt vor Strich, % = geteilt durch 100). Kein eval – sicher.
@@ -123,7 +126,7 @@ function summary(d) {
   return {
     month: d.month, today, available, balance: k.balance || 0, pending: k.pending || 0, balance_updated: k.updated || 0,
     fix_total: fixTotal, fix_open: fixOpen, fix_paid: fixTotal - fixOpen, income_total: incomeTotal, surplus: incomeTotal - fixTotal,
-    bookings_open: bookingsOpen, bookings_month: bookingsMonth, pots_total: pots, debts, total: pots + (k.balance || 0),
+    bookings_open: bookingsOpen, bookings_month: bookingsMonth, pots_total: pots, debts, total: pots + available,
     warn: available < (d.settings?.warn_below || 0), next, groups: gi,
   };
 }
@@ -179,7 +182,7 @@ input.swchk:checked { background:var(--pc); }
 input.swchk:checked::after { left:20px; }
 /* 🟢 Leiste oben – wie bei der Einkaufsliste */
 .topbar { display:flex; align-items:center; gap:8px; margin:0 4px 8px; font-size:13px; color:var(--secondary-text-color); }
-.topbar .grow { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.topbar .grow { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; color:var(--primary-text-color); }
 .topbar .ver { opacity:.8; }
 .pill { cursor:pointer; border-radius:999px; padding:2px 10px; background:color-mix(in srgb, var(--fk-green) 18%, transparent); color:var(--primary-text-color); white-space:nowrap; border:0; font-size:13px; }
 .pill.wait { background:color-mix(in srgb, var(--fk-yellow) 25%, transparent); }
@@ -187,12 +190,14 @@ input.swchk:checked::after { left:20px; }
 .iconbtn { background:none; border:0; cursor:pointer; padding:6px; border-radius:50%; display:inline-flex; color:var(--secondary-text-color); line-height:0; }
 .iconbtn:hover { background:var(--secondary-background-color, rgba(127,127,127,.12)); color:var(--primary-text-color); }
 .iconbtn.on { color:var(--pc); }
-.head { display:flex; align-items:center; gap:8px; margin:4px 4px 8px; }
-.head .logo { color:var(--fk-green); --mdc-icon-size:28px; }
-.badge { background:var(--pc); color:var(--text-primary-color,#fff); border-radius:999px; padding:1px 9px; font-size:.8em; font-weight:600; }
+/* 🏷️ Kopf in der Karte – wie bei der Einkaufsliste: Symbol + Zähler links, Werkzeuge rechts */
+.head { display:flex; align-items:center; gap:4px; margin:0 2px 8px; min-height:36px; }
+.title { display:flex; align-items:center; gap:8px; font-size:1.25em; font-weight:600; flex:1; min-width:0; }
+.title .logo { cursor:pointer; display:inline-flex; }
+.badge { cursor:pointer; background:var(--pc); color:var(--text-primary-color,#fff); border-radius:999px; padding:1px 9px; font-size:.75em; font-weight:600; }
 .tabs { display:flex; gap:6px; overflow-x:auto; padding:2px 2px 8px; scrollbar-width:none; }
 .tabs::-webkit-scrollbar { display:none; }
-.tab { flex:0 0 auto; border:1.5px solid color-mix(in srgb, var(--pc) 55%, transparent); background:transparent; border-radius:999px; padding:7px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-size:.95em; }
+.tab { -webkit-user-select:none; user-select:none; flex:0 0 auto; border:1.5px solid color-mix(in srgb, var(--pc) 55%, transparent); background:transparent; border-radius:999px; padding:5px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-size:.9em; }
 .tab ha-icon { --mdc-icon-size:18px; }
 .tab.active { background:var(--pc); border-color:var(--pc); color:var(--text-primary-color,#fff); }
 .tip { display:flex; align-items:center; gap:8px; border-radius:12px; padding:9px 12px; margin:2px 2px 8px; background:color-mix(in srgb, var(--fk-yellow) 18%, transparent); font-size:.9em; }
@@ -202,47 +207,53 @@ input.swchk:checked::after { left:20px; }
 .bar { height:8px; background:color-mix(in srgb, var(--primary-text-color) 10%, transparent); border-radius:5px; overflow:hidden; margin-top:8px; }
 .bar i { display:block; height:100%; background:var(--hc, var(--fk-green)); border-radius:5px; }
 .tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:0 2px 10px; }
-.tile { background:var(--secondary-background-color, rgba(127,127,127,.1)); border-radius:12px; padding:8px 10px; border:0; text-align:left; min-width:0; }
+.tile { background:var(--secondary-background-color, rgba(127,127,127,.06)); border:1px solid var(--divider-color, rgba(127,127,127,.25)); border-radius:16px; padding:10px 12px; text-align:left; min-width:0; color:var(--primary-text-color); }
+.tile.click:hover { border-color:var(--pc); }
 .tile.click { cursor:pointer; }
 .tile b { display:block; font-size:1em; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .tile span { font-size:.75em; color:var(--secondary-text-color); display:flex; align-items:center; gap:3px; }
 .tile span ha-icon { --mdc-icon-size:13px; }
 .next { display:flex; align-items:center; gap:8px; border-radius:12px; padding:9px 12px; margin:0 2px 6px; background:color-mix(in srgb, var(--fk-yellow) 15%, transparent); font-size:.92em; }
 .next ha-icon { color:var(--fk-yellow); }
-.ghead { display:flex; align-items:center; gap:8px; font-size:.95em; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--secondary-text-color); padding:14px 4px 4px; }
-.ghead .gdot { width:24px; height:24px; flex:none; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--gc, var(--pc)) 18%, transparent); color:var(--gc, var(--pc)); }
-.ghead .gdot ha-icon { --mdc-icon-size:15px; }
+.ghead { display:flex; align-items:center; gap:6px; font-size:.8em; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--secondary-text-color); padding:12px 4px 2px; }
+.ghead .gdot { width:22px; height:22px; flex:none; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--gc, var(--pc)) 18%, transparent); color:var(--gc, var(--pc)); }
+.ghead .gdot ha-icon { --mdc-icon-size:16px; }
 .ghead.click { cursor:pointer; border-radius:10px; }
 .ghead.click:hover { background:var(--secondary-background-color, rgba(127,127,127,.08)); }
 .ghead .chev { display:inline-flex; color:var(--secondary-text-color); }
 .ghead.click .n { margin-left:auto; }
 .ghead .n { margin-left:auto; font-weight:500; text-transform:none; letter-spacing:0; font-size:.9em; }
-.item { display:flex; align-items:center; gap:10px; padding:9px 6px; border-radius:10px; }
-.item + .item { border-top:1px solid var(--divider-color, rgba(127,127,127,.15)); }
+/* 🧾 Zeilen wie bei der Einkaufsliste: kompakt, farbiger Streifen links */
+.item { display:flex; align-items:center; gap:8px; padding:5px 4px 5px 6px; border-radius:12px; border-left:4px solid var(--cc, transparent); transition:opacity .25s, background .2s; }
+.item.click:hover { background:color-mix(in srgb, var(--pc) 6%, transparent); }
 .item.click { cursor:pointer; }
-.chk { width:26px; height:26px; flex:none; border-radius:50%; border:2px solid color-mix(in srgb, var(--primary-text-color) 35%, transparent); background:none; cursor:pointer; color:#fff; padding:0; display:inline-flex; align-items:center; justify-content:center; }
+.chk { width:26px; height:26px; flex:none; border-radius:50%; border:2px solid var(--pc); background:none; cursor:pointer; color:#fff; padding:0; display:inline-flex; align-items:center; justify-content:center; }
 .chk ha-icon { --mdc-icon-size:17px; }
 .chk.on { background:var(--fk-green); border-color:var(--fk-green); }
-.item.done .n b { color:var(--secondary-text-color); text-decoration:line-through; font-weight:400; }
-.n { flex:1; min-width:0; }
-.n b { font-weight:400; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.meta { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
-.tag { font-size:.75em; border-radius:999px; padding:1px 8px; background:var(--secondary-background-color, rgba(127,127,127,.15)); color:var(--secondary-text-color); white-space:nowrap; }
+.item.done .n b { opacity:.6; text-decoration:line-through; }
+.n { flex:1; min-width:0; padding:2px 0; }
+.n b { font-weight:500; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.meta { font-size:.75em; color:var(--secondary-text-color); display:flex; flex-wrap:wrap; gap:3px 6px; margin-top:2px; }
+.tag { border-radius:8px; padding:0 6px; background:color-mix(in srgb, var(--primary-text-color, #000) 6%, transparent); white-space:nowrap; }
 .tag.wait { background:color-mix(in srgb, var(--fk-yellow) 25%, transparent); color:var(--primary-text-color); }
 .amt { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .neg { color:var(--fk-red); } .pos { color:var(--fk-green); }
 .quick { display:flex; flex-wrap:wrap; gap:6px; margin:4px 2px 6px; }
-.chip { border:1.5px solid color-mix(in srgb, var(--pc) 55%, transparent); background:transparent; border-radius:999px; padding:5px 12px; cursor:pointer; font-size:.9em; }
+.chip { border:1.5px solid var(--divider-color, rgba(127,127,127,.35)); background:transparent; border-radius:999px; padding:7px 14px; cursor:pointer; font-size:.95em; }
 .chip.on { background:var(--pc); border-color:var(--pc); color:var(--text-primary-color,#fff); }
 form.add { display:grid; grid-template-columns:1fr 110px 48px; gap:6px; margin:2px 2px 6px; }
+form.add.pinf { grid-template-columns:1fr 48px; }
 form.add input.amount { text-align:right; }
 .addbtn { border:0; border-radius:12px; background:var(--fk-green); color:#fff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; }
 .addbtn ha-icon { --mdc-icon-size:26px; }
-.btn { display:inline-flex; align-items:center; gap:6px; border:1px solid color-mix(in srgb, var(--primary-text-color) 22%, transparent); background:transparent; border-radius:12px; padding:7px 12px; cursor:pointer; font-size:.9em; min-height:36px; }
+.btn { box-sizing:border-box; min-height:40px; border:1px solid color-mix(in srgb, var(--primary-text-color, #000) 22%, transparent); background:transparent; color:var(--primary-text-color); border-radius:12px; padding:8px 14px; cursor:pointer; font:inherit; font-size:.9em; font-weight:500; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:background .15s, border-color .15s; }
+.btn:hover:not([disabled]) { border-color:var(--pc); background:color-mix(in srgb, var(--pc) 6%, transparent); }
+.btn:active:not([disabled]) { transform:scale(.97); }
 .btn ha-icon { --mdc-icon-size:18px; }
-.btn.main { background:var(--pc); border-color:var(--pc); color:var(--text-primary-color,#fff); }
+.btn.main { border:1px solid transparent; background:var(--pc); color:var(--text-primary-color,#fff); }
+.btn.main:hover:not([disabled]) { background:color-mix(in srgb, var(--pc) 88%, #000); border-color:transparent; }
 .btn.ok { color:var(--fk-green); border-color:color-mix(in srgb, var(--fk-green) 45%, transparent); }
-.btn.small { padding:4px 9px; min-height:30px; font-size:.82em; }
+.btn.small { padding:5px 10px; min-height:32px; font-size:.85em; }
 .sum { display:flex; justify-content:space-between; padding:8px 6px 0; font-weight:600; }
 .edit { border:1px solid var(--divider-color, rgba(127,127,127,.2)); border-radius:12px; padding:10px; margin:6px 2px; }
 .f { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
@@ -264,11 +275,12 @@ table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
 td, th { padding:6px 4px; border-bottom:1px solid var(--divider-color); text-align:right; font-variant-numeric:tabular-nums; }
 td:first-child, th:first-child { text-align:left; }
 .hidden-amt { filter:blur(7px); user-select:none; }
-.empty { text-align:center; padding:16px 8px; color:var(--secondary-text-color); font-size:.92em; }
+.empty { text-align:center; padding:22px 8px; color:var(--secondary-text-color); }
 .small { font-size:.82em; color:var(--secondary-text-color); margin:6px 4px; }
-.footer { display:flex; align-items:center; justify-content:center; gap:6px; font-size:.75em; color:var(--secondary-text-color); margin:12px 4px 2px; border-top:1px solid var(--divider-color, rgba(127,127,127,.2)); padding-top:8px; }
-.footer .fbtn { font:inherit; font-size:12.5px; color:inherit; background:none; text-decoration:underline; border:1px solid var(--divider-color, rgba(127,127,127,.25)); border-radius:10px; padding:8px 12px; cursor:pointer; }
-.footer .fbtn.on { border-color:var(--pc); color:var(--pc); }
+/* 📖 Knöpfe UNTER der Karte – wie bei der Einkaufsliste */
+.foot { display:flex; justify-content:center; gap:10px; margin:14px 6px 8px; font-size:13px; color:var(--secondary-text-color); }
+.foot button { font:inherit; color:inherit; background:none; text-decoration:underline; border:1px solid var(--divider-color, rgba(127,127,127,.3)); border-radius:12px; padding:8px 18px; cursor:pointer; }
+.foot button.on { border-color:var(--pc); color:var(--pc); }
 details.gsec { border-radius:12px; margin:6px 2px; background:var(--secondary-background-color, rgba(127,127,127,.08)); }
 details.gsec summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; padding:10px 12px; font-weight:600; }
 details.gsec summary::-webkit-details-marker { display:none; }
@@ -292,28 +304,39 @@ a { color:var(--pc); }
 .item.paused .chk { opacity:.6; cursor:default; }
 /* ⠿ Verschieben */
 .olist { display:flex; flex-direction:column; }
-.olist .item { border-top:1px solid var(--divider-color, rgba(127,127,127,.15)); }
+
 .grip { display:inline-flex; color:var(--secondary-text-color); cursor:grab; touch-action:none; padding:4px 2px; margin:-4px 0; }
 .item.drag { background:color-mix(in srgb, var(--pc) 12%, transparent); box-shadow:0 2px 8px rgba(0,0,0,.25); }
 .mv { display:inline-flex; }
 .mv .iconbtn { padding:3px; }
 .gsub { font-size:.78em; font-weight:600; color:var(--secondary-text-color); text-transform:uppercase; letter-spacing:.04em; padding:8px 6px 2px; }
-/* ⚙️ Kategorien + Kacheln wie bei der Einkaufsliste */
-.scat { font-size:.85em; font-weight:600; color:var(--secondary-text-color); margin:12px 4px 6px; }
-.stiles { display:flex; flex-direction:column; gap:6px; }
-.stile { display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:0; cursor:pointer; padding:10px 12px; border-radius:12px; background:var(--secondary-background-color, rgba(127,127,127,.08)); }
-.stile .st { flex:1; display:flex; flex-direction:column; }
-.stile small { color:var(--secondary-text-color); }
-.stile .gdot, .shead .gdot { width:30px; height:30px; flex:none; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--gc) 18%, transparent); color:var(--gc); }
-.stile .gdot ha-icon, .shead .gdot ha-icon { --mdc-icon-size:18px; }
+/* ⚙️ Einstellungen wie bei der Einkaufsliste: ein Kasten pro Zweck, Zeilen mit bunten Symbol-Kästchen */
+.sethead { font-weight:600; font-size:1.05em; margin:4px 4px 2px; }
+.lgbox { margin:10px 0 0; border:1px solid var(--divider-color, rgba(127,127,127,.25)); border-radius:12px; overflow:hidden; }
+.lgroup { display:flex; align-items:center; gap:12px; width:100%; margin:0; padding:10px 12px; font:inherit; font-size:1em; color:var(--primary-text-color); background:color-mix(in srgb, var(--primary-text-color, #000) 3%, transparent); border:0; cursor:pointer; text-align:left; }
+.lgroup[aria-expanded="true"] { border-bottom:1px solid var(--divider-color, rgba(127,127,127,.25)); }
+.lgroup b, .lrow b { display:block; font-weight:600; }
+.lrow b { font-weight:500; }
+.lgroup small, .lrow small { display:block; color:var(--secondary-text-color); font-size:.8em; font-weight:400; }
+.lgroup .gem { width:36px; height:36px; flex:none; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; background:color-mix(in srgb, var(--primary-text-color, #000) 7%, transparent); }
+.lgroup .grow, .lrow .grow { flex:1 1 auto; min-width:0; }
+.lgroup > ha-icon, .lrow > ha-icon:last-child { flex:none; color:var(--secondary-text-color); }
+.lrow { display:flex; align-items:center; gap:12px; width:calc(100% - 4px); margin:0 0 0 4px; text-align:left; padding:10px 12px; cursor:pointer; border:0; border-top:1px solid var(--divider-color, rgba(127,127,127,.25)); background:none; color:var(--primary-text-color); font:inherit; }
+.lgroup + .lrow { border-top:0; }
+.lrow:hover { background:color-mix(in srgb, var(--pc) 6%, transparent); }
+.lrow > ha-icon:last-child { opacity:.5; }
+.ic { --ic:#607d8b; width:36px; height:36px; flex:none; border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--ic); color:#fff; }
+.ic ha-icon { --mdc-icon-size:20px; color:#fff; }
 .sheet { position:fixed; inset:0; z-index:9; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; padding:12px; }
 .sbox { width:100%; max-width:520px; max-height:88vh; overflow:auto; border-radius:18px; background:var(--ha-card-background, var(--card-background-color, #fff)); box-shadow:0 8px 30px rgba(0,0,0,.35); padding:6px 12px 14px; }
 @media (min-width:600px) { .sheet { align-items:center; } }
-.shead { display:flex; align-items:center; gap:10px; padding:8px 0; position:sticky; top:-6px; background:inherit; z-index:1; }
+.shead { display:flex; align-items:center; gap:12px; padding:8px 0 10px; position:sticky; top:-6px; background:inherit; z-index:1; }
 .shead b { flex:1; font-size:1.05em; }
 .sbody textarea, .sbody input[readonly] { width:100%; }
-.undo { position:sticky; bottom:8px; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:10px; margin:10px 2px 0; padding:8px 8px 8px 14px; border-radius:12px; background:#323232; color:#fff; box-shadow:0 4px 14px rgba(0,0,0,.35); font-size:.92em; }
-.undo .btn { color:#8ab4f8; background:transparent; border:0; }
+/* ↩️ Rückgängig-Leiste unten in der Mitte – wie bei der Einkaufsliste */
+.undobar { position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%); z-index:50; max-width:calc(100vw - 24px); display:flex; align-items:center; gap:12px; padding:8px 8px 8px 16px; border-radius:24px; background:#323232; color:#fff; box-shadow:0 3px 12px rgba(0,0,0,.35); font-size:.92em; }
+.undobar .ut { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.undobar .ub { border:0; border-radius:16px; padding:7px 12px; background:#fff; color:#222; font:inherit; font-weight:600; cursor:pointer; white-space:nowrap; }
 ol.steps { padding-left:22px; }
 ol.steps li { margin:3px 0; }
 `;
@@ -436,26 +459,30 @@ class FixkostenCard extends HTMLElement {
     const pill = q ? `<button class="pill wait" data-a="tab" data-v="home">⏳ ${q} ${q === 1 ? "wartet" : "warten"}</button>`
       : online ? `<button class="pill" data-a="tab" data-v="home">🟢 verbunden</button>`
       : `<button class="pill off" data-a="tab" data-v="home">${this._app ? "📴 offline – letzter Stand" : "🔴 keine Verbindung"}</button>`;
-    const top = `<div class="topbar">${pill}<span class="grow">${this._greet()}</span>
-      <button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}</button>
+    // 🟢 Leiste ÜBER der Karte und Knöpfe UNTER der Karte – genau wie bei der Einkaufsliste
+    const top = `<div class="topbar">${pill}<span class="grow">${this._greet()}</span><span class="ver">v${FK_VERSION}</span></div>`;
+    const tools = `<button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}</button>
       <button class="iconbtn ${this._hidden ? "on" : ""}" data-a="hide" title="Beträge ${this._hidden ? "zeigen" : "verstecken"}">${ic(this._hidden ? "eye-off-outline" : "eye-outline")}</button>
       ${d?.pin ? `<button class="iconbtn ${pinOpen() ? "on" : ""}" data-a="lock" title="${pinOpen() ? "Jetzt sperren" : "Gesperrt – PIN nötig für ⚙️ und Bearbeiten"}">${ic(pinOpen() ? "lock-open-variant-outline" : "lock-outline")}</button>` : ""}
-      <button class="iconbtn ${this._view === "set" ? "on" : ""}" data-a="tab" data-v="set" title="Einstellungen">${ic("cog-outline")}</button>
-      <span class="ver">v${FK_VERSION}</span></div>`;
+      <button class="iconbtn ${this._view === "set" ? "on" : ""}" data-a="tab" data-v="${this._view === "set" ? "home" : "set"}" title="${this._view === "set" ? "Schließen" : "Einstellungen"}">${ic(this._view === "set" ? "close" : "cog-outline")}</button>`;
     let body;
     if (!d) {
       body = this._err ? `<div class="empty">⚠️ ${esc(this._err)}<br>Ist die Integration „Fixkosten“ eingerichtet?</div>` : `<div class="empty">⏳ Lade …</div>`;
     } else {
       const open = d.summary.groups.reduce((n, g) => n + g.count - g.done, 0);
       const tabs = [["home", "view-dashboard-outline", "Übersicht"], ["hist", "chart-bar", "Rückblick"], ["edit", "pencil-outline", "Bearbeiten"]];
-      body = `<div class="head"><span class="logo" data-a="tab" data-v="home" style="cursor:pointer">${ic("cash-multiple")}</span>${open ? `<span class="badge" title="offene Fixkosten">${open}</span>` : ""}</div>
+      body = `<div class="head"><div class="title"><span class="logo" data-a="tab" data-v="home" title="Zurück zur Übersicht">${ic("wallet-outline")}</span>${open ? `<span class="badge" data-a="tab" data-v="home" title="offene Fixkosten">${open}</span>` : ""}</div>${tools}</div>
         <div class="tabs">${tabs.map(([k, i, l]) => `<button class="tab ${this._view === k ? "active" : ""}" data-a="tab" data-v="${k}">${ic(i)}${l}</button>`).join("")}</div>`;
       if (this._calc) body += this._calcView(d);
       const locked = d.pin && !pinOpen() && (this._view === "edit" || this._view === "set");
       if (!locked) pinTouch();
-      body += locked ? this._pinView() : this._view === "guide" ? this._guideView() : this._view === "edit" ? this._editView(d) : this._view === "hist" ? this._histView(d) : this._view === "set" ? this._setView(d) : this._homeView(d);
+      body += locked ? this._homeView(d) : this._view === "guide" ? this._guideView() : this._view === "edit" ? this._editView(d) : this._view === "hist" ? this._histView(d) : this._view === "set" ? this._setView(d) : this._homeView(d);
     }
-    this.shadowRoot.innerHTML = `<style>${CSS}</style><ha-card>${top}${body}${this._undo ? `<div class="undo"><span>${esc(this._undo.label)}</span><button class="btn small" data-a="undo">${ic("undo-variant")}Rückgängig</button></div>` : ""}<div class="footer"><button class="fbtn ${this._view === "guide" ? "on" : ""}" data-a="tab" data-v="guide">📖 Anleitung</button></div>${d && this._sheet && this._view === "set" && !(d.pin && !pinOpen()) ? this._sheetHtml(d) : ""}</ha-card>`;
+    const locked = d && d.pin && !pinOpen() && (this._view === "edit" || this._view === "set");
+    const sheet = !d ? "" : locked ? this._sheetBox("lock-outline", "#455a64", "Gesperrt", this._pinView(), "home") : this._sheet && this._view === "set" ? this._sheetHtml(d) : "";
+    this.shadowRoot.innerHTML = `<style>${CSS}</style>${top}<ha-card>${body}</ha-card>
+      <div class="foot"><button class="${this._view === "guide" ? "on" : ""}" data-a="tab" data-v="${this._view === "guide" ? "home" : "guide"}">📖 Anleitung</button></div>
+      ${this._undo ? `<div class="undobar" role="status"><span class="ut">${esc(this._undo.label)}</span><button class="ub" data-a="undo">↩️ Rückgängig</button></div>` : ""}${sheet}`;
     this._bind();
   }
 
@@ -496,7 +523,7 @@ class FixkostenCard extends HTMLElement {
     h += `<div class="quick">${quick.map((q) => `<button class="chip ${this._quickName === q ? "on" : ""}" data-a="quick" data-v="${esc(q)}">${esc(q)}</button>`).join("")}</div>
       <form class="add" data-a="booking"><input name="name" placeholder="Wofür? z. B. Bäckerei" value="${esc(this._quickName || "")}" autocomplete="off">
       <input name="amount" class="amount" placeholder="0,00 €" inputmode="decimal" autocomplete="off" value="${esc(this._prefAmount || "")}"><button class="addbtn" type="submit" title="Eintragen">${ic("plus")}</button></form>`;
-    h += openBookings.length ? openBookings.map((b) => `<div class="item"><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${b.by ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
+    h += openBookings.length ? openBookings.map((b) => `<div class="item" style="--cc:#ff9800"><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${b.by ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
       <div class="amt">${this._m(-b.amount, "neg")}</div>
       <button class="btn small ok" data-a="clear" data-id="${esc(b.id)}" title="Ist jetzt auf dem Konto abgebucht">${ic("check")}abgebucht</button>
       <button class="iconbtn" data-a="bdel" data-id="${esc(b.id)}" title="Löschen">${ic("close")}</button></div>`).join("") : `<div class="empty">Nichts offen 🎉</div>`;
@@ -508,7 +535,7 @@ class FixkostenCard extends HTMLElement {
       const items = d.posten.filter((p) => p.group === g.id && shown(p));
       if (!items.length) continue;
       const k = "g:" + g.id, sumOpen = items.filter((p) => countsThisMonth(d, p) && !d.paid[p.id]?.paid).reduce((x, p) => x + p.amount, 0);
-      h += this._ghc(k, "calendar-month-outline", g.done >= g.count ? "var(--fk-green)" : "var(--pc)", esc(g.name), `${g.done} / ${g.count}${sumOpen ? ` · ${this._m(-sumOpen, "neg")}` : " ✅"}`);
+      h += this._ghc(k, "calendar-month-outline", gcol(d, g.id), esc(g.name), `${g.done} / ${g.count}${sumOpen ? ` · ${this._m(-sumOpen, "neg")}` : " ✅"}`);
       if (this._openSec.has(k)) h += items.map((p) => this._postenRow(d, p)).join("");
     }
     const loose = d.posten.filter((p) => !d.groups.some((g) => g.id === p.group) && shown(p));
@@ -518,20 +545,20 @@ class FixkostenCard extends HTMLElement {
     // 💰 Einnahmen (nur Info)
     if (d.einnahmen.length) {
       h += this._ghc("einnahmen", "cash-plus", "var(--fk-green)", "Einnahmen (Info)", this._m(s.income_total, "pos"));
-      if (this._openSec.has("einnahmen")) h += d.einnahmen.filter((e) => countsThisMonth(d, e)).map((e) => `<div class="item"><div class="n"><b>${esc(e.name)}</b>${e.date ? `<div class="meta"><span class="tag">${esc(e.date)}</span></div>` : ""}</div><div class="amt">${this._m(e.amount, "pos")}</div></div>`).join("");
+      if (this._openSec.has("einnahmen")) h += d.einnahmen.filter((e) => countsThisMonth(d, e)).map((e) => `<div class="item" style="--cc:var(--fk-green)"><div class="n"><b>${esc(e.name)}</b>${e.date ? `<div class="meta"><span class="tag">${esc(e.date)}</span></div>` : ""}</div><div class="amt">${this._m(e.amount, "pos")}</div></div>`).join("");
       h += `<div class="sum"><span>Bleibt nach Fixkosten</span>${this._m(s.surplus, s.surplus < 0 ? "neg" : "pos")}</div>`;
     }
     // 🧾 Offene Stände
     if (d.staende.length) {
       h += this._gh("file-document-alert-outline", "var(--fk-red)", "Offene Stände", `${d.settings.debts_subtract ? "abgezogen · " : ""}${this._m(-s.debts, "neg")}`);
-      h += d.staende.map((x) => `<div class="item"><div class="n"><b>${esc(x.name)}</b>${x.note ? `<div class="meta"><span class="tag">${esc(x.note)}</span></div>` : ""}</div><div class="amt">${this._m(-x.amount, "neg")}</div>
+      h += d.staende.map((x) => `<div class="item" style="--cc:var(--fk-red)"><div class="n"><b>${esc(x.name)}</b>${x.note ? `<div class="meta"><span class="tag">${esc(x.note)}</span></div>` : ""}</div><div class="amt">${this._m(-x.amount, "neg")}</div>
         <button class="btn small ok" data-a="settle" data-id="${esc(x.id)}">${ic("check")}beglichen</button></div>`).join("");
     }
     // 🐷 Töpfe
     if (d.toepfe.length) {
-      h += this._ghc("toepfe", "piggy-bank-outline", "#e91e63", "Töpfe", this._m(s.total - s.balance));
-      if (this._openSec.has("toepfe")) h += `<p class="small">Antippen = Stand ändern.</p>` + d.toepfe.map((t) => `<div class="item click" data-a="pot" data-id="${esc(t.id)}"><div class="n"><b>${esc(t.name)}</b></div><div class="amt">${this._m(t.amount)}</div></div>`).join("");
-      h += `<div class="sum"><span>Komplett (mit Konto)</span>${this._m(s.total)}</div>`;
+      h += this._ghc("toepfe", "piggy-bank-outline", "#e91e63", "Töpfe", this._m(s.pots_total));
+      if (this._openSec.has("toepfe")) h += `<p class="small">Antippen = Stand ändern.</p>` + d.toepfe.map((t) => `<div class="item click" style="--cc:#e91e63" data-a="pot" data-id="${esc(t.id)}"><div class="n"><b>${esc(t.name)}</b></div><div class="amt">${this._m(t.amount)}</div></div>`).join("");
+      h += `<div class="sum"><span>Komplett (Verfügbar + Töpfe)</span>${this._m(s.total)}</div>`;
     }
     // 🏦 Meine Konten (nur Info)
     if (d.konten.length) {
@@ -544,7 +571,7 @@ class FixkostenCard extends HTMLElement {
   _postenRow(d, p) {
     const paused = p.active === false;
     const on = paused || !!d.paid[p.id]?.paid;
-    return `<div class="item ${on ? "done" : ""} ${paused ? "paused" : ""}">${paused ? `<span class="chk on" title="pausiert – zählt nicht mit">${ic("pause")}</span>` : `<button class="chk ${on ? "on" : ""}" data-a="paid" data-id="${esc(p.id)}" aria-label="abhaken">${on ? ic("check") : ""}</button>`}
+    return `<div class="item ${on ? "done" : ""} ${paused ? "paused" : ""}" style="--cc:${gcol(d, p.group)}">${paused ? `<span class="chk on" title="pausiert – zählt nicht mit">${ic("pause")}</span>` : `<button class="chk ${on ? "on" : ""}" data-a="paid" data-id="${esc(p.id)}" aria-label="abhaken">${on ? ic("check") : ""}</button>`}
       <div class="n"><b>${esc(p.name)}</b><div class="meta">${paused ? `<span class="tag">⏸️ pausiert</span>` : ""}${p.day ? `<span class="tag">am ${p.day}.</span>` : ""}<span class="tag">${esc((PAY[p.pay] || PAY.keine)[0])}</span>${p.note ? `<span class="tag">${esc(p.note)}</span>` : ""}</div></div>
       <div class="amt">${this._m(-p.amount, "neg")}</div></div>`;
   }
@@ -688,8 +715,8 @@ class FixkostenCard extends HTMLElement {
 
   // 🔒 PIN-Abfrage vor ⚙️ und „Bearbeiten“
   _pinView() {
-    return this._gh("lock-outline", "#455a64", "Gesperrt") + `<p class="small">Für <b>${this._view === "set" ? "⚙️ Einstellungen" : "Bearbeiten"}</b> brauchst du die PIN. Die Übersicht und das Abhaken gehen auch ohne.</p>
-      <form class="add" data-a="pinunlock"><input name="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" maxlength="8" style="flex:1"><button class="addbtn" type="submit" title="Entsperren">${ic("lock-open-variant-outline")}</button></form>
+    return `<p class="small">Für <b>${this._view === "set" ? "⚙️ Einstellungen" : "Bearbeiten"}</b> brauchst du die PIN. Die Übersicht und das Abhaken gehen auch ohne.</p>
+      <form class="add pinf" data-a="pinunlock"><input name="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" maxlength="8" autofocus><button class="addbtn" type="submit" title="Entsperren">${ic("lock-open-variant-outline")}</button></form>
       <p class="small">PIN vergessen? Ein Admin geht in Home Assistant auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.</p>`;
   }
   _pinSetHtml(d) {
@@ -705,40 +732,47 @@ class FixkostenCard extends HTMLElement {
   _sheets(d) {
     const st = d.settings, admin = this._hass?.user?.is_admin !== false;
     return {
-      rechnen: { icon: "calculator-variant-outline", color: "#3949ab", title: "Rechnen & Warnung", info: `Warnung unter ${money(st.warn_below || 0)}`, html: () => `
+      rechnen: { icon: "calculator-variant-outline", color: "#43a047", title: "Rechnen & Warnung", info: `Warnung unter ${money(st.warn_below || 0)}`, html: () => `
         <label class="switch"><span>${ic("undo-variant")}Haken am Monatsanfang automatisch zurücksetzen</span><input type="checkbox" class="swchk" data-a="setreset" ${st.reset_checks !== false ? "checked" : ""}></label>
         <label class="switch"><span>${ic("file-document-alert-outline")}Offene Stände von „Verfügbar“ abziehen</span><input type="checkbox" class="swchk" data-a="setdebts" ${st.debts_subtract ? "checked" : ""}></label>
         <div class="switch"><span>${ic("alert-circle-outline")}Warnen, wenn „Verfügbar“ unter</span><span><input data-a="setwarn" inputmode="decimal" value="${String(st.warn_below ?? 0).replace(".", ",")}" style="width:90px;text-align:right"> €</span></div>
         <div class="btnrow"><button class="btn" data-a="resetnow">${ic("undo-variant")}Alle Haken jetzt zurücksetzen</button><button class="btn" data-a="pending">${ic("pencil-outline")}Vorgemerkt eintragen</button></div>` },
-      quick: { icon: "lightning-bolt-outline", color: "#ff9800", title: "Schnellknöpfe", info: `${(st.quick || []).length} Knöpfe`, html: () => `
+      quick: { icon: "lightning-bolt-outline", color: "#fb8c00", title: "Schnellknöpfe", info: `${(st.quick || []).length} Knöpfe`, html: () => `
         <p class="small">Die Knöpfe über „Wofür?“ bei den Kartenzahlungen. <b>Ein Knopf pro Zeile</b> (Kommas sind erlaubt).</p>
         <textarea data-a="quicktext" rows="8">${esc((st.quick || []).join("\n"))}</textarea>
         <div class="btnrow end"><button class="btn main" data-a="quicksave">${ic("content-save-outline")}Speichern</button></div>` },
-      csv: { icon: "upload", color: "#546e7a", title: "Daten (CSV)", info: admin ? "einlesen & sichern" : "nur Admins", html: () => admin ? `<p class="small">Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b> – Typ = ausgabe, einnahme, topf, stand (offener Stand) oder iban (Konto-Info, IBAN in Spalte 3). Gruppe = 1 oder 15 (oder der Name). Zahlart = ü, d, l, p, a, g, b oder -.</p>
+      csv: { icon: "database-import-outline", color: "#1e88e5", title: "Daten (CSV)", info: admin ? "einlesen & sichern" : "nur Admins", html: () => admin ? `<p class="small">Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b> – Typ = ausgabe, einnahme, topf, stand (offener Stand) oder iban (Konto-Info, IBAN in Spalte 3). Gruppe = 1 oder 15 (oder der Name). Zahlart = ü, d, l, p, a, g, b oder -.</p>
         <input type="file" accept=".csv,text/csv,text/plain" data-a="file"><textarea data-a="csv" rows="5" style="margin-top:6px" placeholder="ausgabe;Miete;800,00;1;d"></textarea>
         <label class="switch"><span>vorhandene Posten, Einnahmen, Töpfe und offenen Stände vorher löschen</span><input type="checkbox" class="swchk" data-a="csvreplace"></label>
         <div class="btnrow"><button class="btn main" data-a="import">${ic("upload")}Einlesen</button><button class="btn" data-a="export">${ic("download")}Als CSV sichern</button></div>` : `<p class="small">Nur für Admins.</p>` },
-      app: { icon: "cellphone-arrow-down", color: "#1e88e5", title: "Offline-App", info: "auch ohne Netz", html: () => `
+      app: { icon: "cellphone-arrow-down", color: "#3949ab", title: "Offline-App", info: "auch ohne Netz", html: () => `
         <p class="small">Eine eigene kleine App nur für die Fixkosten. Sie öffnet sich auch <b>ohne Netz</b>, zeigt den letzten Stand, lässt dich abhaken und eintragen und schickt alles nach, sobald wieder Netz da ist.</p>
         <ol class="small steps"><li>Auf dem Handy im <b>Browser</b> (Chrome oder Safari, nicht in der HA-App) die Adresse unten öffnen.</li><li>Einmal mit deinem Home-Assistant-Benutzer <b>anmelden</b>.</li><li>Im Browser-Menü <b>„Zum Startbildschirm hinzufügen“</b> – fertig, eigenes 💶-Symbol.</li></ol>
         <p class="small">Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. <b>Abmelden</b> löscht alle Zahlen aus dem Handy. Es braucht eine <b>https</b>-Adresse (z. B. Nabu Casa).</p>
         ${d.app_url ? `<p class="small"><b>Deine Adresse für die App:</b></p><input id="appUrl" readonly value="${esc(d.app_url)}" translate="no">
         <div class="btnrow"><button class="btn main" data-a="appcopy">${ic("content-copy")}Kopieren</button></div><p class="small">Kopieren, im Handy-Browser einfügen, fertig. Die Adresse funktioniert zu Hause und unterwegs.</p>`
         : `<p class="small">⚠️ Home Assistant kennt keine https-Adresse für unterwegs. Mit <b>Nabu Casa</b> (Einstellungen → Home Assistant Cloud → Fernzugriff) oder einer eigenen https-Adresse (Einstellungen → System → Netzwerk) klappt es. Zu Hause geht auch: <code>${esc(location.origin)}/fixkosten/app/</code></p>`}` },
-      pin: { icon: "shield-key-outline", color: "#455a64", title: "Schutz (PIN)", info: d.pin ? "an" : "aus", html: () => this._pinSetHtml(d) },
-      privacy: { icon: "shield-lock-outline", color: "#00897b", title: "Datenschutz", info: "alles lokal", html: () => `<p class="small">🔒 Deine Zahlen bleiben in <b>deinem</b> Home Assistant. Keine Cloud, kein Tracking, nichts geht ins Internet. IBANs stehen bewusst in keinem Sensor. In der Offline-App liegen die Zahlen zusätzlich im Handy, bis du dich abmeldest.</p>` },
+      pin: { icon: "lock-outline", color: "#f4511e", title: "Schutz (PIN)", info: d.pin ? "an" : "aus", html: () => this._pinSetHtml(d) },
+      privacy: { icon: "shield-lock-outline", color: "#455a64", title: "Datenschutz", info: "alles lokal", html: () => `<p class="small">🔒 Deine Zahlen bleiben in <b>deinem</b> Home Assistant. Keine Cloud, kein Tracking, nichts geht ins Internet. IBANs stehen bewusst in keinem Sensor. In der Offline-App liegen die Zahlen zusätzlich im Handy, bis du dich abmeldest.</p>` },
       credits: { icon: "hand-heart-outline", color: "#ec407a", title: "Credits & Spenden", info: `v${FK_VERSION}`, html: () => this._creditsHtml() },
     };
   }
   _setView(d) {
+    // 🗂️ wie die Einkaufsliste: Kästen nach Zweck (zugeklappt), darin Zeilen mit bunten Symbolen – jede Zeile öffnet ein eigenes Fenster
     const sh = this._sheets(d);
-    const cats = [["🧮 Rechnen", ["rechnen", "quick"]], ["📥 Daten", ["csv"]], ["📱 App & Info", ["app", "pin", "privacy", "credits"]]];
-    return this._gh("cog-outline", "#9e9e9e", "Einstellungen") + cats.map(([t, keys]) => `<div class="scat">${t}</div><div class="stiles">${keys.map((k) => `<button class="stile" data-a="sheet" data-v="${k}"><span class="gdot" style="--gc:${sh[k].color}">${ic(sh[k].icon)}</span><span class="st"><b>${sh[k].title}</b><small>${esc(sh[k].info)}</small></span>${ic("chevron-right")}</button>`).join("")}</div>`).join("");
+    const cats = [["🧮", "Rechnen", ["rechnen", "quick"]], ["💾", "Daten", ["csv"]], ["📱", "App & Info", ["app", "pin", "privacy", "credits"]]];
+    return `<div class="sethead">Einstellungen</div>` + cats.map(([emo, title, keys]) => {
+      const open = this._setOpen === title;
+      const rows = open ? keys.map((k) => `<button class="lrow" data-a="sheet" data-v="${k}"><span class="ic" style="--ic:${sh[k].color}">${ic(sh[k].icon)}</span><span class="grow"><b>${sh[k].title}</b><small>${esc(sh[k].info)}</small></span>${ic("chevron-right")}</button>`).join("") : "";
+      return `<div class="lgbox"><button class="lgroup" data-a="setgrp" data-v="${esc(title)}" aria-expanded="${open}"><span class="gem">${emo}</span><span class="grow"><b>${title}</b><small>${keys.map((k) => sh[k].title).join(", ")}</small></span>${ic(open ? "chevron-up" : "chevron-down")}</button>${rows}</div>`;
+    }).join("");
+  }
+  _sheetBox(icon, color, title, html, closeTo = "") {
+    return `<div class="sheet" data-a="sheetclose" data-v="bg" ${closeTo ? `data-to="${closeTo}"` : ""}><div class="sbox" role="dialog" aria-label="${esc(title)}"><div class="shead"><span class="ic" style="--ic:${color}">${ic(icon)}</span><b>${title}</b><button class="iconbtn" data-a="sheetclose" ${closeTo ? `data-to="${closeTo}"` : ""} title="Schließen">${ic("close")}</button></div><div class="sbody">${html}</div></div></div>`;
   }
   _sheetHtml(d) {
     const x = this._sheets(d)[this._sheet];
-    if (!x) return "";
-    return `<div class="sheet" data-a="sheetclose" data-v="bg"><div class="sbox" role="dialog" aria-label="${esc(x.title)}"><div class="shead"><span class="gdot" style="--gc:${x.color}">${ic(x.icon)}</span><b>${x.title}</b><button class="iconbtn" data-a="sheetclose" title="Schließen">${ic("close")}</button></div><div class="sbody">${x.html()}</div></div></div>`;
+    return x ? this._sheetBox(x.icon, x.color, x.title, x.html()) : "";
   }
 
   // ---------------------------------------------------------------- 👆 Klicks
@@ -789,7 +823,8 @@ class FixkostenCard extends HTMLElement {
     else if (a === "sec") { const k = el.dataset.v; this._openSec.has(k) ? this._openSec.delete(k) : this._openSec.add(k); store.put(OKEY, [...this._openSec]); redraw(); }
     else if (a === "mv") { const l = el.closest("[data-list]"); if (l) this._move(l, id, Number(el.dataset.v)); }
     else if (a === "sheet") { this._sheet = el.dataset.v; redraw(); }
-    else if (a === "sheetclose") { this._sheet = null; redraw(); }
+    else if (a === "sheetclose") { this._sheet = null; if (el.dataset.to) this._view = el.dataset.to; redraw(); }
+    else if (a === "setgrp") { this._setOpen = this._setOpen === el.dataset.v ? null : el.dataset.v; redraw(); }
     else if (a === "appcopy") { const u = d.app_url || ""; (navigator.clipboard?.writeText(u) || Promise.reject()).then(() => this._toast("📋 Adresse kopiert"), () => prompt("Adresse zum Kopieren:", u)); }
     else if (a === "quicksave") { const t = this.shadowRoot.querySelector('[data-a="quicktext"]')?.value || ""; this._send({ type: "settings", settings: { quick: t.split("\n").map((x) => x.trim()).filter(Boolean) } }); this._toast("⚡ Schnellknöpfe gespeichert"); }
     else if (a === "hide") { this._hidden = !this._hidden; store.put(HKEY, this._hidden); redraw(); }

@@ -63,11 +63,11 @@ check("Änderung an HA geschickt", await p.evaluate(() => fake.applied.some((o) 
 // ↩️ Löschen mit Rückgängig
 await sr(`h.querySelector('[data-a="bdel"][data-id="b1"]').click();`);
 await p.waitForTimeout(80);
-check("Löschen ohne Nachfrage, Rückgängig-Leiste da", await sr(`return !h.querySelector('[data-a="bdel"][data-id="b1"]') && !!h.querySelector('.undo');`));
+check("Löschen ohne Nachfrage, Rückgängig-Leiste da", await sr(`return !h.querySelector('[data-a="bdel"][data-id="b1"]') && !!h.querySelector('.undobar');`));
 await shot("2a-rueckgaengig.png");
 await sr(`h.querySelector('[data-a="undo"]').click();`);
 await p.waitForTimeout(80);
-check("Rückgängig holt die Kartenzahlung zurück", await sr(`return !!h.querySelector('[data-a="bdel"][data-id="b1"]') && !h.querySelector('.undo');`) && await p.evaluate(() => fake.applied.some((o) => o.type === "restore" && o.item.id === "b1")));
+check("Rückgängig holt die Kartenzahlung zurück", await sr(`return !!h.querySelector('[data-a="bdel"][data-id="b1"]') && !h.querySelector('.undobar');`) && await p.evaluate(() => fake.applied.some((o) => o.type === "restore" && o.item.id === "b1")));
 
 // 📴 Offline: Haken setzen → Postausgang, Zahl ändert sich trotzdem
 await p.evaluate(() => setOnline(false));
@@ -127,12 +127,15 @@ await shot("4-rueckblick.png");
 
 // ⚙️ Einstellungen: Haken-Schalter
 await sr(`h.querySelector('[data-a="tab"][data-v="set"]').click();`);
-check("⚙️ als Kacheln in Kategorien", await sr(`return h.querySelectorAll('.stile').length === 7 && h.querySelectorAll('.scat').length === 3 && !h.querySelector('.sheet');`));
+check("⚙️ wie Einkaufsliste: 3 Kästen, zugeklappt", await sr(`return h.querySelectorAll('.lgbox').length === 3 && !h.querySelector('.lrow') && !h.querySelector('.sheet');`));
+await sr(`h.querySelector('[data-a="setgrp"][data-v="App & Info"]').click();`);
+check("Kasten aufklappen zeigt Zeilen mit bunten Symbolen", await sr(`return h.querySelectorAll('.lrow .ic').length === 4;`));
 await shot("5-einstellungen.png");
 await sr(`h.querySelector('[data-a="sheet"][data-v="app"]').click();`);
 check("Offline-App-Fenster mit Anleitung", await sr(`return /Zum Startbildschirm/.test(h.querySelector('.sheet')?.textContent || '');`));
 if (shots) await p.screenshot({ path: path.join(shots, "5b-offline-app.png") });
 await sr(`h.querySelector('.shead [data-a="sheetclose"]').click();`);
+await sr(`h.querySelector('[data-a="setgrp"][data-v="Rechnen"]').click();`);
 await sr(`h.querySelector('[data-a="sheet"][data-v="quick"]').click();`);
 await sr(`h.querySelector('[data-a="quicktext"]').value = "Bäckerei\\nNetto, Lidl & Co."; h.querySelector('[data-a="quicksave"]').click();`);
 await p.waitForTimeout(50);
@@ -145,6 +148,7 @@ check("Schalter Haken-Reset schickt Einstellung", await p.evaluate(() => fake.ap
 await sr(`h.querySelector('.shead [data-a="sheetclose"]').click();`);
 
 // 🔒 PIN einschalten → sperren → falsche PIN → richtige PIN
+await sr(`h.querySelector('[data-a="setgrp"][data-v="App & Info"]').click();`);
 await sr(`h.querySelector('[data-a="sheet"][data-v="pin"]').click();`);
 if (shots) await p.screenshot({ path: path.join(shots, "5c-pin-fenster.png") });
 await sr(`const f = h.querySelector('form[data-a="pinset"]'); f.pin.value = "4711"; f.pin2.value = "4711"; f.requestSubmit();`);
@@ -153,18 +157,18 @@ check("PIN gespeichert", await p.evaluate(() => fake.pin === "4711" && toasts.in
 await sr(`h.querySelector('[data-a="lock"]').click();`);
 await p.waitForTimeout(50);
 await sr(`h.querySelector('[data-a="tab"][data-v="set"]').click();`);
-check("Gesperrt: Einstellungen fragen nach PIN", await sr(`return !!h.querySelector('form[data-a="pinunlock"]') && !h.querySelector('[data-a="setreset"]');`));
-await shot("7-pin-gesperrt.png");
+check("Gesperrt: PIN-Abfrage im eigenen Fenster", await sr(`return !!h.querySelector('.sheet form[data-a="pinunlock"]') && !h.querySelector('.lgbox');`));
+if (shots) await p.screenshot({ path: path.join(shots, "7-pin-gesperrt.png") });
 await sr(`const f = h.querySelector('form[data-a="pinunlock"]'); f.pin.value = "0000"; f.requestSubmit();`);
 await p.waitForTimeout(80);
 check("Falsche PIN bleibt zu", await sr(`return !!h.querySelector('form[data-a="pinunlock"]');`) && await p.evaluate(() => toasts.includes("❌ Falsche PIN")));
 await sr(`const f = h.querySelector('form[data-a="pinunlock"]'); f.pin.value = "4711"; f.requestSubmit();`);
 await p.waitForTimeout(80);
-check("Richtige PIN entsperrt", await sr(`return !!h.querySelector('.stile');`));
+check("Richtige PIN entsperrt", await sr(`return !!h.querySelector('.lgbox') && !h.querySelector('.sheet');`));
 check("Übersicht geht ohne PIN", await (async () => { await sr(`h.querySelector('[data-a="lock"]').click(); h.querySelector('[data-a="tab"][data-v="home"]').click();`); return sr(`return !!h.querySelector('.big');`); })());
 
 // 📖 Anleitung
-await sr(`h.querySelector('.fbtn[data-v="guide"]').click();`);
+await sr(`h.querySelector('.foot [data-v="guide"]').click();`);
 check("Anleitung mit PayPal-Knopf", await sr(`return h.querySelectorAll('details.gsec').length >= 12 && !!h.querySelector('a.paypal');`));
 await sr(`h.querySelector('details.gsec').open = true;`);
 await shot("8-anleitung.png");

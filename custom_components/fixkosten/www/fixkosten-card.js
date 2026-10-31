@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.17";
+const FK_VERSION = "0.1.0-beta.18";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -38,6 +38,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.18", "⚙️ <b>Zahnrad vor „Einstellungen“</b> wie bei der Einkaufsliste. · 🧮 In den Einstellungen sind <b>Rechner und Auge ausgeblendet</b> – dort braucht man sie nicht. · 📖 <b>Anleitung</b> mit demselben Buch-Symbol wie die Einkaufsliste. · 🚪 Offline-App: „Abmelden“ ohne Symbol, wie bei der Einkaufsliste."],
   ["0.1.0-beta.17", "🌍 <b>Englisch:</b> Ist Home Assistant nicht auf Deutsch (oder steht <code>language: en</code> in der Karte), spricht die Karte Englisch. Deine eigenen Namen bleiben, wie sie sind. · 💱 <b>Währung wählbar</b> (⚙️ → Rechnen &amp; Warnung): Euro, Schweizer Franken, US-Dollar, Pfund und mehr. Ändert nur Zeichen und Schreibweise, es wird nichts umgerechnet. · 👗 <b>Sparschwein-Kostüme:</b> Blume im Frühling, Sonnenbrille im Sommer, Blatt im Herbst, Schal im Winter, Hasenohren zu Ostern – wie der Einkaufswagen der Einkaufsliste."],
   ["0.1.0-beta.16", "🔒 <b>Ganze Karte mit PIN sperren</b> (⚙️ → App &amp; Info → Schutz, Standard aus): Dann zeigt die Karte zuerst das Zahlenfeld – erst nach der PIN sieht man Zahlen. Nach 10 Minuten Ruhe oder mit 🔒 ist sie wieder zu."],
   ["0.1.0-beta.15", "🙈 Verschwommen sind jetzt nur noch die <b>Summen</b>: hinter „Einnahmen“, hinter „Töpfe“ und bei „Komplett“. Die einzelnen Einnahmen und Töpfe sind wieder klar zu sehen."],
@@ -560,6 +561,8 @@ td:first-child, th:first-child { text-align:left; }
 .foot { display:flex; justify-content:center; gap:10px; margin:14px 6px 8px; font-size:13px; color:var(--secondary-text-color); }
 .foot button { font:inherit; color:inherit; background:none; text-decoration:underline; border:1px solid var(--divider-color, rgba(127,127,127,.3)); border-radius:12px; padding:8px 18px; cursor:pointer; }
 .foot button.on { border-color:var(--pc); color:var(--pc); }
+.foot button { display:inline-flex; align-items:center; gap:6px; }
+.foot button ha-icon { --mdc-icon-size:18px; }
 details.gsec { border-radius:12px; margin:6px 2px; background:var(--secondary-background-color, rgba(127,127,127,.08)); }
 details.gsec summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; padding:10px 12px; font-weight:600; }
 details.gsec summary::-webkit-details-marker { display:none; }
@@ -588,7 +591,7 @@ a { color:var(--pc); }
 .item.drag { background:color-mix(in srgb, var(--pc) 12%, transparent); box-shadow:0 2px 8px rgba(0,0,0,.25); }
 .gsub { font-size:.78em; font-weight:600; color:var(--secondary-text-color); text-transform:uppercase; letter-spacing:.04em; padding:8px 6px 2px; }
 /* ⚙️ Einstellungen wie bei der Einkaufsliste: ein Kasten pro Zweck, Zeilen mit bunten Symbol-Kästchen */
-.sethead { font-weight:600; font-size:1.05em; margin:4px 4px 2px; }
+.sethead { font-weight:600; font-size:1.05em; margin:4px 4px 2px; display:flex; align-items:center; gap:8px; }
 .lgbox { margin:10px 0 0; border:1px solid var(--divider-color, rgba(127,127,127,.25)); border-radius:12px; overflow:hidden; }
 .lgroup { display:flex; align-items:center; gap:12px; width:100%; margin:0; padding:10px 12px; font:inherit; font-size:1em; color:var(--primary-text-color); background:color-mix(in srgb, var(--primary-text-color, #000) 3%, transparent); border:0; cursor:pointer; text-align:left; }
 .lgroup[aria-expanded="true"] { border-bottom:1px solid var(--divider-color, rgba(127,127,127,.25)); }
@@ -878,8 +881,10 @@ class FixkostenCard extends HTMLElement {
     const appLock = this._app && !!window.__fkAppLock?.on?.();
     const isLocked = d?.pin && !pinOpen();
     if (this._lockAll) this._calc = null; // 🔒 gesperrt: kein Rechner (der kennt „Verfügbar“)
-    const tools = this._lockAll ? "" : `<button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}${this._lb("Rechner")}</button>
-      <button class="iconbtn ${this._hidden ? "on" : ""}" data-a="hide" title="Beträge ${this._hidden ? "zeigen" : "verstecken"}">${ic(this._hidden ? "eye-off-outline" : "eye-outline")}${this._lb(this._hidden ? "Zeigen" : "Verstecken")}</button>
+    const inSet = this._view === "set"; // ⚙️ in den Einstellungen braucht man weder Rechner noch Auge (wie bei der Einkaufsliste)
+    if (inSet) this._calc = null;
+    const tools = this._lockAll ? "" : `${inSet ? "" : `<button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}${this._lb("Rechner")}</button>
+      <button class="iconbtn ${this._hidden ? "on" : ""}" data-a="hide" title="Beträge ${this._hidden ? "zeigen" : "verstecken"}">${ic(this._hidden ? "eye-off-outline" : "eye-outline")}${this._lb(this._hidden ? "Zeigen" : "Verstecken")}</button>`}
       <button class="iconbtn" data-a="lock" title="${appLock ? "App jetzt sperren" : isLocked ? "Gesperrt – PIN nötig für ⚙️ und Bearbeiten" : "Jetzt sperren"}">${ic(isLocked && !appLock ? "lock-outline" : "lock-open-variant-outline")}${this._lb(isLocked && !appLock ? "Gesperrt" : "Sperren")}</button>
       ${showBack ? `<button class="iconbtn" data-a="back" title="${deeper ? "Zurück" : "Schließen"}">${ic(deeper ? "arrow-left" : "close")}${this._lb(deeper ? "Zurück" : "Schließen")}</button>` : ""}`;
     let body;
@@ -903,7 +908,7 @@ class FixkostenCard extends HTMLElement {
         : this._view === "edit" ? this._editView(d) :  this._view === "set" ? this._setView(d) : this._homeView(d);
     }
     this.shadowRoot.innerHTML = `<style>${CSS}</style>${top}<ha-card>${body}</ha-card>
-      <div class="foot"><button class="${this._view === "guide" ? "on" : ""}" data-a="tab" data-v="${this._view === "guide" ? "home" : "guide"}">📖 Anleitung</button></div>
+      <div class="foot"><button class="${this._view === "guide" ? "on" : ""}" data-a="tab" data-v="${this._view === "guide" ? "home" : "guide"}">${ic("book-open-page-variant-outline")}<span>Anleitung</span></button></div>
       ${this._undo ? `<div class="undobar" role="status"><span class="ut">${esc(this._undo.label)}</span><button class="ub" data-a="undo">↩️ Rückgängig</button></div>` : ""}`;
     if (FK_LANG !== "de" && FK_DICT) { // 🌍 erst übersetzen, dann Emojis zu Symbolen machen
       try { fkCollectUser(this._data); if (this._config?.title && this._config.title !== "Fixkosten") FK_USER.add(fkNorm(this._config.title)); fkTranslateTree(this.shadowRoot); } catch (_) { /* dann eben Deutsch */ }
@@ -1312,7 +1317,7 @@ class FixkostenCard extends HTMLElement {
     // 🗂️ wie die Einkaufsliste: Kästen nach Zweck (zugeklappt), darin Zeilen mit bunten Symbolen – jede Zeile öffnet ein eigenes Fenster
     const sh = this._sheets(d);
     const cats = [["🧮", "Rechnen", ["rechnen", "quick"]], ["💾", "Daten", ["csv", "log", "hist", "factory"]], ["🩺", "Gesundheit", ["check", "errors", "stats"]], ["👁️", "Ansicht", ["view", "labels", "mascot", "calm", ...(this._app ? ["theme"] : [])]], ["📱", "App & Info", ["app", "pin", "privacy", "news", "credits"]]];
-    return `<div class="sethead">Einstellungen</div>` + cats.map(([emo, title, keys]) => {
+    return `<div class="sethead">${ic("cog-outline")}<span>Einstellungen</span></div>` + cats.map(([emo, title, keys]) => {
       const open = this._setOpen === title;
       const rows = open ? keys.map((k) => `<button class="lrow" data-a="sheet" data-v="${k}"><span class="ic" style="--ic:${sh[k].color}">${ic(sh[k].icon)}</span><span class="grow"><b>${sh[k].title}</b><small>${esc(sh[k].info)}</small></span>${ic("chevron-right")}</button>`).join("") : "";
       return `<div class="lgbox"><button class="lgroup" data-a="setgrp" data-v="${esc(title)}" aria-expanded="${open}"><span class="gem">${emo}</span><span class="grow"><b>${title}</b><small>${keys.map((k) => sh[k].title).join(", ")}</small></span>${ic(open ? "chevron-up" : "chevron-down")}</button>${rows}</div>`;

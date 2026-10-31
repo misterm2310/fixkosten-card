@@ -337,7 +337,7 @@ function update() {
     wrap.append(card);
     const foot = document.createElement("div");
     foot.className = "foot";
-    foot.innerHTML = `<button id="lockBtn" hidden></button> <button id="logoutBtn">🚪 Abmelden</button><p class="small">Abmelden meldet nur dieses Handy ab. Deine Daten in Home Assistant bleiben komplett erhalten, nur die Kopie hier im Handy wird gelöscht.</p>`;
+    foot.innerHTML = `<button id="lockBtn" hidden></button> <button id="logoutBtn">Abmelden</button><p class="small">Abmelden meldet nur dieses Handy ab. Deine Daten in Home Assistant bleiben komplett erhalten, nur die Kopie hier im Handy wird gelöscht.</p>`;
     wrap.append(foot);
     document.getElementById("lockBtn").addEventListener("click", () => (lock ? lockDisable() : lockEnable()));
     document.getElementById("logoutBtn").addEventListener("click", () => {

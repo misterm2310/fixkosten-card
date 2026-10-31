@@ -322,7 +322,7 @@ await shot("9a-maskottchen.png");
 await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="sheet"][data-v="labels"]').click();`);
 await sr(`const x = h.querySelector('[data-a="setlabels"]'); x.checked = true; x.dispatchEvent(new Event('change'));`);
 await new Promise((r) => setTimeout(r, 80));
-check("Beschriftungen: Text unter Rechner/Verstecken", await sr(`return [...h.querySelectorAll('.head .iconbtn .lbl')].map((x) => x.textContent).join() .startsWith("Rechner,Verstecken");`));
+check("Beschriftungen: Text unter den Knöpfen (in ⚙️ nur Sperren/Zurück)", await sr(`return [...h.querySelectorAll('.head .iconbtn .lbl')].map((x) => x.textContent).join() .startsWith("Sperren,Zurück");`), await sr(`return [...h.querySelectorAll('.head .iconbtn .lbl')].map((x) => x.textContent).join();`));
 check("Beschriftungen: Host hat Klasse labels", await p.evaluate(() => document.querySelector('#c1').classList.contains('labels')));
 await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="sheet"][data-v="calm"]').click();`);
 await sr(`const x = h.querySelector('[data-a="setcalm"]'); x.checked = true; x.dispatchEvent(new Event('change'));`);
@@ -399,6 +399,13 @@ await shot("12-waehrung-chf.png");
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._send({ type: "settings", settings: { currency: "EUR" } }); c._force = true; c._render(); });
 await new Promise((r) => setTimeout(r, 80));
 check("Währung zurück auf €", await sr(`return /€/.test(h.querySelector('.big').textContent);`));
+
+// ⚙️ beta.18: Zahnrad vor „Einstellungen“, in ⚙️ kein Rechner/Auge, Anleitung mit Buch-Symbol
+await sr(`h.querySelector('[data-a="tab"][data-v="set"]').click();`);
+check("Einstellungen: Zahnrad vor der Überschrift, kein Rechner/Auge", await sr(`return h.querySelector('.sethead ha-icon')?.getAttribute('icon') === 'mdi:cog-outline' && !h.querySelector('[data-a="calc"]') && !h.querySelector('[data-a="hide"]') && !!h.querySelector('[data-a="lock"]');`));
+await shot("14-einstellungen-zahnrad.png");
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+check("Übersicht: Rechner und Auge wieder da, Anleitung mit Buch-Symbol", await sr(`return !!h.querySelector('[data-a="calc"]') && !!h.querySelector('[data-a="hide"]') && h.querySelector('.foot ha-icon')?.getAttribute('icon') === 'mdi:book-open-page-variant-outline';`));
 
 // 🌍 Englisch (beta.17): language: en → Wörterbuch laden, alles übersetzen, eigene Namen bleiben
 await p.evaluate(() => { const c = document.querySelector('#c1'); c.setConfig({ title: "Fixkosten", language: "en" }); });

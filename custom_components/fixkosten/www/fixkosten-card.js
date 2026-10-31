@@ -3,10 +3,10 @@
 //
 // So funktioniert's (für Doofe 😄):
 // - Home Assistant schickt alle Daten („subscribe“).
-// - Jede Änderung (Haken, Kartenzahlung, Kontostand …) wird als kleine „Änderung“ verschickt.
+// - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.3";
+const FK_VERSION = "0.1.0-beta.4";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -19,20 +19,35 @@ const REPO = "https://github.com/misterm2310/fixkosten-card";
 
 // 📖 Anleitung – einfach erklärt, Kapitel zum Aufklappen
 const FK_GUIDE = [
-  { icon: "cash-check", color: "#43a047", title: "Was heißt „Verfügbar“?", text: `Die große Zahl oben ist das Geld, das du diesen Monat <b>wirklich</b> noch ausgeben kannst:<br><b>Kontostand</b> − <b>Fixkosten, die noch nicht abgehakt sind</b> − <b>Kartenzahlungen, die noch nicht abgebucht sind</b>.<br>Grün = alles gut · Gelb = wird knapp · Rot = unter deiner Warngrenze (⚙️).` },
+  { icon: "cash-check", color: "#43a047", title: "Was heißt „Verfügbar“?", text: `Die große Zahl oben ist das Geld, das du diesen Monat <b>wirklich</b> noch ausgeben kannst:<br><b>Kontostand</b> − <b>Fixkosten, die noch nicht abgehakt sind</b> − <b>Ausgaben, die noch nicht abgebucht sind</b>.<br>Grün = alles gut · Gelb = wird knapp · Rot = unter deiner Warngrenze (⚙️).` },
   { icon: "bank-outline", color: "#0288d1", title: "Kontostand eintragen", text: `Tippe auf die Kachel <b>„Konto“</b> und gib den Stand aus deiner Bank-App ein. Das Datum daneben zeigt, wann du ihn zuletzt eingetragen hast. Vorgemerkte Umsätze trägst du in ⚙️ → „Rechnen & Warnung“ ein.` },
   { icon: "calendar-month-outline", color: "#3949ab", title: "Fixkosten abhaken", text: `Deine Fixkosten stehen in Gruppen wie <b>„ab dem 1.“</b> und <b>„ab dem 15.“</b>. Die Gruppen sind <b>zugeklappt</b>: Tipp auf die Überschrift klappt sie auf (die Karte merkt sich das). Rechts steht „2 / 4“ und was noch offen ist.<br>Ist ein Posten vom Konto abgebucht: <b>Kreis antippen</b> ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️ → „Rechnen & Warnung“).<br>Hat ein Posten einen <b>festen Tag</b> (z. B. am 5.), steht oben ein Hinweis auf die nächste Abbuchung. <b>Pausierte</b> Posten (⏸️) stehen grau und abgehakt mit drin und zählen nicht mit.` },
-  { icon: "credit-card-outline", color: "#ff9800", title: "Kartenzahlungen", text: `Mit Karte bezahlt? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: <b>„✓ abgebucht“</b>. Dann steckt er im Kontostand und fliegt aus der Rechnung. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein (einer pro Zeile).` },
-  { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Kartenzahlung</b>, als <b>Kontostand</b> oder kopierst es.` },
-  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = Stand ändern. „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Kartenzahlungen).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? „✓ beglichen“. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht.` },
-  { icon: "pencil-outline", color: "#00897b", title: "Bearbeiten", text: `Unter <b>„Bearbeiten“</b> legst du alles an (＋ Neu) oder tippst einen Eintrag zum Ändern an. Posten können auf <b>bestimmte Monate</b> beschränkt werden (z. B. Kfz-Steuer nur im März) oder <b>pausiert</b> werden. Neue Gruppen bekommen einen Starttag (1–28).<br><b>Reihenfolge ändern:</b> am Griff ⠿ ziehen oder ▲▼ tippen. Fixkosten kannst du so auch in eine andere Gruppe schieben. Das klappt auch bei Töpfen, Einnahmen, offenen Ständen und Konten.` },
-  { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Kartenzahlungen, Einnahmen und was am Ende übrig war (bis zu 3 Jahre).` },
+  { icon: "credit-card-outline", color: "#ff9800", title: "Ausgaben", text: `Etwas bezahlt (Karte, PayPal, bar …), das noch nicht vom Konto abgebucht ist? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: <b>„✓ abgebucht“</b>. Dann steckt er im Kontostand und fliegt aus der Rechnung. Vertippt? <b>Eintrag antippen</b> = Name und Betrag ändern. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein (einer pro Zeile).` },
+  { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Ausgabe</b>, als <b>Kontostand</b> oder kopierst es.` },
+  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = Stand ändern. „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? „✓ beglichen“. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht.` },
+  { icon: "pencil-outline", color: "#00897b", title: "Bearbeiten", text: `Unter <b>„Bearbeiten“</b> legst du alles an (＋ Neu) oder tippst einen Eintrag zum Ändern an. Posten können auf <b>bestimmte Monate</b> beschränkt werden (z. B. Kfz-Steuer nur im März) oder <b>pausiert</b> werden. Neue Gruppen bekommen einen Starttag (1–28).<br><b>Reihenfolge ändern:</b> am Griff ⠿ vorne ziehen. Fixkosten kannst du so auch in eine andere Gruppe schieben. Das klappt auch bei Gruppen, Töpfen, Einnahmen, offenen Ständen und Konten.` },
+  { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Ausgaben, Einnahmen und was am Ende übrig war (bis zu 3 Jahre).` },
   { icon: "eye-off-outline", color: "#607d8b", title: "Beträge verstecken", text: `Das 👁️ oben verschwimmt alle Beträge und IBANs, z. B. wenn jemand mitschaut. Nochmal tippen = wieder zeigen. Mit <code>privat: true</code> im Karten-YAML startet die Karte versteckt.` },
-  { icon: "cellphone-lock", color: "#1e88e5", title: "Offline-App mit Fingerabdruck", text: `Deine Adresse für die App steht in ⚙️ → <b>„Offline-App“</b> (mit Kopieren-Knopf). Im Handy-Browser öffnen → anmelden → im Browser-Menü „Zum Startbildschirm“.<br>Ohne Netz siehst du den letzten Stand. Was du einträgst, wartet im <b>Postausgang</b> (oben „⏳ wartet“) und wird von selbst nachgeschickt. Nichts zählt doppelt.<br>Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. Abmelden löscht alle Zahlen aus dem Handy.` },
-  { icon: "shield-key-outline", color: "#455a64", title: "PIN-Sperre und Seitenleiste", text: `In ⚙️ unter <b>„Schutz (PIN)“</b> legst du eine PIN (4–8 Ziffern) fest. Dann fragen ⚙️ und „Bearbeiten“ danach. Übersicht, Abhaken und Kartenzahlungen gehen weiter ohne PIN. Das 🔓 oben sperrt sofort wieder (sonst nach 10 Minuten Ruhe).<br><b>PIN vergessen?</b> Kein Drama: Ein Admin geht auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.<br>Im selben Fenster schaltest du auch <b>„In der Seitenleiste anzeigen“</b> an oder aus.` },
+  { icon: "cellphone-lock", color: "#1e88e5", title: "Offline-App mit Fingerabdruck", text: `Deine Adresse für die App steht in ⚙️ → <b>„Offline-App“</b> (mit Kopieren-Knopf). Im Handy-Browser öffnen → anmelden → im Browser-Menü „Zum Startbildschirm“.<br>Ohne Netz siehst du den letzten Stand. Was du einträgst, wartet im <b>Postausgang</b> (oben „⏳ wartet“) und wird von selbst nachgeschickt. Nichts zählt doppelt.<br>Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. Ist sie an, sperrt das 🔒 Schloss oben die ganze App sofort. Abmelden löscht alle Zahlen aus dem Handy.` },
+  { icon: "shield-key-outline", color: "#455a64", title: "PIN-Sperre und Seitenleiste", text: `In ⚙️ unter <b>„Schutz (PIN)“</b> legst du eine PIN (4–8 Ziffern) fest. Dann fragen ⚙️ und „Bearbeiten“ danach. Übersicht, Abhaken und Ausgaben gehen weiter ohne PIN. Das 🔓 Schloss unter der Leiste (neben 🧮 und 👁️) sperrt sofort wieder (sonst nach 10 Minuten Ruhe). Die PIN tippst du wie am Handy auf dem Zahlenfeld ein.<br><b>PIN vergessen?</b> Kein Drama: Ein Admin geht auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.<br>Im selben Fenster schaltest du auch <b>„In der Seitenleiste anzeigen“</b> an oder aus.` },
   { icon: "upload", color: "#546e7a", title: "CSV einlesen und sichern", text: `In ⚙️ → <b>„Daten (CSV)“</b> (nur Admins): Datei wählen oder Text einfügen → „Einlesen“. Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b>. „Als CSV sichern“ lädt alles als Datei herunter.` },
   { icon: "lock-outline", color: "#455a64", title: "Datenschutz", text: `Alles bleibt in <b>deinem</b> Home Assistant. Keine Cloud, kein Tracking, nichts geht ins Internet. IBANs stehen bewusst in keinem Sensor.` },
 ];
+// 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
+const FK_NEWS = [
+  ["0.1.0-beta.4", "🔢 <b>PIN wie am Handy:</b> Zahlenfeld mit Punkten, ⌫ und ✔ – genau wie bei der Einkaufsliste (am PC geht auch die Tastatur). · ⚙️ <b>Zahnrad oben in der Leiste</b>, darunter das 🔒 Schloss zum sofort Sperren (in der Offline-App mit Fingerabdruck-Sperre sperrt es die ganze App). · 🪟 Einstellungen, PIN und Anleitung öffnen als <b>Seite in der Karte</b> mit ← / ✕ oben rechts. · ↔️ Schnellknöpfe in einer Zeile zum <b>Wischen</b>. · 🔄 <b>„Neu laden“</b>-Hinweis, wenn eine neue Version da ist. · 🏦 <b>Meine Konten</b> zum Einklappen. · ⠿ <b>Gruppen</b> lassen sich jetzt auch verschieben. · 💳 „Kartenzahlungen“ heißen jetzt <b>„Ausgaben“</b> (Karte, PayPal, bar …) und lassen sich per Antippen <b>ändern</b>. · ⠿ Verschieben nur noch am Griff (ohne ▲▼). · 📖 Anleitung im Look der Einkaufsliste, mit Suche und „Was ist neu“."],
+  ["0.1.0-beta.3", "🎨 Optik wie die Einkaufsliste (Leiste über der Karte, Farbstreifen je Gruppe, Rückgängig-Leiste). · ⚙️ Einstellungen als Kästen mit bunten Symbolen. · 🐷 „Komplett“ = Verfügbar + Töpfe."],
+  ["0.1.0-beta.2", "📂 Gruppen, Einnahmen und Töpfe zum Einklappen. · ⏸️ Pausierte stehen grau und abgehakt mit drin. · 📅 Hinweis nur bei festem Tag. · ⠿ Verschieben. · ↩️ Rückgängig nach dem Löschen. · 📱 Adresse der Offline-App mit Kopieren-Knopf."],
+  ["0.1.0-beta.1", "🎉 Erste Beta: Verfügbar-Rechnung, Ausgaben mit Schnellknöpfen, Taschenrechner, Töpfe, offene Stände, Rückblick, CSV, PIN-Sperre und Offline-App mit Fingerabdruck."],
+];
+function fkVerCmp(a, b) {
+  const p = (v) => { const m = /^(\d+)\.(\d+)\.(\d+)(?:-beta\.(\d+))?/.exec(String(v).trim()); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? Infinity : +m[4]] : [0, 0, 0, Infinity]; };
+  const [x, y] = [p(a), p(b)];
+  for (let i = 0; i < 4; i++) if (x[i] !== y[i]) return x[i] > y[i] ? 1 : -1;
+  return 0;
+}
+const GUIDE_EMO = ["💶", "🏦", "📅", "💳", "🧮", "🐷", "✏️", "📊", "🙈", "📱", "🔒", "📄", "🛡️"];
+const GUIDE_SUB = ["die große Zahl oben", "Stand aus der Bank-App", "Kreis antippen", "Bäckerei & Co.", "🧮 oben in der Karte", "Töpfe, Stände, IBANs", "neu, ändern, verschieben", "Monate im Vergleich", "👁️ oben in der Karte", "ohne Netz, mit Fingerabdruck", "PIN, Schloss, Seitenleiste", "Datei einlesen und sichern", "alles bleibt bei dir"];
 const DKEY = "fixkosten_data";
 const HKEY = "fixkosten_hidden";
 const OKEY = "fixkosten_offen"; // 📂 welche Abschnitte aufgeklappt sind (Standard: alle zu)
@@ -61,7 +76,7 @@ const pinOpen = () => PIN_LOCK.until > Date.now();
 const pinTouch = () => { if (pinOpen()) PIN_LOCK.until = Date.now() + 10 * 60 * 1000; };
 // 🎨 Farben wie bei der Einkaufsliste: jede Gruppe bekommt ihre Farbe (Streifen links + Punkt im Kopf)
 const GROUP_COLORS = ["#1e88e5", "#fb8c00", "#8e24aa", "#00897b", "#e53935", "#6d4c41", "#3949ab"];
-const gcol = (d, gid) => { const i = [...d.groups].sort((a, b) => a.start_day - b.start_day).findIndex((g) => g.id === gid); return i < 0 ? "#9e9e9e" : GROUP_COLORS[i % GROUP_COLORS.length]; };
+const gcol = (d, gid) => { const i = d.groups.findIndex((g) => g.id === gid); return i < 0 ? "#9e9e9e" : GROUP_COLORS[i % GROUP_COLORS.length]; };
 const ic = (name) => `<ha-icon icon="mdi:${name}"></ha-icon>`;
 
 // 🧮 Taschenrechner: rechnet „12,50 + 3 × 2“ selbst aus (Punkt vor Strich, % = geteilt durch 100). Kein eval – sicher.
@@ -102,7 +117,7 @@ function countsThisMonth(d, it) {
 }
 function summary(d) {
   const today = new Date().getDate();
-  const groups = [...(d.groups || [])].sort((a, b) => (a.start_day || 1) - (b.start_day || 1));
+  const groups = [...(d.groups || [])]; // ⠿ Reihenfolge wie in der Liste
   const paid = d.paid || {};
   let fixTotal = 0, fixOpen = 0, next = null;
   const gi = groups.map((g) => {
@@ -153,6 +168,7 @@ function applyLocal(d, op) {
     if (d.bookings.some((b) => b.id === op.op_id)) return; // schon bei HA angekommen
     d.bookings.push({ id: op.op_id, name: op.name, amount: parseMoney(op.amount), ts: op.ts, month: monthKey(new Date(op.ts)), cleared: false, waiting: true });
   } else if (t === "booking_clear") { const b = d.bookings.find((x) => x.id === op.id); if (b) b.cleared = !!op.value; }
+  else if (t === "booking_edit") { const b = d.bookings.find((x) => x.id === op.id); if (b) { if ("name" in op) b.name = op.name; if ("amount" in op) b.amount = parseMoney(op.amount); } }
   else if (t === "booking_delete") d.bookings = d.bookings.filter((x) => x.id !== op.id);
   else if (t === "restore") {
     const key = op.kind === "booking" ? "bookings" : KIND[op.kind];
@@ -184,6 +200,7 @@ input.swchk:checked::after { left:20px; }
 .topbar { display:flex; align-items:center; gap:8px; margin:0 4px 8px; font-size:13px; color:var(--secondary-text-color); }
 .topbar .grow { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; color:var(--primary-text-color); }
 .topbar .ver { opacity:.8; }
+.topbar .lbl { display:none; }
 .pill { cursor:pointer; border-radius:999px; padding:2px 10px; background:color-mix(in srgb, var(--fk-green) 18%, transparent); color:var(--primary-text-color); white-space:nowrap; border:0; font-size:13px; }
 .pill.wait { background:color-mix(in srgb, var(--fk-yellow) 25%, transparent); }
 .pill.off { background:color-mix(in srgb, var(--fk-red) 20%, transparent); }
@@ -238,8 +255,9 @@ input.swchk:checked::after { left:20px; }
 .tag.wait { background:color-mix(in srgb, var(--fk-yellow) 25%, transparent); color:var(--primary-text-color); }
 .amt { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .neg { color:var(--fk-red); } .pos { color:var(--fk-green); }
-.quick { display:flex; flex-wrap:wrap; gap:6px; margin:4px 2px 6px; }
-.chip { border:1.5px solid var(--divider-color, rgba(127,127,127,.35)); background:transparent; border-radius:999px; padding:7px 14px; cursor:pointer; font-size:.95em; }
+.quick { display:flex; flex-wrap:nowrap; gap:6px; margin:4px 2px 6px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; padding-bottom:2px; } /* ↔️ volle Leiste = wischen, wie die Reiter der Einkaufsliste */
+.quick::-webkit-scrollbar { display:none; }
+.chip { flex:0 0 auto; white-space:nowrap; border:1.5px solid var(--divider-color, rgba(127,127,127,.35)); background:transparent; border-radius:999px; padding:7px 14px; cursor:pointer; font-size:.95em; }
 .chip.on { background:var(--pc); border-color:var(--pc); color:var(--text-primary-color,#fff); }
 form.add { display:grid; grid-template-columns:1fr 110px 48px; gap:6px; margin:2px 2px 6px; }
 form.add.pinf { grid-template-columns:1fr 48px; }
@@ -307,8 +325,6 @@ a { color:var(--pc); }
 
 .grip { display:inline-flex; color:var(--secondary-text-color); cursor:grab; touch-action:none; padding:4px 2px; margin:-4px 0; }
 .item.drag { background:color-mix(in srgb, var(--pc) 12%, transparent); box-shadow:0 2px 8px rgba(0,0,0,.25); }
-.mv { display:inline-flex; }
-.mv .iconbtn { padding:3px; }
 .gsub { font-size:.78em; font-weight:600; color:var(--secondary-text-color); text-transform:uppercase; letter-spacing:.04em; padding:8px 6px 2px; }
 /* ⚙️ Einstellungen wie bei der Einkaufsliste: ein Kasten pro Zweck, Zeilen mit bunten Symbol-Kästchen */
 .sethead { font-weight:600; font-size:1.05em; margin:4px 4px 2px; }
@@ -327,16 +343,44 @@ a { color:var(--pc); }
 .lrow > ha-icon:last-child { opacity:.5; }
 .ic { --ic:#607d8b; width:36px; height:36px; flex:none; border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--ic); color:#fff; }
 .ic ha-icon { --mdc-icon-size:20px; color:#fff; }
-.sheet { position:fixed; inset:0; z-index:9; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; padding:12px; }
-.sbox { width:100%; max-width:520px; max-height:88vh; overflow:auto; border-radius:18px; background:var(--ha-card-background, var(--card-background-color, #fff)); box-shadow:0 8px 30px rgba(0,0,0,.35); padding:6px 12px 14px; }
-@media (min-width:600px) { .sheet { align-items:center; } }
-.shead { display:flex; align-items:center; gap:12px; padding:8px 0 10px; position:sticky; top:-6px; background:inherit; z-index:1; }
-.shead b { flex:1; font-size:1.05em; }
-.sbody textarea, .sbody input[readonly] { width:100%; }
+.pagebody textarea, .pagebody input[readonly] { width:100%; }
 /* ↩️ Rückgängig-Leiste unten in der Mitte – wie bei der Einkaufsliste */
 .undobar { position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%); z-index:50; max-width:calc(100vw - 24px); display:flex; align-items:center; gap:12px; padding:8px 8px 8px 16px; border-radius:24px; background:#323232; color:#fff; box-shadow:0 3px 12px rgba(0,0,0,.35); font-size:.92em; }
 .undobar .ut { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .undobar .ub { border:0; border-radius:16px; padding:7px 12px; background:#fff; color:#222; font:inherit; font-weight:600; cursor:pointer; white-space:nowrap; }
+/* 🔄 Neue Version – wie bei der Einkaufsliste */
+.updbar { margin:0 2px 8px; padding:8px 10px; border-radius:12px; background:color-mix(in srgb, var(--primary-color,#03a9f4) 14%, transparent); font-size:.88em; display:flex; align-items:center; gap:8px; }
+.updbar b { flex:1; }
+/* 🪟 Seiten IN der Karte – wie bei der Einkaufsliste (Symbol + Titel, ← / ✕ oben rechts) */
+.sec { margin:4px 2px 16px; }
+.sechead { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.sechead h3 { min-width:0; margin:0; font-size:1em; }
+.pagebody p { line-height:1.4; }
+/* 🔢 PIN-Eingabe wie am Handy – wie bei der Einkaufsliste */
+.pinpad { text-align:center; max-width:300px; width:100%; margin:0 auto; }
+.pinpad .pdots { font-size:28px; letter-spacing:10px; min-height:40px; margin:10px 0 16px; }
+.pinpad .ppad { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.pinpad .ppad .btn { font-size:24px; padding:16px 0; margin:0; width:100%; }
+.pinpad .pcancel { margin-top:18px; }
+.btn.primary { border:1px solid transparent; background:var(--pc); color:var(--text-primary-color,#fff); }
+/* 📖 Anleitung wie bei der Einkaufsliste */
+.elg { font:15px/1.5 Roboto, sans-serif; }
+.elg h2 { font-size:20px; margin:6px 0 4px; }
+.elg .elg-sub { color:var(--secondary-text-color); margin:0 0 12px; font-size:14px; }
+.elg-q { width:100%; margin:0 0 10px; font-size:16px; padding:10px 12px; }
+.elg-none { color:var(--secondary-text-color); margin:8px 2px; }
+.elg-sec { border:1px solid var(--divider-color, rgba(127,127,127,.3)); border-radius:12px; margin:10px 0 0; overflow:hidden; }
+.elg-sec[hidden] { display:none; }
+.elg-sec summary { cursor:pointer; padding:10px 12px; font-weight:600; font-size:16px; list-style:none; display:flex; align-items:center; gap:12px; background:color-mix(in srgb, var(--primary-text-color, #000) 3%, transparent); }
+.elg-sec summary::-webkit-details-marker { display:none; }
+.elg-sec summary::after { content:""; flex:none; width:8px; height:8px; margin:0 6px 4px auto; border-right:2px solid var(--secondary-text-color); border-bottom:2px solid var(--secondary-text-color); transform:rotate(45deg); transition:transform .2s; }
+.elg-sec[open] summary::after { transform:rotate(225deg); margin-bottom:-4px; }
+.elg-sec[open] summary { border-bottom:1px solid var(--divider-color, rgba(127,127,127,.3)); }
+.elg-ic { flex:none; width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; background:color-mix(in srgb, var(--primary-text-color, #000) 7%, transparent); }
+.elg-tt { flex:1; min-width:0; } .elg-tt b { display:block; } .elg-tt small { display:block; font-weight:400; font-size:12.5px; color:var(--secondary-text-color); }
+.elg-sec > div { padding:8px 12px 12px; }
+.elg-sec ul { margin:4px 0; padding-left:20px; } .elg-sec li { margin:4px 0; }
+.betabox { border:1px solid #fb8c00; border-radius:12px; padding:10px 12px; margin:0 0 12px; background:rgba(251,140,0,.1); }
 ol.steps { padding-left:22px; }
 ol.steps li { margin:3px 0; }
 `;
@@ -352,7 +396,18 @@ class FixkostenCard extends HTMLElement {
     this._server = null;        // letzter Stand von Home Assistant
     this._hidden = store.get(HKEY, null);
     this._openSec = new Set(store.get(OKEY, []));
-    this._sheet = null;         // welches Einstellungs-Fenster offen ist
+    this._sheet = null;         // welche Einstellungs-Seite offen ist
+    this._pad = null;           // 🔢 PIN-Zahlenfeld (entsperren, PIN ändern …)
+    // ⌨️ Am PC: Ziffern, ⌫, Enter und Esc gehen auch auf dem PIN-Zahlenfeld
+    this._onKey = (e) => {
+      if (!this._padShown || !this.isConnected || !this._pad) return;
+      if (/^\d$/.test(e.key)) this._padPress(e.key);
+      else if (e.key === "Backspace") this._padPress("⌫");
+      else if (e.key === "Enter" || e.code === "NumpadEnter") this._padPress("✔");
+      else if (e.key === "Escape") this.shadowRoot.querySelector('[data-a="back"]')?.click();
+      else return;
+      e.preventDefault(); e.stopPropagation();
+    };
   }
 
   static getStubConfig() { return { title: "Fixkosten" }; }
@@ -375,8 +430,8 @@ class FixkostenCard extends HTMLElement {
     if (hass.connected !== false) this._flush();
   }
 
-  connectedCallback() { if (this._hass && !this._unsub) this._subscribe(); }
-  disconnectedCallback() { this._unsub?.then((u) => u?.()).catch(() => {}); this._unsub = null; }
+  connectedCallback() { if (this._hass && !this._unsub) this._subscribe(); document.addEventListener("keydown", this._onKey, true); }
+  disconnectedCallback() { this._unsub?.then((u) => u?.()).catch(() => {}); this._unsub = null; document.removeEventListener("keydown", this._onKey, true); }
 
   _subscribe() {
     if (this._unsub || !this._hass?.connection) return;
@@ -459,31 +514,50 @@ class FixkostenCard extends HTMLElement {
     const pill = q ? `<button class="pill wait" data-a="tab" data-v="home">⏳ ${q} ${q === 1 ? "wartet" : "warten"}</button>`
       : online ? `<button class="pill" data-a="tab" data-v="home">🟢 verbunden</button>`
       : `<button class="pill off" data-a="tab" data-v="home">${this._app ? "📴 offline – letzter Stand" : "🔴 keine Verbindung"}</button>`;
-    // 🟢 Leiste ÜBER der Karte und Knöpfe UNTER der Karte – genau wie bei der Einkaufsliste
-    const top = `<div class="topbar">${pill}<span class="grow">${this._greet()}</span><span class="ver">v${FK_VERSION}</span></div>`;
+    // 🟢 Leiste ÜBER der Karte (mit ⚙️ wie bei der Einkaufsliste) und Knöpfe UNTER der Karte
+    const top = `<div class="topbar">${pill}<span class="grow">${this._greet()}</span>${d ? `<button class="iconbtn ${this._view === "set" ? "on" : ""}" data-a="tab" data-v="set" title="Einstellungen">${ic("cog-outline")}<span class="lbl">Einstellungen</span></button>` : ""}<span class="ver" translate="no">v${FK_VERSION}</span></div>`;
+    const locked = !!(d && d.pin && !pinOpen() && (this._view === "edit" || this._view === "set"));
+    if (locked && this._pad?.step !== "unlock") this._pad = { purpose: "unlock", step: "unlock", buf: "", back: "home" };
+    if (!locked && this._pad?.step === "unlock") this._pad = null;
+    const page = !d ? null : this._pad ? this._padPage(d) : this._view === "guide" ? { icon: "book-open-variant", color: "#3949ab", title: "Anleitung", html: this._guideView() }
+      : this._view === "set" && this._sheet ? this._sheetPage(d) : null;
+    this._padShown = !!(d && this._pad);
+    // ✕ / ← oben rechts wie bei der Einkaufsliste: ✕ = zurück zur Übersicht, ← = eine Stufe zurück
+    const deeper = !!(this._pad ? this._pad.back === "sheet" : this._view === "set" && this._sheet);
+    const showBack = !!(d && (this._view === "set" || this._view === "guide" || this._pad));
+    const appLock = this._app && !!window.__fkAppLock?.on?.();
+    const isLocked = d?.pin && !pinOpen();
     const tools = `<button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}</button>
       <button class="iconbtn ${this._hidden ? "on" : ""}" data-a="hide" title="Beträge ${this._hidden ? "zeigen" : "verstecken"}">${ic(this._hidden ? "eye-off-outline" : "eye-outline")}</button>
-      ${d?.pin ? `<button class="iconbtn ${pinOpen() ? "on" : ""}" data-a="lock" title="${pinOpen() ? "Jetzt sperren" : "Gesperrt – PIN nötig für ⚙️ und Bearbeiten"}">${ic(pinOpen() ? "lock-open-variant-outline" : "lock-outline")}</button>` : ""}
-      <button class="iconbtn ${this._view === "set" ? "on" : ""}" data-a="tab" data-v="${this._view === "set" ? "home" : "set"}" title="${this._view === "set" ? "Schließen" : "Einstellungen"}">${ic(this._view === "set" ? "close" : "cog-outline")}</button>`;
+      <button class="iconbtn" data-a="lock" title="${appLock ? "App jetzt sperren" : isLocked ? "Gesperrt – PIN nötig für ⚙️ und Bearbeiten" : "Jetzt sperren"}">${ic(isLocked && !appLock ? "lock-outline" : "lock-open-variant-outline")}</button>
+      ${showBack ? `<button class="iconbtn" data-a="back" title="${deeper ? "Zurück" : "Schließen"}">${ic(deeper ? "arrow-left" : "close")}</button>` : ""}`;
     let body;
     if (!d) {
       body = this._err ? `<div class="empty">⚠️ ${esc(this._err)}<br>Ist die Integration „Fixkosten“ eingerichtet?</div>` : `<div class="empty">⏳ Lade …</div>`;
     } else {
       const open = d.summary.groups.reduce((n, g) => n + g.count - g.done, 0);
       const tabs = [["home", "view-dashboard-outline", "Übersicht"], ["hist", "chart-bar", "Rückblick"], ["edit", "pencil-outline", "Bearbeiten"]];
-      body = `<div class="head"><div class="title"><span class="logo" data-a="tab" data-v="home" title="Zurück zur Übersicht">${ic("wallet-outline")}</span>${open ? `<span class="badge" data-a="tab" data-v="home" title="offene Fixkosten">${open}</span>` : ""}</div>${tools}</div>
-        <div class="tabs">${tabs.map(([k, i, l]) => `<button class="tab ${this._view === k ? "active" : ""}" data-a="tab" data-v="${k}">${ic(i)}${l}</button>`).join("")}</div>`;
+      body = `<div class="head"><div class="title"><span class="logo" data-a="tab" data-v="home" title="Zurück zur Übersicht">${ic("wallet-outline")}</span>${open ? `<span class="badge" data-a="tab" data-v="home" title="offene Fixkosten">${open}</span>` : ""}</div>${tools}</div>`;
+      body += this._updHtml(d);
+      if (!page && this._view !== "set") body += `<div class="tabs">${tabs.map(([k, i, l]) => `<button class="tab ${this._view === k ? "active" : ""}" data-a="tab" data-v="${k}">${ic(i)}${l}</button>`).join("")}</div>`;
       if (this._calc) body += this._calcView(d);
-      const locked = d.pin && !pinOpen() && (this._view === "edit" || this._view === "set");
       if (!locked) pinTouch();
-      body += locked ? this._homeView(d) : this._view === "guide" ? this._guideView() : this._view === "edit" ? this._editView(d) : this._view === "hist" ? this._histView(d) : this._view === "set" ? this._setView(d) : this._homeView(d);
+      body += page ? `<div class="sec pagehost"><div class="sechead"><span class="ic" style="--ic:${page.color}">${ic(page.icon)}</span><h3>${page.title}</h3></div><div class="pagebody">${page.html}</div></div>`
+        : this._view === "edit" ? this._editView(d) : this._view === "hist" ? this._histView(d) : this._view === "set" ? this._setView(d) : this._homeView(d);
     }
-    const locked = d && d.pin && !pinOpen() && (this._view === "edit" || this._view === "set");
-    const sheet = !d ? "" : locked ? this._sheetBox("lock-outline", "#455a64", "Gesperrt", this._pinView(), "home") : this._sheet && this._view === "set" ? this._sheetHtml(d) : "";
     this.shadowRoot.innerHTML = `<style>${CSS}</style>${top}<ha-card>${body}</ha-card>
       <div class="foot"><button class="${this._view === "guide" ? "on" : ""}" data-a="tab" data-v="${this._view === "guide" ? "home" : "guide"}">📖 Anleitung</button></div>
-      ${this._undo ? `<div class="undobar" role="status"><span class="ut">${esc(this._undo.label)}</span><button class="ub" data-a="undo">↩️ Rückgängig</button></div>` : ""}${sheet}`;
+      ${this._undo ? `<div class="undobar" role="status"><span class="ut">${esc(this._undo.label)}</span><button class="ub" data-a="undo">↩️ Rückgängig</button></div>` : ""}`;
     this._bind();
+  }
+
+  // 🔄 Neue Version da? (Home Assistant hat eine andere Version als die geladene Karte) – wie bei der Einkaufsliste
+  _updHtml(d) {
+    const server = d.version;
+    if (!server || server === FK_VERSION) return "";
+    return fkVerCmp(server, FK_VERSION) > 0
+      ? `<div class="updbar">🔄 <b>Neue Version ${esc(server)} ist da (hier läuft noch ${FK_VERSION}).</b><button class="btn small" data-a="reload">Neu laden</button></div>`
+      : `<div class="updbar">🔄 <b>Die Karte ist schon ${FK_VERSION}, Home Assistant noch ${esc(server)} – bitte Home Assistant neu starten.</b></div>`;
   }
 
   // 🧮 Taschenrechner (rechnet selbst – kein eval)
@@ -493,7 +567,7 @@ class FixkostenCard extends HTMLElement {
     const keys = [["C", "cl"], ["⌫", "cl"], ["%", "op"], ["÷", "op"], ["7"], ["8"], ["9"], ["×", "op"], ["4"], ["5"], ["6"], ["−", "op"], ["1"], ["2"], ["3"], ["+", "op"], ["V", "op"], ["0"], [","], ["=", "eq"]];
     return `<div class="calc"><div class="disp"><div class="expr">${esc(c.expr || " ")}</div><div class="res">${res == null ? "–" : money(res)}</div></div>
       <div class="keys">${keys.map(([k, cl]) => `<button class="${cl || ""}" data-a="ckey" data-v="${k}" title="${k === "V" ? "Verfügbar einsetzen" : ""}">${k}</button>`).join("")}</div>
-      <div class="btnrow"><button class="btn small" data-a="cuse" data-v="pay" ${res == null ? "disabled" : ""}>${ic("credit-card-outline")}Als Kartenzahlung</button>
+      <div class="btnrow"><button class="btn small" data-a="cuse" data-v="pay" ${res == null ? "disabled" : ""}>${ic("credit-card-outline")}Als Ausgabe</button>
       <button class="btn small" data-a="cuse" data-v="balance" ${res == null ? "disabled" : ""}>${ic("bank-outline")}Als Kontostand</button>
       <button class="btn small" data-a="cuse" data-v="copy" ${res == null ? "disabled" : ""}>${ic("content-copy")}Kopieren</button></div></div>`;
   }
@@ -511,19 +585,19 @@ class FixkostenCard extends HTMLElement {
       <div class="tiles">
         <button class="tile click" data-a="balance"><span>${ic("bank-outline")}Konto ${upd}</span><b>${this._m(s.balance)}</b></button>
         <div class="tile"><span>${ic("calendar-clock")}Fixkosten offen</span><b>${this._m(-s.fix_open, "neg")}</b></div>
-        <div class="tile"><span>${ic("credit-card-outline")}Karte offen</span><b>${this._m(-s.bookings_open, "neg")}</b></div>
+        <div class="tile"><span>${ic("credit-card-outline")}Ausgaben offen</span><b>${this._m(-s.bookings_open, "neg")}</b></div>
       </div>`;
     // 📅 Hinweis nur für Posten mit festem Tag: der nächste, der noch nicht abgehakt ist
     const today = new Date().getDate();
     const fixed = d.posten.filter((p) => p.day && countsThisMonth(d, p) && !d.paid[p.id]?.paid).sort((a, b) => ((a.day < today) - (b.day < today)) || a.day - b.day);
     if (fixed.length) { const n = fixed[0]; h += `<div class="next">${ic("calendar-clock")}<span><b>${n.day <= today ? "Fällig" : `Am ${n.day}.`}:</b> ${esc(n.name)} · ${this._m(n.amount)}</span></div>`; }
 
-    // 💳 Kartenzahlungen
-    h += this._gh("credit-card-outline", "#ff9800", "Kartenzahlungen", `noch nicht abgebucht · ${this._m(-s.bookings_open)}`);
+    // 💳 Ausgaben
+    h += this._gh("credit-card-outline", "#ff9800", "Ausgaben", `noch nicht abgebucht · ${this._m(-s.bookings_open)}`);
     h += `<div class="quick">${quick.map((q) => `<button class="chip ${this._quickName === q ? "on" : ""}" data-a="quick" data-v="${esc(q)}">${esc(q)}</button>`).join("")}</div>
       <form class="add" data-a="booking"><input name="name" placeholder="Wofür? z. B. Bäckerei" value="${esc(this._quickName || "")}" autocomplete="off">
       <input name="amount" class="amount" placeholder="0,00 €" inputmode="decimal" autocomplete="off" value="${esc(this._prefAmount || "")}"><button class="addbtn" type="submit" title="Eintragen">${ic("plus")}</button></form>`;
-    h += openBookings.length ? openBookings.map((b) => `<div class="item" style="--cc:#ff9800"><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${b.by ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
+    h += openBookings.length ? openBookings.map((b) => this._open?.kind === "booking" && this._open.id === b.id ? this._bookingForm(b) : `<div class="item click" style="--cc:#ff9800" data-a="open" data-k="booking" data-id="${esc(b.id)}" title="Antippen = ändern"><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${b.by ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
       <div class="amt">${this._m(-b.amount, "neg")}</div>
       <button class="btn small ok" data-a="clear" data-id="${esc(b.id)}" title="Ist jetzt auf dem Konto abgebucht">${ic("check")}abgebucht</button>
       <button class="iconbtn" data-a="bdel" data-id="${esc(b.id)}" title="Löschen">${ic("close")}</button></div>`).join("") : `<div class="empty">Nichts offen 🎉</div>`;
@@ -562,11 +636,17 @@ class FixkostenCard extends HTMLElement {
     }
     // 🏦 Meine Konten (nur Info)
     if (d.konten.length) {
-      h += this._gh("bank-outline", "var(--pc)", "Meine Konten");
-      h += d.konten.map((k) => `<div class="item"><div class="n"><b>${esc(k.name)}</b><div class="meta"><span class="tag ${this._hidden ? "hidden-amt" : ""}" style="font-family:monospace">${esc(k.iban)}</span>${k.note ? `<span class="tag">${esc(k.note)}</span>` : ""}</div></div>
+      h += this._ghc("konten", "bank-outline", "var(--pc)", "Meine Konten", String(d.konten.length));
+      if (this._openSec.has("konten")) h += d.konten.map((k) => `<div class="item"><div class="n"><b>${esc(k.name)}</b><div class="meta"><span class="tag ${this._hidden ? "hidden-amt" : ""}" style="font-family:monospace">${esc(k.iban)}</span>${k.note ? `<span class="tag">${esc(k.note)}</span>` : ""}</div></div>
         <button class="iconbtn" data-a="copy" data-id="${esc(k.id)}" title="IBAN kopieren">${ic("content-copy")}</button></div>`).join("");
     }
     return h;
+  }
+  // ✏️ Ausgabe ändern (Name und Betrag)
+  _bookingForm(b) {
+    return `<form class="edit" data-a="bsave" data-id="${esc(b.id)}" style="--cc:#ff9800"><div class="f"><label class="wide">Wofür?<input name="name" value="${esc(b.name)}" autocomplete="off"></label>
+      <label>Betrag (€)<input name="amount" inputmode="decimal" autocomplete="off" value="${numDe(b.amount)}"></label></div>
+      <div class="btnrow end"><button type="button" class="btn" data-a="bdel" data-id="${esc(b.id)}">${ic("delete-outline")}Löschen</button><button type="button" class="btn" data-a="cancel">${ic("close")}Abbrechen</button><button class="btn main" type="submit">${ic("check")}Speichern</button></div></form>`;
   }
   _postenRow(d, p) {
     const paused = p.active === false;
@@ -578,14 +658,14 @@ class FixkostenCard extends HTMLElement {
   _monthName(mk) { const m = Number(String(mk || "").slice(5, 7)); return m ? MONTHS[m - 1] + " " + String(mk).slice(0, 4) : ""; }
 
   _editView(d) {
-    // ⠿ Griff zum Ziehen + ▲▼ (Notlösung fürs Handy). Posten lassen sich auch in eine andere Gruppe ziehen.
+    // ⠿ Griff vorne zum Ziehen. Posten lassen sich auch in eine andere Gruppe ziehen.
     const row = (kind, it, rowText, sortable) => this._open?.kind === kind && this._open.id === it.id ? this._form(d, kind, it)
-      : `<div class="item click ${it.active === false ? "done" : ""}" data-a="open" data-k="${kind}" data-id="${esc(it.id)}" ${sortable ? `data-row="${esc(it.id)}"` : ""}>${sortable ? `<span class="grip" data-grip="${kind}" title="Ziehen zum Verschieben">${ic("drag")}</span>` : ""}<div class="n"><b>${it.active === false ? "⏸️ " : ""}${esc(it.name)}</b>${rowText(it) ? `<div class="meta">${rowText(it).filter(Boolean).map((x) => `<span class="tag">${esc(x)}</span>`).join("")}</div>` : ""}</div>${"amount" in it ? `<div class="amt">${this._m(it.amount)}</div>` : ""}${sortable ? `<span class="mv"><button class="iconbtn" data-a="mv" data-k="${kind}" data-id="${esc(it.id)}" data-v="-1" title="nach oben">${ic("chevron-up")}</button><button class="iconbtn" data-a="mv" data-k="${kind}" data-id="${esc(it.id)}" data-v="1" title="nach unten">${ic("chevron-down")}</button></span>` : `<span class="iconbtn">${ic("pencil-outline")}</span>`}</div>`;
+      : `<div class="item click ${it.active === false ? "done" : ""}" data-a="open" data-k="${kind}" data-id="${esc(it.id)}" ${sortable ? `data-row="${esc(it.id)}"` : ""}>${sortable ? `<span class="grip" data-grip="${kind}" title="Ziehen zum Verschieben">${ic("drag")}</span>` : ""}<div class="n"><b>${it.active === false ? "⏸️ " : ""}${esc(it.name)}</b>${rowText(it) ? `<div class="meta">${rowText(it).filter(Boolean).map((x) => `<span class="tag">${esc(x)}</span>`).join("")}</div>` : ""}</div>${"amount" in it ? `<div class="amt">${this._m(it.amount)}</div>` : ""}${sortable ? "" : `<span class="iconbtn">${ic("pencil-outline")}</span>`}</div>`;
     const head = (kind, icon, color, title) => this._gh(icon, color, title, `<button class="btn small" data-a="new" data-k="${kind}">${ic("plus")}Neu</button>`)
       + (this._open?.kind === kind && this._open.id === "new" ? this._form(d, kind, {}) : "");
     const block = (kind, icon, color, title, list, rowText, sortable = true) => head(kind, icon, color, title)
       + (list.length ? `<div class="olist" data-list="${kind}">${list.map((it) => row(kind, it, rowText, sortable)).join("")}</div>` : `<div class="empty">Noch leer.</div>`);
-    const groups = [...d.groups].sort((a, b) => a.start_day - b.start_day);
+    const groups = [...d.groups];
     const ptext = (p) => [p.day ? `am ${p.day}.` : "", (PAY[p.pay] || PAY.keine)[0], p.months?.length ? p.months.map((m) => MONTHS[m - 1]).join(", ") : ""];
     // 📋 Posten: eine Liste mit Gruppen-Trennern – wer unter einen Trenner gezogen wird, landet in dieser Gruppe
     const loose = d.posten.filter((p) => !groups.some((g) => g.id === p.group));
@@ -598,8 +678,8 @@ class FixkostenCard extends HTMLElement {
       + block("topf", "piggy-bank-outline", "#e91e63", "Töpfe", d.toepfe, () => null)
       + block("stand", "file-document-alert-outline", "var(--fk-red)", "Offene Stände", d.staende, (x) => [x.note])
       + block("konto", "bank-outline", "var(--pc)", "Meine Konten (Info)", d.konten, (k) => [k.iban])
-      + block("gruppe", "format-list-bulleted-square", "#9e9e9e", "Gruppen", groups, (g) => [`ab dem ${g.start_day}.`], false)
-      + `<p class="small">⠿ Ziehen oder ▲▼ = Reihenfolge ändern. Fixkosten kannst du so auch in eine andere Gruppe schieben.</p>`;
+      + block("gruppe", "format-list-bulleted-square", "#9e9e9e", "Gruppen", groups, (g) => [`ab dem ${g.start_day}.`])
+      + `<p class="small">⠿ Am Griff vorne ziehen = Reihenfolge ändern. Fixkosten kannst du so auch in eine andere Gruppe schieben, und auch die Gruppen selbst lassen sich verschieben.</p>`;
   }
 
   // ↩️ Löschen mit „Rückgängig“ statt Nachfrage
@@ -624,16 +704,6 @@ class FixkostenCard extends HTMLElement {
       else if (el.dataset.row) { ids.push(el.dataset.row); if (kind === "posten" && gid) groups[el.dataset.row] = gid; }
     }
     this._send({ type: "order", kind, ids, ...(kind === "posten" ? { groups } : {}) });
-  }
-  _move(listEl, id, dir) {
-    const kids = [...listEl.children], el = kids.find((x) => x.dataset.row === id);
-    if (!el) return;
-    let n = dir < 0 ? el.previousElementSibling : el.nextElementSibling;
-    // über einen Gruppen-Trenner hinweg = in die Nachbar-Gruppe
-    if (!n) return;
-    if (dir < 0) { if (n.classList.contains("gsub") && !n.previousElementSibling) return; listEl.insertBefore(el, n); }
-    else listEl.insertBefore(n, el);
-    this._sendOrder(listEl);
   }
   _startDrag(grip, ev) {
     const row = grip.closest("[data-row]"), list = row?.parentElement;
@@ -666,7 +736,7 @@ class FixkostenCard extends HTMLElement {
     if (kind === "konto") f.push(`<label class="wide">IBAN<input name="iban" value="${esc(it.iban || "")}" autocapitalize="characters" spellcheck="false" style="font-family:monospace"></label>`, `<label class="wide">Notiz (z. B. BIC/BLZ)<input name="note" value="${esc(it.note || "")}"></label>`);
     if (kind !== "gruppe" && kind !== "konto") f.push(`<label>Betrag (€)<input name="amount" inputmode="decimal" value="${it.amount != null ? String(it.amount).replace(".", ",") : ""}"></label>`);
     if (kind === "posten") {
-      f.push(`<label>Gruppe<select name="group">${[...d.groups].sort((a, b) => a.start_day - b.start_day).map((g) => `<option value="${esc(g.id)}" ${g.id === (it.group || d.groups[0]?.id) ? "selected" : ""}>${esc(g.name)}</option>`).join("")}</select></label>`);
+      f.push(`<label>Gruppe<select name="group">${d.groups.map((g) => `<option value="${esc(g.id)}" ${g.id === (it.group || d.groups[0]?.id) ? "selected" : ""}>${esc(g.name)}</option>`).join("")}</select></label>`);
       f.push(`<label>Fester Tag (frei lassen = keiner)<input name="day" type="number" min="1" max="31" inputmode="numeric" placeholder="z. B. 5" value="${it.day || ""}"></label>`);
       f.push(`<label>Zahlart<select name="pay">${Object.entries(PAY).map(([k, v]) => `<option value="${k}" ${k === (it.pay || "keine") ? "selected" : ""}>${v[0]}</option>`).join("")}</select></label>`);
     }
@@ -690,7 +760,7 @@ class FixkostenCard extends HTMLElement {
     hist.push({ month: d.month, fix_total: s.fix_total, fix_paid: s.fix_paid, income_total: s.income_total, bookings: s.bookings_month, available_end: s.available, now: true });
     const max = Math.max(1, ...hist.map((x) => Math.max(x.fix_total + x.bookings, x.income_total)));
     const hh = (v) => Math.max(2, (v / max) * 120).toFixed(0);
-    return this._gh("chart-bar", "var(--pc)", "Monatsrückblick") + `<div class="legend"><span><i style="background:#e57373"></i>Fixkosten</span><span><i style="background:#ffb74d"></i>Kartenzahlungen</span><span><i style="background:#81c784"></i>Einnahmen</span></div>
+    return this._gh("chart-bar", "var(--pc)", "Monatsrückblick") + `<div class="legend"><span><i style="background:#e57373"></i>Fixkosten</span><span><i style="background:#ffb74d"></i>Ausgaben</span><span><i style="background:#81c784"></i>Einnahmen</span></div>
       <div class="hist">${hist.map((x) => `<div class="m" title="${esc(this._monthName(x.month))}">
         <div style="display:flex;gap:2px;align-items:flex-end;width:100%;justify-content:center">
           <div style="width:40%;display:flex;flex-direction:column;justify-content:flex-end"><div style="height:${hh(x.bookings)}px;background:#ffb74d;border-radius:4px 4px 0 0"></div><div style="height:${hh(x.fix_total)}px;background:#e57373"></div></div>
@@ -701,10 +771,22 @@ class FixkostenCard extends HTMLElement {
       <p class="small">Am Monatsende wird der Monat automatisch hier gemerkt (bis zu 3 Jahre).</p>`;
   }
 
+  // 📖 Anleitung wie bei der Einkaufsliste: Kästen zum Aufklappen (immer nur einer offen), Suche oben, „Was ist neu“ zuerst
   _guideView() {
-    return this._gh("book-open-variant", "#3949ab", "Anleitung") + `<p class="small">Tipp auf eine Überschrift klappt sie auf.</p>`
-      + FK_GUIDE.map((g) => `<details class="gsec"><summary><span class="gdot" style="--gc:${g.color}">${ic(g.icon)}</span>${g.title}</summary><div class="gtext">${g.text}</div></details>`).join("")
-      + this._gh("hand-heart-outline", "#ec407a", "Credits") + this._creditsHtml();
+    const sec = (emo, title, sub, body) => `<details class="elg-sec"><summary><span class="elg-ic">${emo}</span><span class="elg-tt"><b>${title}</b>${sub ? `<small>${sub}</small>` : ""}</span></summary><div>${body}</div></details>`;
+    return `<div class="elg"><h2>💶 So funktionieren die Fixkosten</h2>
+      <p class="elg-sub">Tipp auf eine Überschrift klappt sie auf. Diese Anleitung findest du immer über den Knopf <b>📖 Anleitung</b> ganz unten unter der Karte.</p>
+      <input type="search" class="elg-q" placeholder="🔎 In dieser Anleitung suchen, z. B. PIN" aria-label="In dieser Anleitung suchen" autocomplete="off" enterkeyhint="search"><p class="elg-none" hidden>Nichts gefunden 🤷 – versuch ein anderes Wort.</p>
+      ${sec("🆕", "Was ist neu", "die letzten Neuerungen", this._newsHtml())}
+      ${FK_GUIDE.map((g, i) => sec(GUIDE_EMO[i] || "📌", g.title, GUIDE_SUB[i] || "", g.text)).join("")}
+      ${sec("🙏", "Credits", "wer das gemacht hat", this._creditsHtml())}</div>`;
+  }
+  // 🆕 Was ist neu – in der Beta oben ein oranger Kasten mit dem, was in DIESER Beta neu ist
+  _newsHtml() {
+    const li = (t) => `<ul>${t.split(" · ").map((x) => `<li>${x}</li>`).join("")}</ul>`;
+    const cur = FK_NEWS.find((n) => n[0] === FK_VERSION);
+    const beta = /-beta/.test(FK_VERSION) && cur ? `<div class="betabox"><b>🧪 Du bist in der Beta ${FK_VERSION}</b><p class="small" style="margin:4px 0 2px">Neu in dieser Beta:</p>${li(cur[1])}</div>` : "";
+    return `${beta}<p class="small">Das Neueste steht oben.</p>${FK_NEWS.filter((n) => n !== cur).map((n) => `<p style="margin:10px 0 0"><b>v${n[0]}</b></p>${li(n[1])}`).join("")}`;
   }
   _creditsHtml() {
     return `<p class="small" style="margin-top:2px">Fixkosten <b>v${FK_VERSION}</b> · von <b>Mister-M</b> · <a href="${REPO}" target="_blank" rel="noopener">GitHub</a> · <a href="${REPO}/issues" target="_blank" rel="noopener">Fehler melden</a></p>
@@ -713,19 +795,57 @@ class FixkostenCard extends HTMLElement {
       <p class="small">Symbole: Material Design Icons (Pictogrammers, frei). Lizenz: MIT.</p>`;
   }
 
-  // 🔒 PIN-Abfrage vor ⚙️ und „Bearbeiten“
-  _pinView() {
-    return `<p class="small">Für <b>${this._view === "set" ? "⚙️ Einstellungen" : "Bearbeiten"}</b> brauchst du die PIN. Die Übersicht und das Abhaken gehen auch ohne.</p>
-      <form class="add pinf" data-a="pinunlock"><input name="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" maxlength="8" autofocus><button class="addbtn" type="submit" title="Entsperren">${ic("lock-open-variant-outline")}</button></form>
-      <p class="small">PIN vergessen? Ein Admin geht in Home Assistant auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.</p>`;
+  // 🔢 PIN-Eingabe wie am Handy (wie bei der Einkaufsliste): Punkte, Zahlenfeld 1–9, ⌫ 0 ✔ und „Abbrechen“
+  _padPage(d) {
+    const p = this._pad;
+    const what = this._view === "set" ? "⚙️ Einstellungen" : "Bearbeiten";
+    const t = {
+      unlock: ["PIN eingeben", `Für <b>${what}</b> brauchst du die PIN. Die Übersicht und das Abhaken gehen auch ohne.`],
+      old: ["Alte PIN", p.purpose === "off" ? "Zum Ausschalten erst die jetzige PIN eintippen." : "Erst die jetzige PIN eintippen."],
+      new: ["Neue PIN", "4 bis 8 Ziffern, dann ✔."],
+      new2: ["Neue PIN nochmal", "Zur Sicherheit noch einmal dieselbe PIN."],
+    }[p.step];
+    const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "✔"];
+    return { icon: "lock-outline", color: "#f4511e", title: t[0], html: `<div class="pinpad"><p class="small">${t[1]}</p>
+      <div class="pdots">${p.buf ? "●".repeat(p.buf.length) : "&nbsp;"}</div>
+      <div class="ppad">${keys.map((k) => `<button type="button" class="btn ${k === "✔" ? "primary" : ""}" data-a="pkey" data-v="${k}" aria-label="${k === "⌫" ? "Löschen" : k === "✔" ? "OK" : k}">${k}</button>`).join("")}</div>
+      <button type="button" class="btn pcancel" data-a="back">Abbrechen</button>
+      ${p.step === "unlock" ? `<p class="small" style="margin-top:16px">PIN vergessen? Ein Admin geht in Home Assistant auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.</p>` : ""}</div>` };
+  }
+  _padPress(k) {
+    const p = this._pad;
+    if (!p) return;
+    try { navigator.vibrate?.(12); } catch (_) { /* egal */ }
+    if (k === "⌫") p.buf = p.buf.slice(0, -1);
+    else if (k === "✔") { if (p.buf.length >= 4) this._padNext(); else this._toast("Die PIN hat 4 bis 8 Ziffern"); }
+    else if (/^\d$/.test(k) && p.buf.length < 8) p.buf += k;
+    this._force = true; this._render();
+  }
+  _padNext() {
+    const p = this._pad, v = p.buf;
+    p.buf = "";
+    const redraw = () => { this._force = true; this._render(); };
+    const restart = () => { if (this._pad === p) { p.step = p.purpose === "unlock" ? "unlock" : this._data?.pin ? "old" : "new"; p.buf = ""; } redraw(); };
+    const setPin = (pin) => this._pin("fixkosten/pin/set", { pin, old: p.old || null }).then((r) => {
+      if (!r) { restart(); return; }
+      PIN_LOCK.until = pin ? Date.now() + 10 * 60 * 1000 : 0;
+      this._toast(pin ? "🔒 PIN gespeichert" : "🔓 PIN ist aus");
+      this._pad = null; redraw();
+    });
+    if (p.step === "unlock") {
+      this._pin("fixkosten/pin/check", { pin: v }).then((r) => {
+        if (r?.ok) { PIN_LOCK.until = Date.now() + 10 * 60 * 1000; this._pad = null; this._toast("🔓 Entsperrt"); }
+        else if (r) this._toast("❌ Falsche PIN");
+        redraw();
+      });
+    } else if (p.step === "old") { p.old = v; if (p.purpose === "off") setPin(null); else p.step = "new"; }
+    else if (p.step === "new") { p.neu = v; p.step = "new2"; }
+    else if (p.step === "new2") { if (v === p.neu) setPin(v); else { this._toast("Die zwei PINs sind nicht gleich – bitte nochmal"); p.step = "new"; } }
   }
   _pinSetHtml(d) {
-    return `<p class="small">${d.pin ? "🔒 PIN ist <b>an</b>. ⚙️ und „Bearbeiten“ fragen nach der PIN." : "Mit einer PIN (4–8 Ziffern) sperrst du ⚙️ und „Bearbeiten“, z. B. auf dem Wand-Tablet. Abhaken und Kartenzahlungen gehen weiter ohne PIN."}</p>
-      <form class="edit" data-a="pinset"><div class="f">${d.pin ? `<label>Alte PIN<input name="old" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>` : ""}
-      <label>${d.pin ? "Neue PIN" : "PIN"}<input name="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>
-      <label>Nochmal<input name="pin2" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label></div>
-      <div class="btnrow end">${d.pin ? `<button type="submit" class="btn" name="off" value="1">${ic("lock-open-variant-outline")}PIN ausschalten</button>` : ""}<button class="btn main" type="submit">${ic("check")}${d.pin ? "PIN ändern" : "PIN einschalten"}</button></div></form>
-      <p class="small">Die PIN liegt nur als Prüfsumme in Home Assistant. Vergessen? Admin → <b>Geräte & Dienste → Fixkosten → Konfigurieren → „PIN zurücksetzen“</b>. 5× falsch = 1 Minute Pause.</p>`;
+    return `<p class="small">${d.pin ? "🔒 PIN ist <b>an</b>. ⚙️ und „Bearbeiten“ fragen nach der PIN." : "Mit einer PIN (4–8 Ziffern) sperrst du ⚙️ und „Bearbeiten“, z. B. auf dem Wand-Tablet. Abhaken und Ausgaben gehen weiter ohne PIN."}</p>
+      <div class="btnrow">${d.pin ? `<button class="btn main" data-a="padstart" data-v="set">${ic("lock-reset")}PIN ändern</button><button class="btn" data-a="padstart" data-v="off">${ic("lock-open-variant-outline")}PIN ausschalten</button>` : `<button class="btn main" data-a="padstart" data-v="set">${ic("lock-outline")}PIN einschalten</button>`}</div>
+      <p class="small">Die PIN tippst du wie am Handy auf dem Zahlenfeld ein. Sie liegt nur als Prüfsumme in Home Assistant. Vergessen? Admin → <b>Geräte & Dienste → Fixkosten → Konfigurieren → „PIN zurücksetzen“</b>. 5× falsch = 1 Minute Pause.</p>`;
   }
 
   // ⚙️ Einstellungen wie bei der Einkaufsliste: Kategorien mit Kacheln, jede Kachel öffnet ein eigenes Fenster
@@ -738,7 +858,7 @@ class FixkostenCard extends HTMLElement {
         <div class="switch"><span>${ic("alert-circle-outline")}Warnen, wenn „Verfügbar“ unter</span><span><input data-a="setwarn" inputmode="decimal" value="${String(st.warn_below ?? 0).replace(".", ",")}" style="width:90px;text-align:right"> €</span></div>
         <div class="btnrow"><button class="btn" data-a="resetnow">${ic("undo-variant")}Alle Haken jetzt zurücksetzen</button><button class="btn" data-a="pending">${ic("pencil-outline")}Vorgemerkt eintragen</button></div>` },
       quick: { icon: "lightning-bolt-outline", color: "#fb8c00", title: "Schnellknöpfe", info: `${(st.quick || []).length} Knöpfe`, html: () => `
-        <p class="small">Die Knöpfe über „Wofür?“ bei den Kartenzahlungen. <b>Ein Knopf pro Zeile</b> (Kommas sind erlaubt).</p>
+        <p class="small">Die Knöpfe über „Wofür?“ bei den Ausgaben. <b>Ein Knopf pro Zeile</b> (Kommas sind erlaubt).</p>
         <textarea data-a="quicktext" rows="8">${esc((st.quick || []).join("\n"))}</textarea>
         <div class="btnrow end"><button class="btn main" data-a="quicksave">${ic("content-save-outline")}Speichern</button></div>` },
       csv: { icon: "database-import-outline", color: "#1e88e5", title: "Daten (CSV)", info: admin ? "einlesen & sichern" : "nur Admins", html: () => admin ? `<p class="small">Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b> – Typ = ausgabe, einnahme, topf, stand (offener Stand) oder iban (Konto-Info, IBAN in Spalte 3). Gruppe = 1 oder 15 (oder der Name). Zahlart = ü, d, l, p, a, g, b oder -.</p>
@@ -754,25 +874,24 @@ class FixkostenCard extends HTMLElement {
         : `<p class="small">⚠️ Home Assistant kennt keine https-Adresse für unterwegs. Mit <b>Nabu Casa</b> (Einstellungen → Home Assistant Cloud → Fernzugriff) oder einer eigenen https-Adresse (Einstellungen → System → Netzwerk) klappt es. Zu Hause geht auch: <code>${esc(location.origin)}/fixkosten/app/</code></p>`}` },
       pin: { icon: "lock-outline", color: "#f4511e", title: "Schutz (PIN)", info: d.pin ? "an" : "aus", html: () => this._pinSetHtml(d) },
       privacy: { icon: "shield-lock-outline", color: "#455a64", title: "Datenschutz", info: "alles lokal", html: () => `<p class="small">🔒 Deine Zahlen bleiben in <b>deinem</b> Home Assistant. Keine Cloud, kein Tracking, nichts geht ins Internet. IBANs stehen bewusst in keinem Sensor. In der Offline-App liegen die Zahlen zusätzlich im Handy, bis du dich abmeldest.</p>` },
+      news: { icon: "new-box", color: "#fb8c00", title: "Was ist neu", info: `Version ${FK_VERSION}`, html: () => this._newsHtml() },
       credits: { icon: "hand-heart-outline", color: "#ec407a", title: "Credits & Spenden", info: `v${FK_VERSION}`, html: () => this._creditsHtml() },
     };
   }
   _setView(d) {
     // 🗂️ wie die Einkaufsliste: Kästen nach Zweck (zugeklappt), darin Zeilen mit bunten Symbolen – jede Zeile öffnet ein eigenes Fenster
     const sh = this._sheets(d);
-    const cats = [["🧮", "Rechnen", ["rechnen", "quick"]], ["💾", "Daten", ["csv"]], ["📱", "App & Info", ["app", "pin", "privacy", "credits"]]];
+    const cats = [["🧮", "Rechnen", ["rechnen", "quick"]], ["💾", "Daten", ["csv"]], ["📱", "App & Info", ["app", "pin", "privacy", "news", "credits"]]];
     return `<div class="sethead">Einstellungen</div>` + cats.map(([emo, title, keys]) => {
       const open = this._setOpen === title;
       const rows = open ? keys.map((k) => `<button class="lrow" data-a="sheet" data-v="${k}"><span class="ic" style="--ic:${sh[k].color}">${ic(sh[k].icon)}</span><span class="grow"><b>${sh[k].title}</b><small>${esc(sh[k].info)}</small></span>${ic("chevron-right")}</button>`).join("") : "";
       return `<div class="lgbox"><button class="lgroup" data-a="setgrp" data-v="${esc(title)}" aria-expanded="${open}"><span class="gem">${emo}</span><span class="grow"><b>${title}</b><small>${keys.map((k) => sh[k].title).join(", ")}</small></span>${ic(open ? "chevron-up" : "chevron-down")}</button>${rows}</div>`;
     }).join("");
   }
-  _sheetBox(icon, color, title, html, closeTo = "") {
-    return `<div class="sheet" data-a="sheetclose" data-v="bg" ${closeTo ? `data-to="${closeTo}"` : ""}><div class="sbox" role="dialog" aria-label="${esc(title)}"><div class="shead"><span class="ic" style="--ic:${color}">${ic(icon)}</span><b>${title}</b><button class="iconbtn" data-a="sheetclose" ${closeTo ? `data-to="${closeTo}"` : ""} title="Schließen">${ic("close")}</button></div><div class="sbody">${html}</div></div></div>`;
-  }
-  _sheetHtml(d) {
+  // 🪟 Einstellungs-Seite IN der Karte (wie bei der Einkaufsliste), ← bringt zurück zur Liste der Einstellungen
+  _sheetPage(d) {
     const x = this._sheets(d)[this._sheet];
-    return x ? this._sheetBox(x.icon, x.color, x.title, x.html()) : "";
+    return x ? { icon: x.icon, color: x.color, title: x.title, html: x.html() } : null;
   }
 
   // ---------------------------------------------------------------- 👆 Klicks
@@ -781,7 +900,23 @@ class FixkostenCard extends HTMLElement {
     root.querySelectorAll("input,textarea,select").forEach((el) => el.addEventListener("blur", () => {
       setTimeout(() => { if (this._pending && !["INPUT", "TEXTAREA", "SELECT"].includes(root.activeElement?.tagName)) { this._pending = false; this._render(); } }, 150);
     }));
-    root.querySelectorAll("form").forEach((f) => f.addEventListener("submit", (e) => { e.preventDefault(); this._submit(f, e.submitter); }));
+    root.querySelectorAll("form").forEach((f) => f.addEventListener("submit", (e) => { e.preventDefault(); this._submit(f); }));
+    // 📖 Anleitung: immer nur ein Kasten offen, Suche zeigt nur passende Kästen (wie bei der Einkaufsliste)
+    const gsecs = [...root.querySelectorAll("details.elg-sec")];
+    let searching = false;
+    gsecs.forEach((x) => x.addEventListener("toggle", () => { if (x.open && !searching) gsecs.forEach((o) => { if (o !== x) o.open = false; }); }));
+    const gq = root.querySelector(".elg-q");
+    if (gq) {
+      const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss");
+      const texts = gsecs.map((x) => norm(x.textContent));
+      gq.addEventListener("input", () => {
+        const words = norm(gq.value).split(/\s+/).filter(Boolean);
+        searching = words.length > 0;
+        let hits = 0;
+        gsecs.forEach((x, i) => { const hit = !words.length || words.every((w) => texts[i].includes(w)); x.hidden = !hit; x.open = !!words.length && hit; if (hit && words.length) hits++; });
+        root.querySelector(".elg-none").hidden = !words.length || hits > 0;
+      });
+    }
     root.querySelectorAll("[data-grip]").forEach((g) => {
       g.addEventListener("pointerdown", (e) => this._startDrag(g, e));
       g.addEventListener("click", (e) => e.stopPropagation());
@@ -816,19 +951,34 @@ class FixkostenCard extends HTMLElement {
       else (navigator.clipboard?.writeText(numDe(r)) || Promise.reject()).then(() => this._toast("📋 Kopiert"), () => prompt("Zum Kopieren:", numDe(r)));
     }
     else if (a === "lock") {
-      if (pinOpen()) { PIN_LOCK.until = 0; this._toast("🔒 Gesperrt"); if (this._view === "edit" || this._view === "set") this._view = "home"; }
+      const appLock = this._app && window.__fkAppLock?.on?.();
+      if (appLock) { PIN_LOCK.until = 0; this._pad = null; this._sheet = null; this._view = "home"; this._open = null; redraw(); window.__fkAppLock.now(); return; } // 📱 ganze App sperren (Fingerabdruck)
+      if (!d?.pin) { this._toast("🔒 Erst eine PIN festlegen – dann sperrt das Schloss ⚙️ und Bearbeiten"); this._view = "set"; this._sheet = "pin"; this._pad = null; }
+      else if (pinOpen()) { PIN_LOCK.until = 0; this._pad = null; this._toast("🔒 Gesperrt"); if (this._view === "edit" || this._view === "set") { this._view = "home"; this._sheet = null; } }
       else this._view = "set";
       this._open = null; redraw();
     }
+    else if (a === "back") {
+      if (this._pad) { const back = this._pad.back; this._pad = null; if (back !== "sheet") { this._view = "home"; this._sheet = null; } }
+      else if (this._view === "set" && this._sheet) this._sheet = null;
+      else { this._view = "home"; this._sheet = null; }
+      this._open = null; redraw();
+    }
+    else if (a === "pkey") this._padPress(el.dataset.v);
+    else if (a === "padstart") { this._pad = { purpose: el.dataset.v, step: d.pin ? "old" : "new", buf: "", back: "sheet" }; redraw(); }
+    else if (a === "reload") {
+      // 🔄 nur die eigenen Zwischenspeicher leeren und den Offline-Helfer zum Aktualisieren bitten – wie bei der Einkaufsliste
+      try { caches?.keys?.().then((ks) => ks.filter((k) => k.startsWith("fixkosten-")).forEach((k) => caches.delete(k))); } catch (_) { /* egal */ }
+      try { navigator.serviceWorker?.getRegistrations?.().then((rs) => rs.forEach((r) => { if (/\/fixkosten\/app\//.test(r.scope)) r.update().catch(() => {}); })); } catch (_) { /* egal */ }
+      setTimeout(() => location.reload(), 300);
+    }
     else if (a === "sec") { const k = el.dataset.v; this._openSec.has(k) ? this._openSec.delete(k) : this._openSec.add(k); store.put(OKEY, [...this._openSec]); redraw(); }
-    else if (a === "mv") { const l = el.closest("[data-list]"); if (l) this._move(l, id, Number(el.dataset.v)); }
     else if (a === "sheet") { this._sheet = el.dataset.v; redraw(); }
-    else if (a === "sheetclose") { this._sheet = null; if (el.dataset.to) this._view = el.dataset.to; redraw(); }
     else if (a === "setgrp") { this._setOpen = this._setOpen === el.dataset.v ? null : el.dataset.v; redraw(); }
     else if (a === "appcopy") { const u = d.app_url || ""; (navigator.clipboard?.writeText(u) || Promise.reject()).then(() => this._toast("📋 Adresse kopiert"), () => prompt("Adresse zum Kopieren:", u)); }
     else if (a === "quicksave") { const t = this.shadowRoot.querySelector('[data-a="quicktext"]')?.value || ""; this._send({ type: "settings", settings: { quick: t.split("\n").map((x) => x.trim()).filter(Boolean) } }); this._toast("⚡ Schnellknöpfe gespeichert"); }
     else if (a === "hide") { this._hidden = !this._hidden; store.put(HKEY, this._hidden); redraw(); }
-    else if (a === "tab") { this._view = el.dataset.v; this._open = null; this._sheet = null; redraw(); }
+    else if (a === "tab") { this._view = el.dataset.v; this._open = null; this._sheet = null; if (this._pad?.step !== "unlock") this._pad = null; redraw(); }
     else if (a === "paid") this._send({ type: "paid", id, value: !d.paid[id]?.paid, month: d.month });
     else if (a === "quick") { this._quickName = this._quickName === el.dataset.v ? null : el.dataset.v; redraw(); setTimeout(() => this.shadowRoot.querySelector('input[name="amount"]')?.focus(), 30); }
     else if (a === "settle") this._removeWithUndo("stand", id, { type: "stand_delete", id }, "✓ Beglichen");
@@ -844,7 +994,7 @@ class FixkostenCard extends HTMLElement {
       this._undoT = setTimeout(() => { this._undo = null; this._force = true; this._render(); }, 8000);
       this._send({ type: "booking_clear", id, value: true });
     }
-    else if (a === "bdel") this._removeWithUndo("booking", id, { type: "booking_delete", id }, "🗑️ Gelöscht");
+    else if (a === "bdel") this._open = null, this._removeWithUndo("booking", id, { type: "booking_delete", id }, "🗑️ Gelöscht");
     else if (a === "undo") { const u = this._undo; this._undo = null; clearTimeout(this._undoT); if (u) this._send(u.op); else redraw(); }
     else if (a === "balance") {
       const v = prompt("Aktueller Kontostand laut Bank-App (€):", String(d.summary.balance).replace(".", ","));
@@ -881,29 +1031,13 @@ class FixkostenCard extends HTMLElement {
     catch (err) { this._toast("⚠️ " + (err?.message || "Ging nicht")); return null; }
   }
 
-  _submit(f, submitter) {
+  _submit(f) {
     const a = f.dataset.a, data = Object.fromEntries(new FormData(f).entries());
-    if (a === "pinunlock") {
-      this._pin("fixkosten/pin/check", { pin: data.pin || "" }).then((r) => {
-        if (!r) return;
-        if (r.ok) { PIN_LOCK.until = Date.now() + 10 * 60 * 1000; this._toast("🔓 Entsperrt"); }
-        else this._toast("❌ Falsche PIN");
-        this._force = true; this._render();
-      });
-      return;
-    }
-    if (a === "pinset") {
-      const off = submitter?.name === "off";
-      const pin = off ? "" : (data.pin || "").trim();
-      if (!off && !/^\d{4,8}$/.test(pin)) { this._toast("Die PIN muss 4 bis 8 Ziffern haben"); return; }
-      if (!off && pin !== (data.pin2 || "").trim()) { this._toast("Die zwei PINs sind nicht gleich"); return; }
-      if (off && !confirm("PIN wirklich ausschalten?")) return;
-      this._pin("fixkosten/pin/set", { pin: pin || null, old: data.old || null }).then((r) => {
-        if (!r) return;
-        PIN_LOCK.until = pin ? Date.now() + 10 * 60 * 1000 : 0;
-        this._toast(off ? "🔓 PIN ist aus" : "🔒 PIN gespeichert");
-        this._force = true; this._render();
-      });
+    if (a === "bsave") {
+      const amount = parseMoney(data.amount);
+      if (!amount || Number.isNaN(amount)) { this._toast("Bitte einen Betrag eintippen"); return; }
+      this._open = null; this.shadowRoot.activeElement?.blur(); this._force = true;
+      this._send({ type: "booking_edit", id: f.dataset.id, name: (data.name || "").trim() || "Ausgabe", amount });
       return;
     }
     if (a === "booking") {
@@ -913,7 +1047,7 @@ class FixkostenCard extends HTMLElement {
       f.reset();
       this.shadowRoot.activeElement?.blur();
       this._force = true;
-      this._send({ type: "booking_add", name: (data.name || "").trim() || "Kartenzahlung", amount });
+      this._send({ type: "booking_add", name: (data.name || "").trim() || "Ausgabe", amount });
       return;
     }
     if (a === "save") {
@@ -980,6 +1114,6 @@ class FixkostenCard extends HTMLElement {
 if (!customElements.get("fixkosten-card")) customElements.define("fixkosten-card", FixkostenCard);
 window.customCards = window.customCards || [];
 if (!window.customCards.some((c) => c.type === "fixkosten-card")) {
-  window.customCards.push({ type: "fixkosten-card", name: "Fixkosten", description: "Monatliche Fixkosten, Kartenzahlungen und was noch verfügbar ist.", preview: false });
+  window.customCards.push({ type: "fixkosten-card", name: "Fixkosten", description: "Monatliche Fixkosten, Ausgaben und was noch verfügbar ist.", preview: false });
 }
 console.info(`%c 💶 FIXKOSTEN %c v${FK_VERSION} `, "background:#43a047;color:#fff;border-radius:3px 0 0 3px", "background:#333;color:#fff;border-radius:0 3px 3px 0");

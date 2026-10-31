@@ -14,7 +14,7 @@
 
 ## ✨ What does it do?
 
-- 💰 **Available** = balance − open fixed costs − card payments not yet debited.
+- 💰 **Available** = balance − open fixed costs − payments (card, PayPal, cash …) not yet debited.
 - 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day, paused items shown greyed out.
 - ⠿ **Reorder everything** by dragging (items also into another group), ↩️ **undo** after deleting.
 - 💳 **Card payments** via quick buttons ("bakery 5.75") – subtracted immediately.
@@ -75,7 +75,7 @@ The PIN is stored only as a hash and checked by Home Assistant. It guards the di
 
 <details><summary>Sensors and actions – <i>expand</i></summary>
 
-Sensors: `sensor.fixkosten_verfuegbar`, `…_offene_fixkosten`, `…_fixkosten_monat`, `…_einnahmen_monat`, `…_ueberschuss`, `…_kartenzahlungen_offen`, `…_kartenzahlungen_monat`, `…_offene_staende`, `…_gesamtvermoegen`, `…_naechste_abbuchung`, `binary_sensor.fixkosten_warnung`. IBANs never appear in a sensor.
+Sensors: `sensor.fixkosten_verfuegbar`, `…_offene_fixkosten`, `…_fixkosten_monat`, `…_einnahmen_monat`, `…_ueberschuss`, `…_ausgaben_offen`, `…_ausgaben_monat`, `…_offene_staende`, `…_gesamtvermoegen`, `…_naechste_abbuchung`, `binary_sensor.fixkosten_warnung`. IBANs never appear in a sensor.
 
 Actions: `fixkosten.abhaken`, `kontostand_setzen`, `buchung_hinzufuegen`, `topf_setzen`, `haken_zuruecksetzen`, `csv_import`, `daten_abrufen`.
 

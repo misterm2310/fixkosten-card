@@ -14,9 +14,9 @@
 
 ## ✨ Was kann das Ding?
 
-- 💰 **Verfügbar** = Kontostand − offene Fixkosten − Kartenzahlungen, die noch nicht abgebucht sind.
+- 💰 **Verfügbar** = Kontostand − offene Fixkosten − Ausgaben, die noch nicht abgebucht sind.
 - 📋 **Fixkosten in Gruppen** wie „ab dem 1.“ und „ab dem 15.“ – zum Aufklappen, abhaken, wenn abgebucht.
-- 💳 **Kartenzahlungen** per Schnellknopf („Bäckerei 5,75“) – sofort abgezogen.
+- 💳 **Ausgaben** per Schnellknopf („Bäckerei 5,75“) – sofort abgezogen.
 - 🧮 **Taschenrechner** oben in der Karte, Ergebnis direkt als Zahlung oder Kontostand.
 - 🐷 **Töpfe**, 🧾 **offene Stände**, 🏦 **IBAN-Liste** zum Kopieren, 💵 **Einnahmen** als Info.
 - 📱 **Offline-App** mit Fingerabdruck-Sperre und 🔒 **PIN-Sperre** für Einstellungen.
@@ -27,12 +27,12 @@
 
 | | |
 | --- | --- |
-| 💰 **Verfügbar** | Kontostand − offene Fixkosten − Kartenzahlungen, die noch nicht abgebucht sind = was du wirklich ausgeben kannst. Grün, gelb oder rot je nach Warngrenze |
+| 💰 **Verfügbar** | Kontostand − offene Fixkosten − Ausgaben, die noch nicht abgebucht sind = was du wirklich ausgeben kannst. Grün, gelb oder rot je nach Warngrenze |
 | 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“, standardmäßig zugeklappt (Summe und „2 / 4“ stehen im Kopf). Freiwillig ein **fester Tag** (z. B. am 5.) – dann gibt es oben einen Hinweis auf die nächste Abbuchung. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder **pausiert** (steht grau und abgehakt drin, zählt nicht mit) |
-| ⠿ **Verschieben** | Posten, Töpfe, Einnahmen, offene Stände und Konten per Griff ziehen oder mit ▲▼. Posten auch in eine andere Gruppe |
+| ⠿ **Verschieben** | Gruppen, Posten, Töpfe, Einnahmen, offene Stände und Konten am Griff ⠿ ziehen. Posten auch in eine andere Gruppe |
 | ↩️ **Rückgängig** | Nach Löschen, „beglichen“ oder „abgebucht“ steht 8 Sekunden lang „Rückgängig“ unten in der Karte |
-| 💳 **Kartenzahlungen** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: „✓ abgebucht“ |
-| 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Kartenzahlung, Kontostand oder kopieren. Rechnet selbst, ohne `eval` |
+| 💳 **Ausgaben** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: „✓ abgebucht“ |
+| 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Ausgabe, Kontostand oder kopieren. Rechnet selbst, ohne `eval` |
 | 💵 **Einnahmen** | Nur zur Info (Lohn, Nebenjob …). Zeigt, was nach den Fixkosten übrig bleibt |
 | 🐷 **Töpfe** | Was wo liegt: Sparkonto, Bargeld zu Hause, PayPal … plus „Komplett“ = Verfügbar + alle Töpfe |
 | 🧾 **Offene Stände** | Was du noch begleichen musst. Auf Wunsch auch von „Verfügbar“ abziehen |
@@ -70,13 +70,13 @@ Den Ordner `custom_components/fixkosten` nach `/config/custom_components/fixkost
 
 ## 👆 So wird's benutzt
 
-<details><summary>Kontostand, abhaken, Kartenzahlungen, Rechner und Bearbeiten – <i>aufklappen</i></summary>
+<details><summary>Kontostand, abhaken, Ausgaben, Rechner und Bearbeiten – <i>aufklappen</i></summary>
 
 1. **Kontostand eintragen:** Kachel „Konto“ antippen, Stand aus der Bank-App eingeben.
 2. **Abhaken:** Gruppe aufklappen (Tipp auf die Überschrift). Ist ein Posten abgebucht, den Kreis antippen ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️).
 3. **Mit Karte bezahlt?** Schnellknopf (z. B. „Bäckerei“), Betrag, **＋**. Sofort abgezogen. Später bei „✓ abgebucht“ tippen.
-4. **Rechnen:** Oben auf 🧮. Ergebnis per Tipp als Kartenzahlung, Kontostand oder kopieren.
-5. **Anlegen und ändern:** Reiter **„Bearbeiten“** → ＋ Neu oder Eintrag antippen. Reihenfolge per Griff ⠿ oder ▲▼.
+4. **Rechnen:** Oben auf 🧮. Ergebnis per Tipp als Ausgabe, Kontostand oder kopieren.
+5. **Anlegen und ändern:** Reiter **„Bearbeiten“** → ＋ Neu oder Eintrag antippen. Reihenfolge am Griff ⠿ vorne. Ausgabe antippen = Name und Betrag ändern.
 6. **Versehentlich gelöscht?** Unten auf **„↩️ Rückgängig“** tippen.
 
 Alles Weitere steht in der Karte unter **📖 Anleitung** – einfach aufklappen.
@@ -108,9 +108,9 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 
 <details><summary>Zahnrad in der Karte, Seitenleiste, PIN-Sperre und PIN zurücksetzen – <i>aufklappen</i></summary>
 
-**In der Karte (⚙️)** – wie bei der Einkaufsliste: Kästen nach Zweck zum Aufklappen, jede Zeile öffnet ein eigenes Fenster:
+**In der Karte (⚙️)** – wie bei der Einkaufsliste: Kästen nach Zweck zum Aufklappen, jede Zeile öffnet eine eigene Seite in der Karte (← zurück). Die PIN tippst du auf einem Zahlenfeld wie am Handy:
 - 🧮 **Rechnen & Warnung:** Haken am Monatsanfang automatisch zurücksetzen (Standard an), offene Stände von „Verfügbar“ abziehen (Standard aus), Warngrenze, vorgemerkte Umsätze
-- ⚡ **Schnellknöpfe** für Kartenzahlungen, einer pro Zeile
+- ⚡ **Schnellknöpfe** für Ausgaben, einer pro Zeile
 - 📥 **Daten (CSV):** einlesen und sichern (nur Admins)
 - 📱 **Offline-App:** Anleitung und deine eigene App-Adresse mit „Kopieren“
 - 🔒 **Schutz (PIN)** (4–8 Ziffern): Dann fragen ⚙️ und „Bearbeiten“ nach der PIN. Das 🔓 oben sperrt sofort wieder, sonst nach 10 Minuten Ruhe. 5× falsch = 1 Minute Pause.
@@ -175,13 +175,13 @@ privat: true       # optional: Beträge erst nach Antippen von 👁️ zeigen (z
 
 | Entität | Inhalt |
 | --- | --- |
-| `sensor.fixkosten_verfuegbar` | Was wirklich noch da ist (Attribute: Kontostand, vorgemerkt, offene Fixkosten, Kartenzahlungen offen, Monat) |
+| `sensor.fixkosten_verfuegbar` | Was wirklich noch da ist (Attribute: Kontostand, vorgemerkt, offene Fixkosten, Ausgaben offen, Monat) |
 | `sensor.fixkosten_offene_fixkosten` | Summe der offenen Posten (Attribute: Anzahl, Namen, Gruppen) |
 | `sensor.fixkosten_fixkosten_monat` | Alle Fixkosten dieses Monats |
 | `sensor.fixkosten_einnahmen_monat` | Einnahmen (Info) |
 | `sensor.fixkosten_ueberschuss` | Einnahmen − Fixkosten |
-| `sensor.fixkosten_kartenzahlungen_offen` | Noch nicht abgebuchte Kartenzahlungen |
-| `sensor.fixkosten_kartenzahlungen_monat` | Alle Kartenzahlungen dieses Monats |
+| `sensor.fixkosten_ausgaben_offen` | Noch nicht abgebuchte Ausgaben |
+| `sensor.fixkosten_ausgaben_monat` | Alle Ausgaben dieses Monats |
 | `sensor.fixkosten_offene_staende` | Summe der offenen Stände |
 | `sensor.fixkosten_gesamtvermoegen` | Verfügbar + alle Töpfe |
 | `sensor.fixkosten_naechste_abbuchung` | Name des nächsten offenen Postens (Attribute: Betrag, Gruppe, ab Tag, fällig) |
@@ -193,7 +193,7 @@ IBANs tauchen bewusst in keinem Sensor auf.
 | --- | --- |
 | `fixkosten.abhaken` | `name`, `erledigt` (Standard an): Posten für diesen Monat abhaken |
 | `fixkosten.kontostand_setzen` | `kontostand`, optional `vorgemerkt` |
-| `fixkosten.buchung_hinzufuegen` | Kartenzahlung: `name`, `betrag` |
+| `fixkosten.buchung_hinzufuegen` | Ausgabe: `name`, `betrag` |
 | `fixkosten.topf_setzen` | `name`, `betrag` (legt den Topf an, wenn es ihn nicht gibt) |
 | `fixkosten.haken_zuruecksetzen` | Alle Haken dieses Monats weg |
 | `fixkosten.csv_import` | `text` oder `datei`, optional `ersetzen` |

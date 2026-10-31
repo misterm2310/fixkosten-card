@@ -221,6 +221,8 @@ function sendSub(s) {
 }
 window.addEventListener("online", connect);
 window.addEventListener("offline", () => { try { ws?.close(); } catch (_) { /* egal */ } update(); });
+// 🔒 Das Schloss in der Karte sperrt die ganze App sofort (nur wenn die Fingerabdruck-Sperre an ist)
+window.__fkAppLock = { on: () => !!lock, now: () => { if (lock) { locked = true; showLock(); } } };
 document.addEventListener("visibilitychange", () => { if (!document.hidden) connect(); });
 
 // ---------------------------------------------------------------- 👆 App-Sperre mit Fingerabdruck / Face ID

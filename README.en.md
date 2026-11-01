@@ -15,7 +15,7 @@
 ## ✨ What does it do?
 
 - 💰 **Available** = balance − open fixed costs − payments (card, PayPal, cash …) not yet debited.
-- 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day, paused items shown greyed out.
+- 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day, paused items shown greyed out. Different price just this month? Tap the amount.
 - ⠿ **Reorder everything** by dragging (items also into another group), ↩️ **undo** after deleting.
 - 💳 **Card payments** via quick buttons ("bakery 5.75") – subtracted immediately.
 - 🧮 **Calculator** at the top of the card, result straight into a payment or the balance. 💡 Button to keep the screen on.

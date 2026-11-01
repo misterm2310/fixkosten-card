@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.0";
+const FK_VERSION = "1.0.1-beta.1";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -21,10 +21,10 @@ const REPO = "https://github.com/misterm2310/fixkosten-card";
 const FK_GUIDE = [
   { icon: "cash-check", color: "#43a047", title: "Was heißt „Verfügbar“?", text: `Die große Zahl oben ist das Geld, das du diesen Monat <b>wirklich</b> noch ausgeben kannst:<br><b>Kontostand</b> − <b>Fixkosten, die noch nicht abgehakt sind</b> − <b>Ausgaben, die noch nicht abgebucht sind</b>.<br>Grün = im Plus · Rot = im Minus. Die Warngrenze (⚙️ → „Rechnen & Warnung“, dort auch ganz ausschaltbar) schaltet nur den Warn-Sensor für Automationen.` },
   { icon: "bank-outline", color: "#0288d1", title: "Kontostand eintragen", text: `Tippe auf die Kachel <b>„Konto“</b> und gib den Stand aus deiner Bank-App ein. Es öffnet sich eine eigene Seite, wie bei der Einkaufsliste. Das Datum auf der Kachel zeigt, wann du ihn zuletzt eingetragen hast.` },
-  { icon: "calendar-month-outline", color: "#3949ab", title: "Fixkosten abhaken", text: `Deine Fixkosten stehen in Gruppen wie <b>„ab dem 1.“</b> und <b>„ab dem 15.“</b>. Die Gruppen sind <b>zugeklappt</b>: Tipp auf die Überschrift klappt sie auf. Beim nächsten Öffnen ist wieder alles zu (nur die Ausgaben sind offen). Rechts steht „2 / 4“ und was noch offen ist.<br>Ist ein Posten vom Konto abgebucht: <b>Kreis antippen</b> ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️ → „Rechnen & Warnung“).<br>Hat ein Posten einen <b>festen Tag</b> (z. B. am 5.), steht oben ein Hinweis auf die nächste Abbuchung. <b>Pausierte</b> Posten (⏸️) stehen grau und abgehakt mit drin und zählen nicht mit.` },
-  { icon: "credit-card-outline", color: "#ff9800", title: "Ausgaben", text: `Etwas bezahlt (Karte, PayPal, bar …), das noch nicht vom Konto abgebucht ist? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: den <b>grünen Haken ✓</b> antippen (lange drücken zeigt, was ein Knopf macht). Dann steckt er im Kontostand und fliegt aus der Rechnung. Vertippt? <b>Eintrag antippen</b> = Name und Betrag ändern. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein (einer pro Zeile).` },
+  { icon: "calendar-month-outline", color: "#3949ab", title: "Fixkosten abhaken", text: `Deine Fixkosten stehen in Gruppen wie <b>„ab dem 1.“</b> und <b>„ab dem 15.“</b>. Die Gruppen sind <b>zugeklappt</b>: Tipp auf die Überschrift klappt sie auf. Beim nächsten Öffnen ist wieder alles zu (nur die Ausgaben sind offen). Rechts steht „2 / 4“ und was noch offen ist.<br>Ist ein Posten vom Konto abgebucht: <b>Kreis antippen</b> ✅ – dahinter steht dann, <b>wann</b> du abgehakt hast. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️ → „Rechnen & Warnung“).<br>Hat ein Posten einen <b>festen Tag</b> (z. B. am 5.), steht oben ein Hinweis auf die nächste Abbuchung. <b>Pausierte</b> Posten (⏸️) stehen grau und abgehakt mit drin und zählen nicht mit.<br><b>Preis nur diesen Monat anders?</b> (z. B. Nachzahlung, teurere Handyrechnung) Hinten auf den <b>Betrag tippen</b>, neuen Preis rein, ✓. Er gilt <b>nur diesen Monat</b> (✏️ am Posten), nächsten Monat ist automatisch wieder der gespeicherte Preis da. ↺ stellt ihn sofort zurück.` },
+  { icon: "credit-card-outline", color: "#ff9800", title: "Ausgaben", text: `Etwas bezahlt (Karte, PayPal, bar …), das noch nicht vom Konto abgebucht ist? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: den <b>grünen Haken ✓</b> antippen (lange drücken zeigt, was ein Knopf macht). Dann steckt er im Kontostand und fliegt aus der Rechnung. Vertippt? <b>Eintrag antippen</b> = Name und Betrag ändern. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein (einer pro Zeile). Jeder bekommt von selbst eine <b>eigene Farbe</b> – Ausgaben mit demselben Namen tragen unten die gleiche Farbe.` },
   { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Ausgabe</b>, als <b>Kontostand</b> oder kopierst es.` },
-  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter: <b>Stand korrigieren</b> mit grünem Haken ✓ (z. B. nach dem Nachzählen). Auf den Namen tippen klappt wieder zu. Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). Kommt es nicht mehr zurück: Topf öffnen und den <b>orangen Zettel antippen</b> → weg. „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? Grünen Haken ✓ antippen. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
+  { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter: <b>Stand korrigieren</b> mit grünem Haken ✓ (z. B. nach dem Nachzählen; leeres Feld = 0). Unter jedem Topf steht, <b>wann</b> er zuletzt geändert wurde. Auf den Namen tippen klappt wieder zu. Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). Kommt es nicht mehr zurück: Topf öffnen und den <b>orangen Zettel antippen</b> → weg. „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? Grünen Haken ✓ antippen. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
   { icon: "pencil-outline", color: "#00897b", title: "Bearbeiten", text: `Unter <b>„Bearbeiten“</b> legst du alles an (＋ Neu) oder tippst einen Eintrag zum Ändern an. Posten können auf <b>bestimmte Monate</b> beschränkt werden (z. B. Kfz-Steuer nur im März) oder <b>pausiert</b> werden. Neue Gruppen bekommen einen Starttag (1–28).<br><b>Reihenfolge ändern:</b> am Griff ⠿ vorne ziehen. Fixkosten kannst du so auch in eine andere Gruppe schieben. Das klappt auch bei Gruppen, Töpfen, Einnahmen, offenen Ständen und Konten.` },
   { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Ausgaben, Einnahmen und was am Ende übrig war (bis zu 3 Jahre). Du findest ihn in <b>⚙️ → Daten → Rückblick</b>.` },
   { icon: "stethoscope", color: "#00897b", title: "Gesundheit, Fehler und Werkseinstellungen", text: `In ⚙️ → <b>🩺 Gesundheit</b>: <b>„Alles ok?“</b> sucht nach Dingen, die nicht zusammenpassen (Posten ohne Gruppe, alter Kontostand, vergessene Ausgaben …) und sagt, wie man es repariert. <b>Fehler-Protokoll</b> zeigt, was beim Speichern nicht geklappt hat. <b>Ressourcen</b> zeigt, wie viel Platz alles braucht.<br><b>💣 Werkseinstellungen</b> (⚙️ → Daten, nur Admins): alles zurück auf Anfang, nur die PIN bleibt. Zwei Sicherheitsfragen – vorher lieber „Als CSV sichern“.` },
@@ -38,6 +38,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.1-beta.1", "💶 <b>Preis nur für diesen Monat:</b> hinten auf den Betrag eines Postens tippen und z. B. die Nachzahlung eintragen – nächsten Monat gilt wieder der gespeicherte Preis. · ✅ Abgehakte Fixkosten zeigen, <b>wann</b> sie abgehakt wurden. · 🐷 Töpfe zeigen das <b>Datum der letzten Änderung</b>, „Stand korrigieren“ mit leerem Feld = 0. · 🎨 <b>Schnellknöpfe bunt</b> – und die passenden Ausgaben unten in derselben Farbe."],
   ["1.0.0", "🎉 <b>Erste offizielle Version!</b> Alles aus 23 Betas ist jetzt fest drin – danke fürs Testen! · 💶 Verfügbar-Rechnung, Fixkosten und Einnahmen abhaken, Ausgaben, 🐷 Töpfe, 🧮 Taschenrechner, Rückblick und 📜 Verlauf · 🔒 PIN (auch ohne Netz, auf Wunsch für die ganze Karte), 🙈 verschwommene Summen, 📱 Offline-App mit Fingerabdruck · 🌍 Englisch und andere Währungen (CHF, USD …), 📚 mehrere Bücher, 💡 Bildschirm-an-Knopf"],
   ["0.1.0-beta.23", "📋 <b>Kopieren klappt jetzt auch in der HA-App:</b> Sperrt das Handy die Zwischenablage, kopiert die Karte auf dem Ersatzweg wie bei der Einkaufsliste – statt ein Fenster aufzumachen. Gilt für die Adresse der Offline-App, IBANs und das Ergebnis im Taschenrechner."],
   ["0.1.0-beta.22", "💡 Der Knopf <b>Bildschirm immer an</b> sieht jetzt aus wie bei der Einkaufsliste (blau, wenn an) · 🌑 Geht das Handy-Display aus, ist auch „Bildschirm an“ wieder aus"],
@@ -301,6 +302,10 @@ async function pinCheckOffline(off, pin) {
 }
 // 🎨 Farben wie bei der Einkaufsliste: jede Gruppe bekommt ihre Farbe (Streifen links + Punkt im Kopf)
 const GROUP_COLORS = ["#1e88e5", "#fb8c00", "#8e24aa", "#00897b", "#e53935", "#6d4c41", "#3949ab"];
+// ⚡ Schnellknöpfe: jeder bekommt automatisch eine eigene Farbe – passende Ausgaben unten tragen dieselbe
+const QUICK_COLORS = ["#ff9800", "#1e88e5", "#43a047", "#8e24aa", "#e53935", "#00897b", "#6d4c41", "#3949ab", "#d81b60", "#7cb342", "#00acc1", "#f4511e", "#5e35b1", "#c0ca33", "#546e7a", "#fdd835"];
+const qcol = (d, name) => { const k = String(name || "").trim().toLowerCase(), i = (d.settings?.quick || []).findIndex((q) => String(q).trim().toLowerCase() === k); return i < 0 ? null : QUICK_COLORS[i % QUICK_COLORS.length]; };
+const fkDay = (ts) => new Date(ts).toLocaleDateString(fkLoc(), { day: "2-digit", month: "2-digit" });
 const gcol = (d, gid) => { const i = d.groups.findIndex((g) => g.id === gid); return i < 0 ? "#9e9e9e" : GROUP_COLORS[i % GROUP_COLORS.length]; };
 const ic = (name) => `<ha-icon icon="mdi:${name}"></ha-icon>`;
 
@@ -419,6 +424,8 @@ function countsThisMonth(d, it) {
   const m = it.months || [];
   return !m.length || m.includes(Number(String(d.month || monthKey()).slice(5, 7)));
 }
+// 💶 Betrag eines Postens in diesem Monat: Sonderpreis (nur dieser Monat) oder der gespeicherte
+function pamt(d, p) { const v = d.month_price?.[p.id]; return v == null ? p.amount : v; }
 function summary(d) {
   const today = new Date().getDate();
   const groups = [...(d.groups || [])]; // ⠿ Reihenfolge wie in der Liste
@@ -427,14 +434,14 @@ function summary(d) {
   const gi = groups.map((g) => {
     const items = d.posten.filter((p) => p.group === g.id && countsThisMonth(d, p));
     const open = items.filter((p) => !paid[p.id]?.paid);
-    const total = items.reduce((s, p) => s + p.amount, 0), openSum = open.reduce((s, p) => s + p.amount, 0);
+    const total = items.reduce((s, p) => s + pamt(d, p), 0), openSum = open.reduce((s, p) => s + pamt(d, p), 0);
     const due = today >= (g.start_day || 1);
     fixTotal += total; fixOpen += openSum;
-    if (open.length && !next) next = { name: open[0].name, amount: open[0].amount, group: g.name, start_day: g.start_day, due };
+    if (open.length && !next) next = { name: open[0].name, amount: pamt(d, open[0]), group: g.name, start_day: g.start_day, due };
     return { ...g, due, total, open: openSum, count: items.length, done: items.length - open.length };
   });
   const known = new Set(groups.map((g) => g.id));
-  for (const p of d.posten) if (!known.has(p.group) && countsThisMonth(d, p)) { fixTotal += p.amount; if (!paid[p.id]?.paid) fixOpen += p.amount; }
+  for (const p of d.posten) if (!known.has(p.group) && countsThisMonth(d, p)) { fixTotal += pamt(d, p); if (!paid[p.id]?.paid) fixOpen += pamt(d, p); }
   const incomeTotal = d.einnahmen.filter((e) => countsThisMonth(d, e)).reduce((s, e) => s + e.amount, 0);
   const k = d.konto || {};
   const bookingsOpen = d.bookings.filter((b) => !b.cleared).reduce((s, b) => s + b.amount, 0);
@@ -462,6 +469,11 @@ function applyLocal(d, op) {
     if (old) Object.assign(old, next); else list.push(next);
   } else if (KIND[kind] && verb === "delete") {
     d[KIND[kind]] = d[KIND[kind]].filter((x) => x.id !== op.id);
+    if (d.month_price) delete d.month_price[op.id];
+  } else if (t === "posten_month") { // 💶 Preis nur für diesen Monat
+    if (op.month && op.month !== d.month) return;
+    d.month_price = d.month_price || {};
+    if (op.amount == null || String(op.amount).trim() === "") delete d.month_price[op.id]; else d.month_price[op.id] = Math.abs(parseMoney(op.amount)) || 0;
   } else if (t === "paid") {
     if (!op.month || op.month === d.month) d.paid[op.id] = { paid: !!op.value, ts: op.ts };
   } else if (t === "received") {
@@ -477,9 +489,9 @@ function applyLocal(d, op) {
   else if (t === "booking_edit") { const b = d.bookings.find((x) => x.id === op.id); if (b) { if ("name" in op) b.name = op.name; if ("amount" in op) b.amount = parseMoney(op.amount); } }
   else if (t === "topf_take" || t === "topf_return") {
     const p = d.toepfe.find((x) => x.id === op.id), v = Math.abs(parseMoney(op.amount)) || 0;
-    if (p && v) { p.amount = Math.round(((Number(p.amount) || 0) + (t === "topf_take" ? -v : v)) * 100) / 100; p.lent = Math.max(0, Math.round(((Number(p.lent) || 0) + (t === "topf_take" ? v : -v)) * 100) / 100); }
+    if (p && v) { p.updated = op.ts || Date.now(); p.amount = Math.round(((Number(p.amount) || 0) + (t === "topf_take" ? -v : v)) * 100) / 100; p.lent = Math.max(0, Math.round(((Number(p.lent) || 0) + (t === "topf_take" ? v : -v)) * 100) / 100); }
   }
-  else if (t === "topf_keep") { const p = d.toepfe.find((x) => x.id === op.id); if (p) p.lent = 0; }
+  else if (t === "topf_keep") { const p = d.toepfe.find((x) => x.id === op.id); if (p) { p.lent = 0; p.updated = op.ts || Date.now(); } }
   else if (t === "booking_delete") d.bookings = d.bookings.filter((x) => x.id !== op.id);
   else if (t === "restore") {
     const key = op.kind === "booking" ? "bookings" : KIND[op.kind];
@@ -631,12 +643,18 @@ input.swchk:checked::after { left:20px; }
 .quick::-webkit-scrollbar { display:none; }
 .chip { flex:0 0 auto; white-space:nowrap; border:1.5px solid var(--divider-color, rgba(127,127,127,.35)); background:transparent; border-radius:999px; padding:7px 14px; cursor:pointer; font-size:.95em; }
 .chip.on { background:var(--pc); border-color:var(--pc); color:var(--text-primary-color,#fff); }
+.chip[style*="--qc"] { border-color:var(--qc); color:var(--qc); font-weight:500; }
+.chip.on[style*="--qc"] { background:var(--qc); border-color:var(--qc); color:#fff; }
+.amt.click { cursor:pointer; border-radius:8px; padding:2px 4px; margin:-2px -4px; }
+.amt.click:hover { background:rgba(127,127,127,.12); }
+.tag.mp { color:#fb8c00; border-color:#fb8c00; }
 form.add { display:grid; grid-template-columns:1fr 110px 48px; gap:6px; margin:2px 2px 6px; }
 form.add.pinf { grid-template-columns:1fr 48px; }
 .potbox { padding:8px 10px; }
 .pothead { cursor:pointer; margin:0 0 6px; }
 .potrow { display:grid; grid-template-columns:1fr auto auto; gap:6px; align-items:center; margin:0 0 6px; }
 .potrow.set { grid-template-columns:auto 1fr auto auto; margin:0; }
+.potrow.set.mp3 { grid-template-columns:auto 1fr auto auto auto; }
 .potrow input.amount { text-align:right; min-width:0; }
 .lentbtn { border:0; font:inherit; font-size:.85em; cursor:pointer; display:inline-flex; align-items:center; gap:2px; vertical-align:middle; }
 .lentbtn ha-icon { --mdc-icon-size:14px; }
@@ -1103,16 +1121,16 @@ class FixkostenCard extends HTMLElement {
     const today = new Date().getDate();
     const fixed = d.posten.filter((p) => p.day && countsThisMonth(d, p) && !d.paid[p.id]?.paid).sort((a, b) => ((a.day < today) - (b.day < today)) || a.day - b.day);
     const v = d.settings.view || {}, show = (k) => v[k] !== false; // 👁️ Ansicht für alle
-    if (fixed.length && show("next")) { const n = fixed[0]; h += `<div class="next">${ic("calendar-clock")}<span><b>${n.day <= today ? "Fällig" : `Am ${n.day}.`}:</b> ${esc(n.name)} · ${this._m(n.amount)}</span></div>`; }
+    if (fixed.length && show("next")) { const n = fixed[0]; h += `<div class="next">${ic("calendar-clock")}<span><b>${n.day <= today ? "Fällig" : `Am ${n.day}.`}:</b> ${esc(n.name)} · ${this._m(pamt(d, n))}</span></div>`; }
 
     // 💳 Ausgaben
     if (show("ausgaben")) {
     const bOpen = !this._openSec.has("ausgaben_zu"); // 💳 Standard offen – zugeklappt verschwindet nur die Liste, Schnellknöpfe + Eingabe bleiben
     h += `<div class="ghead click" data-a="sec" data-v="ausgaben_zu"><span class="gdot" style="--gc:#ff9800">${ic("credit-card-outline")}</span><span>Ausgaben</span><span class="n">noch nicht abgebucht · ${this._m(-s.bookings_open)}${!bOpen && openBookings.length ? ` · ${openBookings.length}` : ""}</span><span class="chev">${ic(bOpen ? "chevron-up" : "chevron-down")}</span></div>`;
-    h += `<div class="quick">${quick.map((q) => `<button class="chip ${this._quickName === q ? "on" : ""}" data-a="quick" data-v="${esc(q)}">${esc(q)}</button>`).join("")}</div>
+    h += `<div class="quick">${quick.map((q, i) => `<button class="chip ${this._quickName === q ? "on" : ""}" style="--qc:${QUICK_COLORS[i % QUICK_COLORS.length]}" data-a="quick" data-v="${esc(q)}">${esc(q)}</button>`).join("")}</div>
       <form class="add" data-a="booking"><input name="name" placeholder="Wofür? z. B. Bäckerei" value="${esc(this._quickName || "")}" autocomplete="off">
       <input name="amount" class="amount" placeholder="${money(0)}" inputmode="decimal" autocomplete="off" value="${esc(this._prefAmount || "")}"><button class="addbtn" type="submit" title="Eintragen">${ic("plus")}</button></form>`;
-    if (bOpen) h += openBookings.length ? openBookings.map((b) => this._open?.kind === "booking" && this._open.id === b.id ? this._bookingForm(b) : `<div class="item click" style="--cc:#ff9800" data-a="open" data-k="booking" data-id="${esc(b.id)}" title="Antippen = ändern"><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString(fkLoc(), { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${b.by ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
+    if (bOpen) h += openBookings.length ? openBookings.map((b) => this._open?.kind === "booking" && this._open.id === b.id ? this._bookingForm(b) : `<div class="item click" style="--cc:${qcol(d, b.name) || "#ff9800"}" data-a="open" data-k="booking" data-id="${esc(b.id)}" title="Antippen = ändern"><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString(fkLoc(), { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${b.by ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
       <div class="amt">${this._m(-b.amount, "neg")}</div>
       <button class="iconbtn okbtn" data-a="clear" data-id="${esc(b.id)}" title="✓ Ist jetzt auf dem Konto abgebucht" aria-label="abgebucht">${ic("check-bold")}${this._lb("abgebucht")}</button>
       <button class="iconbtn" data-a="bdel" data-id="${esc(b.id)}" title="Löschen">${ic("close")}${this._lb("löschen")}</button></div>`).join("") : `<div class="empty">Nichts offen 🎉</div>`;
@@ -1125,7 +1143,7 @@ class FixkostenCard extends HTMLElement {
     for (const g of s.groups) {
       const items = d.posten.filter((p) => p.group === g.id && shown(p));
       if (!items.length) continue;
-      const k = "g:" + g.id, sumOpen = items.filter((p) => countsThisMonth(d, p) && !d.paid[p.id]?.paid).reduce((x, p) => x + p.amount, 0);
+      const k = "g:" + g.id, sumOpen = items.filter((p) => countsThisMonth(d, p) && !d.paid[p.id]?.paid).reduce((x, p) => x + pamt(d, p), 0);
       h += this._ghc(k, "calendar-month-outline", gcol(d, g.id), esc(g.name), `${g.done} / ${g.count}${sumOpen ? ` · ${this._m(-sumOpen, "neg")}` : " ✅"}`);
       if (this._openSec.has(k)) h += items.map((p) => this._postenRow(d, p)).join("");
     }
@@ -1149,7 +1167,7 @@ class FixkostenCard extends HTMLElement {
     if (d.toepfe.length && show("toepfe")) {
       h += this._ghc("toepfe", "piggy-bank-outline", "#e91e63", "Töpfe", this._mv(s.pots_total, "pots"));
       if (this._openSec.has("toepfe")) h += d.toepfe.map((t) => this._open?.kind === "pot" && this._open.id === t.id ? this._potForm(t)
-        : `<div class="item click" style="--cc:#e91e63" data-a="open" data-k="pot" data-id="${esc(t.id)}" title="Antippen = rausnehmen, zurücklegen oder Stand ändern"><div class="n"><b>${esc(t.name)}</b>${t.lent > 0 ? `<div class="meta"><span class="tag lent">${this._m(t.lent)} geliehen</span></div>` : ""}</div><div class="amt">${this._m(t.amount)}</div></div>`).join("");
+        : `<div class="item click" style="--cc:#e91e63" data-a="open" data-k="pot" data-id="${esc(t.id)}" title="Antippen = rausnehmen, zurücklegen oder Stand ändern"><div class="n"><b>${esc(t.name)}</b>${t.lent > 0 || t.updated ? `<div class="meta">${t.updated ? `<span class="tag" title="zuletzt geändert">${new Date(t.updated).toLocaleDateString(fkLoc(), { weekday: "short", day: "2-digit", month: "2-digit" })}</span>` : ""}${t.lent > 0 ? `<span class="tag lent">${this._m(t.lent)} geliehen</span>` : ""}</div>` : ""}</div><div class="amt">${this._m(t.amount)}</div></div>`).join("");
       h += `<div class="sum"><span>Komplett (Verfügbar + Töpfe)</span>${this._mv(s.total, "total")}</div>`;
     }
     // 🏦 Meine Konten (nur Info)
@@ -1184,9 +1202,15 @@ class FixkostenCard extends HTMLElement {
   _postenRow(d, p) {
     const paused = p.active === false;
     const on = paused || !!d.paid[p.id]?.paid;
+    const special = d.month_price?.[p.id], mon = this._monthName(d.month).split(" ")[0];
+    if (this._open?.kind === "mprice" && this._open.id === p.id) { // 💶 Preis nur für diesen Monat
+      return `<form class="edit potbox" data-a="mpsave" data-id="${esc(p.id)}" style="--cc:${gcol(d, p.group)}"><div class="pothead" data-a="cancel" title="Zuklappen"><b>${esc(p.name)}</b> · normal ${this._m(p.amount)}</div>
+        <div class="potrow set${special != null ? " mp3" : ""}"><span class="potlbl">Nur im ${esc(mon)}</span><input name="amount" class="amount" inputmode="decimal" autocomplete="off" aria-label="Preis nur diesen Monat" value="${numDe(pamt(d, p))}"><button class="iconbtn potbtn okbtn" type="submit" title="Preis nur für diesen Monat speichern" aria-label="speichern">${ic("check-bold")}${this._lb("speichern")}</button>${special != null ? `<button type="button" class="iconbtn potbtn" data-a="mpreset" data-id="${esc(p.id)}" title="Wieder normaler Preis" aria-label="normaler Preis">${ic("restore")}${this._lb("normal")}</button>` : ""}<button type="button" class="iconbtn potbtn" data-a="cancel" title="Abbrechen" aria-label="Abbrechen">${ic("close")}${this._lb("abbrechen")}</button></div>
+        <p class="small">Gilt nur diesen Monat. Nächsten Monat ist wieder ${this._m(p.amount)} da.</p></form>`;
+    }
     return `<div class="item ${on ? "done" : ""} ${paused ? "paused" : ""}" style="--cc:${gcol(d, p.group)}">${paused ? `<span class="chk on" title="pausiert – zählt nicht mit">${ic("pause")}</span>` : `<button class="chk ${on ? "on" : ""}" data-a="paid" data-id="${esc(p.id)}" aria-label="abhaken">${on ? ic("check") : ""}</button>`}
-      <div class="n"><b>${esc(p.name)}</b><div class="meta">${paused ? `<span class="tag">⏸️ pausiert</span>` : ""}${p.day ? `<span class="tag">am ${p.day}.</span>` : ""}<span class="tag">${esc((PAY[p.pay] || PAY.keine)[0])}</span>${p.note ? `<span class="tag">${esc(p.note)}</span>` : ""}</div></div>
-      <div class="amt">${this._m(-p.amount, "neg")}</div></div>`;
+      <div class="n"><b>${esc(p.name)}</b><div class="meta">${paused ? `<span class="tag">⏸️ pausiert</span>` : ""}${p.day ? `<span class="tag">am ${p.day}.</span>` : ""}<span class="tag">${esc((PAY[p.pay] || PAY.keine)[0])}</span>${!paused && on && d.paid[p.id]?.ts ? `<span class="tag" title="abgehakt am">✓ ${fkDay(d.paid[p.id].ts)}</span>` : ""}${special != null ? `<span class="tag mp" title="normal ${esc(money(p.amount))}">✏️ nur ${esc(mon)}</span>` : ""}${p.note ? `<span class="tag">${esc(p.note)}</span>` : ""}</div></div>
+      <div class="amt ${paused ? "" : "click"}" ${paused ? "" : `data-a="mprice" data-id="${esc(p.id)}" title="Antippen = Preis nur für diesen Monat ändern"`}>${this._m(-pamt(d, p), "neg")}</div></div>`;
   }
   _monthName(mk) { const m = Number(String(mk || "").slice(5, 7)); return m ? (FK_LANG === "en" ? MONTHS_EN : MONTHS)[m - 1] + " " + String(mk).slice(0, 4) : ""; }
 
@@ -1658,6 +1682,8 @@ class FixkostenCard extends HTMLElement {
       this._open = null; this._force = true; this._send({ type: "topf_keep", id }); this._toast("✓ Zettel weg – Geld gilt als ausgegeben");
     }
     else if (a === "recv") this._send({ type: "received", id, value: !d.received?.[id]?.paid, month: d.month });
+    else if (a === "mprice") { this._open = { kind: "mprice", id }; redraw(); setTimeout(() => { const i = this.shadowRoot.querySelector('form[data-a="mpsave"] input'); i?.focus(); i?.select?.(); }, 30); }
+    else if (a === "mpreset") { this._open = null; this._force = true; this._send({ type: "posten_month", id, amount: "", month: d.month }); this._toast("↺ Wieder der normale Preis"); }
     else if (a === "paid") this._send({ type: "paid", id, value: !d.paid[id]?.paid, month: d.month });
     else if (a === "quick") { this._quickName = this._quickName === el.dataset.v ? null : el.dataset.v; redraw(); setTimeout(() => this.shadowRoot.querySelector('input[name="amount"]')?.focus(), 30); }
     else if (a === "settle") this._removeWithUndo("stand", id, { type: "stand_delete", id }, "✓ Beglichen");
@@ -1741,10 +1767,19 @@ class FixkostenCard extends HTMLElement {
       return;
     }
     if (a === "potset") { // ✏️ Stand korrigieren: eigenes Feld, damit „Rausnehmen“ nie aus Versehen den Stand überschreibt
-      const v = parseMoney(data.stand);
-      if (Number.isNaN(v) || String(data.stand || "").trim() === "") { this._toast("Bitte den Stand eintippen"); return; }
+      const v = String(data.stand || "").trim() === "" ? 0 : parseMoney(data.stand); // leer = 0,00 (Marco)
+      if (Number.isNaN(v)) { this._toast("Bitte den Stand eintippen"); return; }
       this._open = null; this.shadowRoot.activeElement?.blur(); this._force = true;
       this._send({ type: "topf_save", item: { id: f.dataset.id, amount: v } }); this._toast(`✏️ Stand jetzt ${money(v)}`);
+      return;
+    }
+    if (a === "mpsave") { // 💶 Preis nur für diesen Monat (gleich wie normal = Sonderpreis weg)
+      const v = parseMoney(data.amount), p = this._data?.posten?.find((x) => x.id === f.dataset.id);
+      if (Number.isNaN(v) || String(data.amount || "").trim() === "") { this._toast("Bitte einen Betrag eintippen"); return; }
+      const same = p && Math.abs(Math.abs(v) - p.amount) < 0.005;
+      this._open = null; this.shadowRoot.activeElement?.blur(); this._force = true;
+      this._send({ type: "posten_month", id: f.dataset.id, amount: same ? "" : Math.abs(v), month: this._data?.month });
+      this._toast(same ? "↺ Wieder der normale Preis" : `💶 Nur diesen Monat: ${money(Math.abs(v))}`);
       return;
     }
     if (a === "bsave") {

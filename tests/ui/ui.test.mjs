@@ -50,6 +50,23 @@ await sr(`h.querySelector('[data-a="sec"][data-v="g:g15"]').click();`);
 check("Aufklappen zeigt Posten, Pausierte grau + abgehakt", await sr(`const r = [...h.querySelectorAll('.item.paused')]; return !!h.querySelector('[data-a="paid"][data-id="p1"]') && r.length === 1 && /Zeitschrift/.test(r[0].textContent) && r[0].classList.contains('done');`));
 check("Aufgeklappt wird nicht gemerkt", await p.evaluate(() => localStorage.getItem("fixkosten_offen") === null));
 await shot("1-uebersicht.png");
+// ✅ 1.0.1-beta.1: abgehakt am … · 💶 Preis nur diesen Monat
+check("Abgehakte Fixkosten zeigen das Datum", await sr(`return /\\d\\d\\.\\d\\d\\./.test(h.querySelector('[data-a="paid"][data-id="p1"]').closest('.item').querySelector('.meta').textContent) && !/\\d\\d\\.\\d\\d\\./.test(h.querySelector('[data-a="paid"][data-id="p4"]').closest('.item').textContent);`), await sr(`return h.querySelector('[data-a="paid"][data-id="p1"]').closest('.item').textContent;`));
+await sr(`h.querySelector('.amt[data-a="mprice"][data-id="p4"]').click();`);
+await p.waitForTimeout(60);
+check("Betrag antippen öffnet „nur diesen Monat“", await sr(`const f = h.querySelector('form[data-a="mpsave"][data-id="p4"]'); return !!f && /normal/.test(f.textContent) && f.amount.value === "50";`));
+await shot("14-preis-nur-diesen-monat.png");
+await sr(`const f = h.querySelector('form[data-a="mpsave"]'); f.amount.value = "70"; f.requestSubmit();`);
+await p.waitForTimeout(100);
+check("Sonderpreis geschickt und gerechnet", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_month" && o.id === "p4" && o.amount === 70 && o.month)) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail - 20), await sr(`return h.querySelector('.big').textContent.trim();`));
+check("Sonderpreis: ✏️ nur … am Posten, Betrag 70", await sr(`const r = h.querySelector('.amt[data-id="p4"]').closest('.item'); return /nur /.test(r.querySelector('.tag.mp')?.textContent || '') && /70,00/.test(r.querySelector('.amt').textContent);`), await sr(`return h.querySelector('.amt[data-id="p4"]').closest('.item').textContent;`));
+await shot("15-sonderpreis.png");
+await sr(`h.querySelector('.amt[data-a="mprice"][data-id="p4"]').click();`);
+await p.waitForTimeout(60);
+await sr(`h.querySelector('[data-a="mpreset"][data-id="p4"]').click();`);
+await p.waitForTimeout(100);
+check("↺ zurück auf normal", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_month" && o.id === "p4" && o.amount === "")) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail));
+check("Schnellknöpfe haben verschiedene Farben", await sr(`const c = [...h.querySelectorAll('.quick .chip')].map((x) => getComputedStyle(x).borderTopColor); return c.length >= 3 && new Set(c).size === c.length;`));
 
 // 💳 Ausgabe über Schnellknopf
 await sr(`h.querySelector('[data-a="quick"][data-v="Bäckerei"]').click();`);
@@ -59,6 +76,7 @@ await p.waitForTimeout(80);
 big = await sr(`return h.querySelector('.big').textContent.trim();`);
 check("Ausgabe zieht sofort ab", big === fmt(exp.avail - 5.75), big);
 check("Änderung an HA geschickt", await p.evaluate(() => fake.applied.some((o) => o.type === "booking_add" && o.name === "Bäckerei" && o.amount === 5.75)));
+check("Ausgabe „Bäckerei“ hat die Farbe ihres Schnellknopfs", await sr(`const chip = h.querySelector('.quick .chip[data-v="Bäckerei"]'), row = [...h.querySelectorAll('.item[data-k="booking"]')].find((x) => /Bäckerei/.test(x.textContent)); return !!row && row.style.getPropertyValue('--cc') === chip.style.getPropertyValue('--qc');`));
 
 check("Schnellknöpfe in einer Zeile zum Wischen", await sr(`const q = getComputedStyle(h.querySelector('.quick')); return q.flexWrap === "nowrap" && q.overflowX === "auto";`));
 check("Heißt jetzt „Ausgaben“", await sr(`return /Ausgaben/.test(h.innerHTML) && !/Kartenzahlung/.test(h.innerHTML);`));
@@ -191,6 +209,13 @@ check("Topf: kein „Als neuen Stand setzen“ mehr am Betragsfeld", await sr(`r
 await sr(`const f = h.querySelector('form[data-a="potset"]'); f.stand.value = "777"; f.requestSubmit();`);
 await p.waitForTimeout(80);
 check("Topf: Stand korrigieren schickt topf_save", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_save" && o.item?.id === "t2" && o.item?.amount === 777)));
+await p.waitForTimeout(150);
+check("Töpfe zeigen das Datum der letzten Änderung", await sr(`return /\\d\\d\\.\\d\\d\\./.test(h.querySelector('.item[data-k="pot"][data-id="t2"] .meta')?.textContent || '');`), await sr(`return h.querySelector('.item[data-k="pot"][data-id="t2"]')?.textContent;`));
+await sr(`h.querySelector('.item[data-k="pot"][data-id="t3"]').click();`);
+await p.waitForTimeout(50);
+await sr(`const f = h.querySelector('form[data-a="potset"]'); f.stand.value = ""; f.requestSubmit();`);
+await p.waitForTimeout(80);
+check("Stand korrigieren: leeres Feld = 0,00", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_save" && o.item?.id === "t3" && o.item?.amount === 0)));
 await p.waitForTimeout(150);
 // 💾 CSV-Export: Kontostand-Zeile + Datum bei Töpfen
 const csv = await p.evaluate(async () => { const c = document.querySelector('#c1') || document.querySelector('fixkosten-card'); let blob; const o = URL.createObjectURL; URL.createObjectURL = (b) => { blob = b; return "blob:x"; }; const ac = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () {}; c._export(c._data); URL.createObjectURL = o; HTMLAnchorElement.prototype.click = ac; return await blob.text(); });

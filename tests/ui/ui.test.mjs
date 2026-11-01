@@ -112,6 +112,7 @@ check("Rechner-Ergebnis landet in Ausgabe", await sr(`return h.querySelector('fo
 await sr(`h.querySelector('form[data-a="booking"]').amount.value = ""; h.activeElement?.blur();`);
 
 // 🙈 Beträge verstecken
+check("Bildschirm-an-Knopf oben zwischen Auge und Schloss", await sr(`const b = [...h.querySelectorAll('.head .iconbtn, .iconbtn')].map((x) => x.dataset.a).join(','); return b.includes('hide,awake,lock');`));
 await sr(`h.querySelector('[data-a="hide"]').click();`);
 check("Verstecken: Beträge verschwommen", await sr(`return h.querySelectorAll('.hidden-amt').length > 5;`));
 await sr(`h.querySelector('[data-a="hide"]').click();`);

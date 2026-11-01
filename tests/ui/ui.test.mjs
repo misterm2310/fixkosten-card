@@ -237,7 +237,10 @@ check("Offline-App als Seite in der Karte, ← oben", await sr(`return /Zum Star
 await shot("5b-offline-app.png");
 await sr(`h.querySelector('.head [data-a="back"]').click();`);
 await sr(`h.querySelector('[data-a="sheet"][data-v="news"]').click();`);
-check("Was ist neu: Beta-Kasten", await sr(`return /Du bist in der Beta/.test(h.querySelector('.pagehost')?.textContent || '');`));
+// 🧪 Beta-Kasten nur in Testversionen; in offiziellen Versionen steht er NICHT da
+const fkVer = JSON.parse(fs.readFileSync(path.join(root, "custom_components/fixkosten/manifest.json"), "utf8")).version;
+const hatBetaKasten = await sr(`return /Du bist in der Beta/.test(h.querySelector('.pagehost')?.textContent || '');`);
+check(/-beta/.test(fkVer) ? "Was ist neu: Beta-Kasten" : "Was ist neu: kein Beta-Kasten (offizielle Version)", /-beta/.test(fkVer) ? hatBetaKasten : !hatBetaKasten && await sr(`return (h.querySelector('.pagehost')?.textContent || '').includes('v${fkVer}');`));
 await sr(`h.querySelector('.head [data-a="back"]').click();`);
 // 📊 Rückblick, 🩺 Gesundheit, 💣 Werkseinstellungen in ⚙️
 await sr(`h.querySelector('[data-a="setgrp"][data-v="Daten"]').click(); h.querySelector('[data-a="sheet"][data-v="hist"]').click();`);

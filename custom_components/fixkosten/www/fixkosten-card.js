@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.18";
+const FK_VERSION = "0.1.0-beta.19";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -38,6 +38,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.19", "🙏 <b>Credits wie bei der Einkaufsliste:</b> Mister-M-Logo, Version, Knöpfe für GitHub, 💡 Idee oder Wunsch, 🐞 Fehler melden und Spenden mit PayPal – in ⚙️ → Credits und unten in der Anleitung."],
   ["0.1.0-beta.18", "⚙️ <b>Zahnrad vor „Einstellungen“</b> wie bei der Einkaufsliste. · 🧮 In den Einstellungen sind <b>Rechner und Auge ausgeblendet</b> – dort braucht man sie nicht. · 📖 <b>Anleitung</b> mit demselben Buch-Symbol wie die Einkaufsliste. · 🚪 Offline-App: „Abmelden“ ohne Symbol, wie bei der Einkaufsliste."],
   ["0.1.0-beta.17", "🌍 <b>Englisch:</b> Ist Home Assistant nicht auf Deutsch (oder steht <code>language: en</code> in der Karte), spricht die Karte Englisch. Deine eigenen Namen bleiben, wie sie sind. · 💱 <b>Währung wählbar</b> (⚙️ → Rechnen &amp; Warnung): Euro, Schweizer Franken, US-Dollar, Pfund und mehr. Ändert nur Zeichen und Schreibweise, es wird nichts umgerechnet. · 👗 <b>Sparschwein-Kostüme:</b> Blume im Frühling, Sonnenbrille im Sommer, Blatt im Herbst, Schal im Winter, Hasenohren zu Ostern – wie der Einkaufswagen der Einkaufsliste."],
   ["0.1.0-beta.16", "🔒 <b>Ganze Karte mit PIN sperren</b> (⚙️ → App &amp; Info → Schutz, Standard aus): Dann zeigt die Karte zuerst das Zahlenfeld – erst nach der PIN sieht man Zahlen. Nach 10 Minuten Ruhe oder mit 🔒 ist sie wieder zu."],
@@ -571,6 +572,15 @@ details.gsec .gdot ha-icon { --mdc-icon-size:17px; }
 details.gsec .gtext { padding:0 14px 12px 50px; font-size:.92em; line-height:1.5; }
 a.btn { text-decoration:none; color:inherit; }
 a.btn.paypal { background:#0070ba; border-color:#0070ba; color:#fff; }
+/* 🙏 Credits – wie bei der Einkaufsliste */
+.elcredits { text-align:center; } .elcredits p { margin:8px 0; }
+.ellogo { background:#fff; border-radius:16px; padding:10px; display:inline-block; max-width:100%; box-shadow:0 1px 4px rgba(0,0,0,.12); }
+.ellogo img { display:block; max-width:100%; width:200px; height:auto; }
+.elcbtns { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:12px 0; }
+a.elcbtn { color:var(--primary-text-color); background:var(--secondary-background-color, rgba(127,127,127,.12)); border-radius:12px; padding:10px 14px; text-decoration:none; font-weight:500; }
+a.elcbtn.pp { display:inline-flex; align-items:center; gap:8px; background:#0070BA; color:#fff; border:2px solid #003087; font-weight:700; }
+.elcbtn.pp svg { width:20px; height:20px; flex:none; }
+.elcsmall { opacity:.7; font-size:.9em; }
 a { color:var(--pc); }
 /* 🧮 Taschenrechner */
 .calc { border-radius:12px; padding:10px; margin:0 2px 10px; background:var(--secondary-background-color, rgba(127,127,127,.1)); }
@@ -1190,11 +1200,25 @@ class FixkostenCard extends HTMLElement {
     const beta = /-beta/.test(FK_VERSION) && cur ? `<div class="betabox"><b>🧪 Du bist in der Beta ${FK_VERSION}</b><p class="small" style="margin:4px 0 2px">Neu in dieser Beta:</p>${li(cur[1])}</div>` : "";
     return `${beta}<p class="small">Das Neueste steht oben.</p>${FK_NEWS.filter((n) => n !== cur).map((n) => `<p style="margin:10px 0 0"><b>v${n[0]}</b></p>${li(n[1])}`).join("")}`;
   }
+  // 🙏 Credits – genau wie bei der Einkaufsliste (Logo, Version, Knöpfe, PayPal), in ⚙️ und in der Anleitung
   _creditsHtml() {
-    return `<p class="small" style="margin-top:2px">Fixkosten <b>v${FK_VERSION}</b> · von <b>Mister-M</b> · <a href="${REPO}" target="_blank" rel="noopener">GitHub</a> · <a href="${REPO}/issues" target="_blank" rel="noopener">Fehler melden</a></p>
-      <p class="small">Die Fixkosten sind und bleiben <b>kostenlos</b>. Wenn du magst, kannst du mir ganz freiwillig eine kleine Spende schicken. Danke! 🙏</p>
-      <div class="btnrow"><a class="btn paypal" href="${PAYPAL}" target="_blank" rel="noopener">${ic("hand-heart-outline")}Spenden per PayPal</a></div>
-      <p class="small">Symbole: Material Design Icons (Pictogrammers, frei). Lizenz: MIT.</p>`;
+    const t = (de, en) => (FK_LANG === "en" ? en : de);
+    return `<div class="elcredits" translate="no">
+      <div class="ellogo"><img src="/fixkosten/files/mister-m.webp?v=${FK_VERSION}" alt="Mister-M" loading="lazy"></div>
+      <p class="elcv"><b>Fixkosten</b> v${FK_VERSION}</p>
+      <p>${t("Gemacht von <b>Mister-M</b> – mit Hilfe von Claude 🤖", "Made by <b>Mister-M</b> – with help from Claude 🤖")}</p>
+      <p>${t("Ich versuche, Updates und Fehler-Korrekturen zeitnah zu erledigen.", "I try to ship updates and fixes promptly.")}</p>
+      <p class="elcsmall">📅 ${t("Neue offizielle Versionen kommen immer sonntags. An den anderen Tagen gibt es nur Test-Versionen (Beta) – die siehst du in HACS unter „Beta-Versionen anzeigen“.", "New official versions always come out on Sundays. On the other days there are only test versions (beta) – you see them in HACS under “Show beta versions”.")}</p>
+      <div class="elcbtns">
+        <a class="elcbtn" href="${REPO}" target="_blank" rel="noopener">🐙 GitHub</a>
+        <a class="elcbtn" href="${REPO}/discussions" target="_blank" rel="noopener">💡 ${t("Idee oder Wunsch", "Idea or request")}</a>
+        <a class="elcbtn" href="${REPO}/issues" target="_blank" rel="noopener">🐞 ${t("Fehler melden", "Report a bug")}</a>
+        <a class="elcbtn pp" href="${PAYPAL}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 2.7 5 6.2 5c2 0 3.5 1.1 5.8 3.4C14.3 6.1 15.8 5 17.8 5c3.5 0 5.2 3.6 3.8 6.8C19.5 16.4 12 21 12 21z" fill="#fff"/></svg><span>${t("Spenden mit PayPal", "Donate with PayPal")}</span></a>
+      </div>
+      <p class="elcsmall">${t("Die Fixkosten sind und bleiben kostenlos. Wenn sie dir gefallen, freue ich mich über eine kleine Spende – ganz freiwillig. Beim Antippen öffnet sich PayPal im Browser; vorher geht nichts ins Internet.", "Fixkosten is and stays free. If you like it, I would be happy about a small donation – completely voluntary. Tapping opens PayPal in your browser; nothing goes to the internet before that.")}</p>
+      <p>🔒 ${t("Alle Daten bleiben in deinem Home Assistant. Keine Cloud, kein Tracking – ins Internet geht nichts. Mehr unter ⚙️ → Datenschutz.", "All data stays in your Home Assistant. No cloud, no tracking – nothing goes to the internet. More under ⚙️ → Privacy.")}</p>
+      <p class="elcsmall">${t("Symbole: Material Design Icons (Pictogrammers) · Lizenz: MIT", "Icons: Material Design Icons (Pictogrammers) · License: MIT")}</p>
+    </div>`;
   }
 
   // 🔢 PIN-Eingabe wie am Handy (wie bei der Einkaufsliste): Punkte, Zahlenfeld 1–9, ⌫ 0 ✔ und „Abbrechen“

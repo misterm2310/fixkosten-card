@@ -251,7 +251,7 @@ Jedes Buch hat **eigene** Fixkosten, Töpfe, Kontostand, PIN, Rückblick und Sen
 
 ## 💙 Gefällt dir die Fixkosten-Karte?
 
-Sie ist und bleibt **kostenlos**. Wenn du magst, kannst du mir ganz freiwillig eine kleine Spende per PayPal schicken: [paypal.me/MarcoStrickmann](https://paypal.me/MarcoStrickmann). Den Link gibt es auch in der Karte unter 📖 Anleitung → Credits. Danke! 🙏
+Sie ist und bleibt **kostenlos**. Wenn du magst, kannst du mir ganz freiwillig eine kleine Spende per PayPal schicken: [paypal.me/MarcoStrickmann](https://paypal.me/MarcoStrickmann). Den Link gibt es auch unter ⚙️ → Credits. Danke! 🙏
 
 [![PayPal](https://img.shields.io/badge/PayPal-Spenden-0070BA?logo=paypal&logoColor=white)](https://paypal.me/MarcoStrickmann)
 

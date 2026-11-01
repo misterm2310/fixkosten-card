@@ -1,7 +1,7 @@
 // 📱 Fixkosten – Offline-Speicher für die App. Hier liegt NUR Programm, keine Zahlen.
 // (Die Zahlen merkt sich die Seite selbst im Handy – und löscht sie beim Abmelden.)
 const CACHE = "fixkosten-app-__FK_VERSION__";
-const FILES = ["./", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icons.json", "/fixkosten/files/fixkosten-card.js?v=__FK_VERSION__", "/fixkosten/files/fixkosten-en.json?v=__FK_VERSION__"];
+const FILES = ["./", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icons.json", "/fixkosten/files/fixkosten-card.js?v=__FK_VERSION__", "/fixkosten/files/fixkosten-en.json?v=__FK_VERSION__", "/fixkosten/files/mister-m.webp?v=__FK_VERSION__"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => Promise.allSettled(FILES.map((f) => c.add(f)))).then(() => self.skipWaiting()));

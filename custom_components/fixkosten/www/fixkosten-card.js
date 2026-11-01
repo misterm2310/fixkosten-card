@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.18";
+const FK_VERSION = "0.1.0-beta.20";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -38,6 +38,8 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.20", "💡 Neuer Knopf <b>Bildschirm anlassen</b> oben zwischen 👁️ und 🔒 (wie beim Kegelclub): einmal antippen, dann geht das Handy beim Abarbeiten nicht mehr aus"],
+  ["0.1.0-beta.19", "🙏 <b>Credits wie bei der Einkaufsliste:</b> Mister-M-Logo, Version, Knöpfe für GitHub, 💡 Idee oder Wunsch, 🐞 Fehler melden und Spenden mit PayPal – in ⚙️ → Credits und unten in der Anleitung."],
   ["0.1.0-beta.18", "⚙️ <b>Zahnrad vor „Einstellungen“</b> wie bei der Einkaufsliste. · 🧮 In den Einstellungen sind <b>Rechner und Auge ausgeblendet</b> – dort braucht man sie nicht. · 📖 <b>Anleitung</b> mit demselben Buch-Symbol wie die Einkaufsliste. · 🚪 Offline-App: „Abmelden“ ohne Symbol, wie bei der Einkaufsliste."],
   ["0.1.0-beta.17", "🌍 <b>Englisch:</b> Ist Home Assistant nicht auf Deutsch (oder steht <code>language: en</code> in der Karte), spricht die Karte Englisch. Deine eigenen Namen bleiben, wie sie sind. · 💱 <b>Währung wählbar</b> (⚙️ → Rechnen &amp; Warnung): Euro, Schweizer Franken, US-Dollar, Pfund und mehr. Ändert nur Zeichen und Schreibweise, es wird nichts umgerechnet. · 👗 <b>Sparschwein-Kostüme:</b> Blume im Frühling, Sonnenbrille im Sommer, Blatt im Herbst, Schal im Winter, Hasenohren zu Ostern – wie der Einkaufswagen der Einkaufsliste."],
   ["0.1.0-beta.16", "🔒 <b>Ganze Karte mit PIN sperren</b> (⚙️ → App &amp; Info → Schutz, Standard aus): Dann zeigt die Karte zuerst das Zahlenfeld – erst nach der PIN sieht man Zahlen. Nach 10 Minuten Ruhe oder mit 🔒 ist sie wieder zu."],
@@ -57,6 +59,47 @@ const FK_NEWS = [
   ["0.1.0-beta.2", "📂 Gruppen, Einnahmen und Töpfe zum Einklappen. · ⏸️ Pausierte stehen grau und abgehakt mit drin. · 📅 Hinweis nur bei festem Tag. · ⠿ Verschieben. · ↩️ Rückgängig nach dem Löschen. · 📱 Adresse der Offline-App mit Kopieren-Knopf."],
   ["0.1.0-beta.1", "🎉 Erste Beta: Verfügbar-Rechnung, Ausgaben mit Schnellknöpfen, Taschenrechner, Töpfe, offene Stände, Rückblick, CSV, PIN-Sperre und Offline-App mit Fingerabdruck."],
 ];
+const FK_NOSLEEP = { mp4: "data:video/mp4;base64,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", webm: "data:video/webm;base64,GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChYECGFOAZwEAAAAAAALCEU2bdLpNu4tTq4QVSalmU6yBoU27i1OrhBZUrmtTrIHYTbuMU6uEElTDZ1OsggEeTbuMU6uEHFO7a1OsggKs7AEAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVSalmsirXsYMPQkBNgI1MYXZmNjAuMTYuMTAwV0GNTGF2ZjYwLjE2LjEwMESJiECfQAAAAAAAFlSua8GuAQAAAAAAADjXgQFzxYiU74J2vpmbxJyBACK1nIN1bmSIgQCGhVZfVlA4g4EBI+ODhAvrwgDgibCBQLqBQJqBAhJUw2f8c3OgY8CAZ8iaRaOHRU5DT0RFUkSHjUxhdmY2MC4xNi4xMDBzc9ZjwItjxYiU74J2vpmbxGfIoUWjh0VOQ09ERVJEh5RMYXZjNjAuMzEuMTAyIGxpYnZweGfIoUWjiERVUkFUSU9ORIeTMDA6MDA6MDIuMDAwMDAwMDAwAB9DtnVBB+eBAKOqgQAAgPACAJ0BKkAAQAAARwiFhYiFhIgCAgAGcDxCYAqyIPcwAP7/q1CAo5aBAMgA0QEAARAQABgAGFgv9AAIjoAAo5aBAZAA0QEAARAQABgAGFgv9AAIjoAAo5aBAlgA0QEAARAQABgAGFgv9AAIjoAAo5aBAyAA0QEAARAQABgAGFgv9AAIjoAAo5aBA+gA0QEAARAQABgAGFgv9AAIjoAAo5aBBLAA0QEAARAQABgAGFgv9AAIjoAAo5aBBXgA0QEAARAQFGAAYWC/0AAiOgAAo5aBBkAA0QEAARAQABgAGFgv9AAIjoAAo5aBBwgA0QEAARAQABgAGFgv9AAIjoAAHFO7a5G7j7OBALeK94EB8YIBn/CBAw==" };
+async function fkKeepAwake(ov, noVideo) { // noVideo: in der HA-App bringt der Video-Trick nichts (dort hilft nur deren Einstellung)
+  let lock = null, vid = null, mode = "", over = false;
+  const getLock = async () => {
+    try {
+      const l = await navigator.wakeLock?.request("screen");
+      if (l) { lock = l; l.addEventListener?.("release", () => { if (lock === l) lock = null; }); }
+    } catch (_) { /* dann das Video */ }
+  };
+  const startVideo = async () => {
+    try {
+      vid = document.createElement("video");
+      vid.muted = true; vid.defaultMuted = true; vid.loop = true; vid.playsInline = true;
+      vid.setAttribute("muted", ""); vid.setAttribute("playsinline", ""); vid.setAttribute("loop", ""); vid.setAttribute("aria-hidden", "true");
+      vid.style.cssText = "position:fixed;left:0;bottom:0;width:48px;height:48px;opacity:.02;pointer-events:none;z-index:0";
+      for (const [t, d] of [["video/mp4", FK_NOSLEEP.mp4], ["video/webm", FK_NOSLEEP.webm]]) { const so = document.createElement("source"); so.src = d; so.type = t; vid.append(so); }
+      document.body.append(vid); // nicht ins Fenster: dessen Inhalt wird teils neu aufgebaut
+      await vid.play();
+      return !vid.paused;
+    } catch (_) { return false; }
+  };
+  await getLock();
+  if (lock) mode = "lock";
+  else if (!noVideo && await startVideo()) mode = "video";
+  const onVis = () => { // Handy zwischendurch weggelegt und wieder da: neu anfordern
+    if (over || document.visibilityState !== "visible") return;
+    if (mode === "lock" && !lock) getLock();
+    if (mode === "video" && vid?.paused) vid.play().catch(() => {});
+  };
+  document.addEventListener("visibilitychange", onVis);
+  const stop = () => {
+    if (over) return;
+    over = true;
+    clearInterval(watch);
+    document.removeEventListener("visibilitychange", onVis);
+    try { lock?.release(); } catch (_) { /* egal */ }
+    try { vid?.pause(); vid?.remove(); } catch (_) { /* egal */ }
+  };
+  const watch = setInterval(() => { if (ov && !ov.isConnected) stop(); }, 1000);
+  return { mode, stop };
+}
 function fkVerCmp(a, b) {
   const p = (v) => { const m = /^(\d+)\.(\d+)\.(\d+)(?:-beta\.(\d+))?/.exec(String(v).trim()); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? Infinity : +m[4]] : [0, 0, 0, Infinity]; };
   const [x, y] = [p(a), p(b)];
@@ -460,6 +503,7 @@ input.swchk:checked::after { left:20px; }
 .iconbtn { background:none; border:0; cursor:pointer; padding:6px; border-radius:50%; display:inline-flex; color:var(--secondary-text-color); line-height:0; }
 .iconbtn:hover { background:var(--secondary-background-color, rgba(127,127,127,.12)); color:var(--primary-text-color); }
 .iconbtn.on { color:var(--pc); }
+.iconbtn.awake.on { color:#f9a825; }
 /* 🏷️ Kopf in der Karte – wie bei der Einkaufsliste: Symbol + Zähler links, Werkzeuge rechts */
 .head { display:flex; align-items:center; gap:4px; margin:0 2px 8px; min-height:36px; }
 .title { display:flex; align-items:center; gap:8px; font-size:1.25em; font-weight:600; flex:1; min-width:0; }
@@ -571,6 +615,15 @@ details.gsec .gdot ha-icon { --mdc-icon-size:17px; }
 details.gsec .gtext { padding:0 14px 12px 50px; font-size:.92em; line-height:1.5; }
 a.btn { text-decoration:none; color:inherit; }
 a.btn.paypal { background:#0070ba; border-color:#0070ba; color:#fff; }
+/* 🙏 Credits – wie bei der Einkaufsliste */
+.elcredits { text-align:center; } .elcredits p { margin:8px 0; }
+.ellogo { background:#fff; border-radius:16px; padding:10px; display:inline-block; max-width:100%; box-shadow:0 1px 4px rgba(0,0,0,.12); }
+.ellogo img { display:block; max-width:100%; width:200px; height:auto; }
+.elcbtns { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:12px 0; }
+a.elcbtn { color:var(--primary-text-color); background:var(--secondary-background-color, rgba(127,127,127,.12)); border-radius:12px; padding:10px 14px; text-decoration:none; font-weight:500; }
+a.elcbtn.pp { display:inline-flex; align-items:center; gap:8px; background:#0070BA; color:#fff; border:2px solid #003087; font-weight:700; }
+.elcbtn.pp svg { width:20px; height:20px; flex:none; }
+.elcsmall { opacity:.7; font-size:.9em; }
 a { color:var(--pc); }
 /* 🧮 Taschenrechner */
 .calc { border-radius:12px; padding:10px; margin:0 2px 10px; background:var(--secondary-background-color, rgba(127,127,127,.1)); }
@@ -769,7 +822,7 @@ class FixkostenCard extends HTMLElement {
   }
 
   connectedCallback() { if (this._hass && !this._unsub) this._subscribe(); document.addEventListener("keydown", this._onKey, true); }
-  disconnectedCallback() { this._unsub?.then((u) => u?.()).catch(() => {}); this._unsub = null; document.removeEventListener("keydown", this._onKey, true); }
+  disconnectedCallback() { this._awakeStop(); this._unsub?.then((u) => u?.()).catch(() => {}); this._unsub = null; document.removeEventListener("keydown", this._onKey, true); }
 
   _subscribe() {
     if (this._unsub || !this._hass?.connection) return;
@@ -839,6 +892,9 @@ class FixkostenCard extends HTMLElement {
   _gh(icon, color, title, right = "") {
     return `<div class="ghead"><span class="gdot" style="--gc:${color}">${ic(icon)}</span><span>${title}</span><span class="n">${right}</span></div>`;
   }
+  _inHaApp() { return !!this._hass?.auth?.external && !this._app; }
+  _awakeHint() { return this._inHaApp() ? "💡 Bildschirm bleibt nur an mit: HA-App → Einstellungen → Companion App → „Keep screen On“ einschalten" : "💡 Der Bildschirm kann hier nicht angehalten werden – bitte in den Handy-Einstellungen die Bildschirmzeit erhöhen"; }
+  _awakeStop() { this._awakeOn = false; try { this._awakeH?.stop(); } catch (_) { /* egal */ } this._awakeH = null; }
   _lb(t) { return this._labels ? `<span class="lbl">${esc(t)}</span>` : ""; } // 🔤 Beschriftung unter einem Symbol-Knopf
   _greet() {
     const h = new Date().getHours();
@@ -884,7 +940,8 @@ class FixkostenCard extends HTMLElement {
     const inSet = this._view === "set"; // ⚙️ in den Einstellungen braucht man weder Rechner noch Auge (wie bei der Einkaufsliste)
     if (inSet) this._calc = null;
     const tools = this._lockAll ? "" : `${inSet ? "" : `<button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}${this._lb("Rechner")}</button>
-      <button class="iconbtn ${this._hidden ? "on" : ""}" data-a="hide" title="Beträge ${this._hidden ? "zeigen" : "verstecken"}">${ic(this._hidden ? "eye-off-outline" : "eye-outline")}${this._lb(this._hidden ? "Zeigen" : "Verstecken")}</button>`}
+      <button class="iconbtn ${this._hidden ? "on" : ""}" data-a="hide" title="Beträge ${this._hidden ? "zeigen" : "verstecken"}">${ic(this._hidden ? "eye-off-outline" : "eye-outline")}${this._lb(this._hidden ? "Zeigen" : "Verstecken")}</button>
+      <button class="iconbtn awake ${this._awakeOn ? "on" : ""}" data-a="awake" title="${this._awakeOn ? "Bildschirm bleibt an – antippen zum Ausschalten" : "Bildschirm anlassen (antippen)"}" aria-label="Bildschirm anlassen">${ic(this._awakeOn ? "lightbulb-on" : "lightbulb-outline")}${this._lb(this._awakeOn ? "Bleibt an" : "Bildschirm")}</button>`}
       <button class="iconbtn" data-a="lock" title="${appLock ? "App jetzt sperren" : isLocked ? "Gesperrt – PIN nötig für ⚙️ und Bearbeiten" : "Jetzt sperren"}">${ic(isLocked && !appLock ? "lock-outline" : "lock-open-variant-outline")}${this._lb(isLocked && !appLock ? "Gesperrt" : "Sperren")}</button>
       ${showBack ? `<button class="iconbtn" data-a="back" title="${deeper ? "Zurück" : "Schließen"}">${ic(deeper ? "arrow-left" : "close")}${this._lb(deeper ? "Zurück" : "Schließen")}</button>` : ""}`;
     let body;
@@ -1190,11 +1247,25 @@ class FixkostenCard extends HTMLElement {
     const beta = /-beta/.test(FK_VERSION) && cur ? `<div class="betabox"><b>🧪 Du bist in der Beta ${FK_VERSION}</b><p class="small" style="margin:4px 0 2px">Neu in dieser Beta:</p>${li(cur[1])}</div>` : "";
     return `${beta}<p class="small">Das Neueste steht oben.</p>${FK_NEWS.filter((n) => n !== cur).map((n) => `<p style="margin:10px 0 0"><b>v${n[0]}</b></p>${li(n[1])}`).join("")}`;
   }
+  // 🙏 Credits – genau wie bei der Einkaufsliste (Logo, Version, Knöpfe, PayPal), in ⚙️ und in der Anleitung
   _creditsHtml() {
-    return `<p class="small" style="margin-top:2px">Fixkosten <b>v${FK_VERSION}</b> · von <b>Mister-M</b> · <a href="${REPO}" target="_blank" rel="noopener">GitHub</a> · <a href="${REPO}/issues" target="_blank" rel="noopener">Fehler melden</a></p>
-      <p class="small">Die Fixkosten sind und bleiben <b>kostenlos</b>. Wenn du magst, kannst du mir ganz freiwillig eine kleine Spende schicken. Danke! 🙏</p>
-      <div class="btnrow"><a class="btn paypal" href="${PAYPAL}" target="_blank" rel="noopener">${ic("hand-heart-outline")}Spenden per PayPal</a></div>
-      <p class="small">Symbole: Material Design Icons (Pictogrammers, frei). Lizenz: MIT.</p>`;
+    const t = (de, en) => (FK_LANG === "en" ? en : de);
+    return `<div class="elcredits" translate="no">
+      <div class="ellogo"><img src="/fixkosten/files/mister-m.webp?v=${FK_VERSION}" alt="Mister-M" loading="lazy"></div>
+      <p class="elcv"><b>Fixkosten</b> v${FK_VERSION}</p>
+      <p>${t("Gemacht von <b>Mister-M</b> – mit Hilfe von Claude 🤖", "Made by <b>Mister-M</b> – with help from Claude 🤖")}</p>
+      <p>${t("Ich versuche, Updates und Fehler-Korrekturen zeitnah zu erledigen.", "I try to ship updates and fixes promptly.")}</p>
+      <p class="elcsmall">📅 ${t("Neue offizielle Versionen kommen immer sonntags. An den anderen Tagen gibt es nur Test-Versionen (Beta) – die siehst du in HACS unter „Beta-Versionen anzeigen“.", "New official versions always come out on Sundays. On the other days there are only test versions (beta) – you see them in HACS under “Show beta versions”.")}</p>
+      <div class="elcbtns">
+        <a class="elcbtn" href="${REPO}" target="_blank" rel="noopener">🐙 GitHub</a>
+        <a class="elcbtn" href="${REPO}/discussions" target="_blank" rel="noopener">💡 ${t("Idee oder Wunsch", "Idea or request")}</a>
+        <a class="elcbtn" href="${REPO}/issues" target="_blank" rel="noopener">🐞 ${t("Fehler melden", "Report a bug")}</a>
+        <a class="elcbtn pp" href="${PAYPAL}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 2.7 5 6.2 5c2 0 3.5 1.1 5.8 3.4C14.3 6.1 15.8 5 17.8 5c3.5 0 5.2 3.6 3.8 6.8C19.5 16.4 12 21 12 21z" fill="#fff"/></svg><span>${t("Spenden mit PayPal", "Donate with PayPal")}</span></a>
+      </div>
+      <p class="elcsmall">${t("Die Fixkosten sind und bleiben kostenlos. Wenn sie dir gefallen, freue ich mich über eine kleine Spende – ganz freiwillig. Beim Antippen öffnet sich PayPal im Browser; vorher geht nichts ins Internet.", "Fixkosten is and stays free. If you like it, I would be happy about a small donation – completely voluntary. Tapping opens PayPal in your browser; nothing goes to the internet before that.")}</p>
+      <p>🔒 ${t("Alle Daten bleiben in deinem Home Assistant. Keine Cloud, kein Tracking – ins Internet geht nichts. Mehr unter ⚙️ → Datenschutz.", "All data stays in your Home Assistant. No cloud, no tracking – nothing goes to the internet. More under ⚙️ → Privacy.")}</p>
+      <p class="elcsmall">${t("Symbole: Material Design Icons (Pictogrammers) · Lizenz: MIT", "Icons: Material Design Icons (Pictogrammers) · License: MIT")}</p>
+    </div>`;
   }
 
   // 🔢 PIN-Eingabe wie am Handy (wie bei der Einkaufsliste): Punkte, Zahlenfeld 1–9, ⌫ 0 ✔ und „Abbrechen“
@@ -1429,7 +1500,16 @@ class FixkostenCard extends HTMLElement {
   _act(el, e) {
     const a = el.dataset.a, id = el.dataset.id, d = this._data;
     const redraw = () => { this._force = true; this._render(); };
-    if (a === "calc") { this._calc = this._calc ? null : { expr: "" }; redraw(); }
+    if (a === "awake") {
+      if (this._awakeOn) { this._awakeStop(); this._toast("💡 Bildschirm wieder normal"); redraw(); return; }
+      this._awakeOn = true; redraw();
+      fkKeepAwake(null, this._inHaApp()).then((w) => {
+        if (!this._awakeOn || this._awakeH) { w.stop(); return; }
+        if (!w.mode) { this._awakeOn = false; redraw(); this._toast(this._awakeHint()); w.stop(); return; }
+        this._awakeH = w; this._toast("💡 Bildschirm bleibt an");
+      }).catch(() => { this._awakeOn = false; redraw(); });
+    }
+    else if (a === "calc") { this._calc = this._calc ? null : { expr: "" }; redraw(); }
     else if (a === "ckey") {
       const k = el.dataset.v, c = this._calc;
       if (k === "C") c.expr = "";

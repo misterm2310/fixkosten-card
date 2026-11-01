@@ -18,7 +18,7 @@
 - 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day, paused items shown greyed out.
 - ⠿ **Reorder everything** by dragging (items also into another group), ↩️ **undo** after deleting.
 - 💳 **Card payments** via quick buttons ("bakery 5.75") – subtracted immediately.
-- 🧮 **Calculator** at the top of the card, result straight into a payment or the balance.
+- 🧮 **Calculator** at the top of the card, result straight into a payment or the balance. 💡 Button to keep the screen on.
 - 🐷 **Pots**, 🧾 **open balances**, 🏦 **IBAN list** with copy button, 💵 **income** as info.
 - 📱 **Offline app** with fingerprint lock and 🔒 **PIN lock** for settings.
 - 📊 **Monthly review** for up to 3 years, 📥 **CSV** import and export, 📜 **history log** (who changed what and when).
@@ -97,7 +97,7 @@ Actions: `fixkosten.abhaken`, `kontostand_setzen`, `buchung_hinzufuegen`, `topf_
 
 ## 💙 Like it?
 
-It is and stays **free**. If you like, you can send me a small voluntary donation via PayPal: [paypal.me/MarcoStrickmann](https://paypal.me/MarcoStrickmann). Thank you! 🙏
+It is and stays **free**. If you like, you can send me a small donation via PayPal – completely voluntary: [paypal.me/MarcoStrickmann](https://paypal.me/MarcoStrickmann). The link is also under ⚙️ → Credits. Thank you! 🙏
 
 [![PayPal](https://img.shields.io/badge/PayPal-Donate-0070BA?logo=paypal&logoColor=white)](https://paypal.me/MarcoStrickmann)
 

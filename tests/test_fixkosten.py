@@ -428,3 +428,22 @@ async def test_waehrung(hass, setup):
     assert parse_money("Fr. 12.50") == 12.5 and parse_money("$1,234.56") == 1234.56 and parse_money("1.234,56 €") == 1234.56
     res = m.apply([{"type": "settings", "settings": {"currency": "XYZ"}}])
     assert res[0]["ok"] is False and m.data["settings"]["currency"] == "CHF"
+
+
+async def test_pin_offline_key(hass, setup):
+    """📴 Offline-Schlüssel: Karte bekommt nur PBKDF2, nie die PIN; ältere PINs holen ihn beim ersten richtigen Eintippen nach."""
+    import hashlib  # noqa: PLC0415
+
+    m = mgr(hass)
+    m.set_pin("4711")
+    off = m.snapshot()["pin_off"]
+    assert off and "4711" not in str(off) and off["iter"] >= 100_000
+    assert hashlib.pbkdf2_hmac("sha256", b"4711", bytes.fromhex(off["salt"]), off["iter"]).hex() == off["hash"]
+    m.data["pin_off"] = None  # wie eine PIN aus beta.20
+    assert m.snapshot()["pin_off"] is None
+    assert not m.check_pin("0000") and m.data["pin_off"] is None
+    assert m.check_pin("4711") and m.data["pin_off"]
+    m.factory_reset()
+    assert m.data["pin_off"]
+    m.clear_pin()
+    assert m.snapshot()["pin_off"] is None

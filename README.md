@@ -125,7 +125,7 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 - 🩺 **Gesundheit:** Alles ok?, Fehler-Protokoll, Ressourcen
 - 👁️ **Ansicht:** Ansicht für alle (Abschnitte ein-/ausblenden, Einnahmen/Töpfe/Komplett verschleiern), Beschriftungen, Maskottchen (alle drei gelten für alle Geräte), Ruhiger Modus (nur dieses Gerät), in der Offline-App Hell / Dunkel
 - 📱 **Offline-App:** Anleitung und deine eigene App-Adresse mit „Kopieren“
-- 🔒 **Schutz** (4–8 Ziffern): Dann fragen ⚙️ und „Bearbeiten“ nach der PIN – mit dem Schalter „Ganze Karte sperren“ sogar die ganze Karte (in der Offline-App mit Fingerabdruck reicht der Fingerabdruck). Das 🔓 oben sperrt sofort wieder, sonst nach 10 Minuten Ruhe. 5× falsch = 1 Minute Pause.
+- 🔒 **Schutz** (4–8 Ziffern): Dann fragen ⚙️ und „Bearbeiten“ nach der PIN – mit dem Schalter „Ganze Karte sperren“ sogar die ganze Karte (in der Offline-App mit Fingerabdruck reicht der Fingerabdruck). Das 🔓 oben sperrt sofort wieder, sonst nach 10 Minuten Ruhe. 5× falsch = 1 Minute Pause. Entsperren klappt auch offline.
 - 🛡️ Datenschutz, 🆕 Was ist neu und 💙 Credits
 
 **In Home Assistant** (Einstellungen → Geräte & Dienste → Fixkosten → **Konfigurieren**):
@@ -134,7 +134,7 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 
 <details><summary><b>🔐 Ehrlich zur Sicherheit</b></summary>
 
-Die PIN liegt nur als Prüfsumme in Home Assistant und wird dort geprüft (dafür braucht es Netz). Sie schützt die Anzeige von ⚙️ und „Bearbeiten“ vor neugierigen Fingern am Wand-Tablet. Wer Admin in Home Assistant ist, kommt trotzdem an alles – das ist so gewollt.
+Die PIN liegt nur als Prüfsumme in Home Assistant und wird dort geprüft. Ohne Netz prüft die Karte selbst mit einem stark verwürfelten Offline-Schlüssel (nie die PIN selbst) – dafür die PIN nach dem Einschalten einmal mit Netz eintippen. Sie schützt die Anzeige von ⚙️ und „Bearbeiten“ vor neugierigen Fingern am Wand-Tablet. Wer Admin in Home Assistant ist, kommt trotzdem an alles – das ist so gewollt.
 
 </details>
 

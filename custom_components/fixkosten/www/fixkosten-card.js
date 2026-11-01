@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.23";
+const FK_VERSION = "1.0.0";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -38,6 +38,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.0", "🎉 <b>Erste offizielle Version!</b> Alles aus 23 Betas ist jetzt fest drin – danke fürs Testen! · 💶 Verfügbar-Rechnung, Fixkosten und Einnahmen abhaken, Ausgaben, 🐷 Töpfe, 🧮 Taschenrechner, Rückblick und 📜 Verlauf · 🔒 PIN (auch ohne Netz, auf Wunsch für die ganze Karte), 🙈 verschwommene Summen, 📱 Offline-App mit Fingerabdruck · 🌍 Englisch und andere Währungen (CHF, USD …), 📚 mehrere Bücher, 💡 Bildschirm-an-Knopf"],
   ["0.1.0-beta.23", "📋 <b>Kopieren klappt jetzt auch in der HA-App:</b> Sperrt das Handy die Zwischenablage, kopiert die Karte auf dem Ersatzweg wie bei der Einkaufsliste – statt ein Fenster aufzumachen. Gilt für die Adresse der Offline-App, IBANs und das Ergebnis im Taschenrechner."],
   ["0.1.0-beta.22", "💡 Der Knopf <b>Bildschirm immer an</b> sieht jetzt aus wie bei der Einkaufsliste (blau, wenn an) · 🌑 Geht das Handy-Display aus, ist auch „Bildschirm an“ wieder aus"],
   ["0.1.0-beta.21", "📴🔒 <b>PIN geht jetzt auch ohne Netz:</b> Ist die Verbindung weg, prüft die Karte die PIN selbst – die ganze Karte, ⚙️ und „Bearbeiten“ lassen sich also auch offline entsperren. Einmal die PIN <b>mit Netz</b> eintippen, dann kennt das Gerät den Schlüssel. PIN ändern oder ausschalten geht weiter nur mit Netz."],
@@ -1319,7 +1320,7 @@ class FixkostenCard extends HTMLElement {
     const li = (t) => `<ul>${t.split(" · ").map((x) => `<li>${x}</li>`).join("")}</ul>`;
     const cur = FK_NEWS.find((n) => n[0] === FK_VERSION);
     const beta = /-beta/.test(FK_VERSION) && cur ? `<div class="betabox"><b>🧪 Du bist in der Beta ${FK_VERSION}</b><p class="small" style="margin:4px 0 2px">Neu in dieser Beta:</p>${li(cur[1])}</div>` : "";
-    return `${beta}<p class="small">Das Neueste steht oben.</p>${FK_NEWS.filter((n) => n !== cur).map((n) => `<p style="margin:10px 0 0"><b>v${n[0]}</b></p>${li(n[1])}`).join("")}`;
+    return `${beta}<p class="small">Das Neueste steht oben.</p>${FK_NEWS.filter((n) => !beta || n !== cur).map((n) => `<p style="margin:10px 0 0"><b>v${n[0]}</b></p>${li(n[1])}`).join("")}`;
   }
   // 🙏 Credits – genau wie bei der Einkaufsliste (Logo, Version, Knöpfe, PayPal), in ⚙️ und in der Anleitung
   _creditsHtml() {

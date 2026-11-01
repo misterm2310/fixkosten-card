@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.22";
+const FK_VERSION = "0.1.0-beta.23";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -38,6 +38,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.23", "📋 <b>Kopieren klappt jetzt auch in der HA-App:</b> Sperrt das Handy die Zwischenablage, kopiert die Karte auf dem Ersatzweg wie bei der Einkaufsliste – statt ein Fenster aufzumachen. Gilt für die Adresse der Offline-App, IBANs und das Ergebnis im Taschenrechner."],
   ["0.1.0-beta.22", "💡 Der Knopf <b>Bildschirm immer an</b> sieht jetzt aus wie bei der Einkaufsliste (blau, wenn an) · 🌑 Geht das Handy-Display aus, ist auch „Bildschirm an“ wieder aus"],
   ["0.1.0-beta.21", "📴🔒 <b>PIN geht jetzt auch ohne Netz:</b> Ist die Verbindung weg, prüft die Karte die PIN selbst – die ganze Karte, ⚙️ und „Bearbeiten“ lassen sich also auch offline entsperren. Einmal die PIN <b>mit Netz</b> eintippen, dann kennt das Gerät den Schlüssel. PIN ändern oder ausschalten geht weiter nur mit Netz."],
   ["0.1.0-beta.20", "💡 Neuer Knopf <b>Bildschirm anlassen</b> oben zwischen 👁️ und 🔒 (wie beim Kegelclub): einmal antippen, dann geht das Handy beim Abarbeiten nicht mehr aus"],
@@ -395,6 +396,21 @@ function calcEval(expr) {
   return out.length === 1 && Number.isFinite(r) ? Math.round(r * 100) / 100 : null;
 }
 const numDe = (v) => (FK_MONEY.dec === "," ? String(v).replace(".", ",") : String(v)); // ✍️ Zahl fürs Eingabefeld, passend zur Währung
+// 📋 Text kopieren – mit Ersatzweg wie bei der Einkaufsliste, falls das Handy die Zwischenablage sperrt (z. B. in der HA-App oder ohne https)
+function fkCopy(text, inp) {
+  const old = () => {
+    try {
+      let tmp = null;
+      if (!inp) { tmp = document.createElement("textarea"); tmp.value = text; tmp.setAttribute("readonly", ""); tmp.style.cssText = "position:fixed;opacity:0;top:0;left:0"; document.body.appendChild(tmp); }
+      (inp || tmp).select();
+      document.execCommand?.("copy");
+      tmp?.remove();
+    } catch (_) { /* egal */ }
+  };
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text).catch(old);
+  old();
+  return Promise.resolve();
+}
 
 // ---------------------------------------------------------------- 🧮 Rechnen (genau wie in manager.py)
 function countsThisMonth(d, it) {
@@ -1596,7 +1612,7 @@ class FixkostenCard extends HTMLElement {
       if (r == null) return;
       if (el.dataset.v === "pay") { this._prefAmount = numDe(Math.abs(r)); this._view = "home"; this._calc = null; redraw(); setTimeout(() => this.shadowRoot.querySelector('form[data-a="booking"] input[name="name"]')?.focus(), 30); }
       else if (el.dataset.v === "balance") { if (fkConfirm(`Kontostand auf ${money(r)} setzen?`)) { this._calc = null; this._send({ type: "konto", balance: r }); } }
-      else (navigator.clipboard?.writeText(numDe(r)) || Promise.reject()).then(() => this._toast("📋 Kopiert"), () => prompt(fkT("Zum Kopieren:"), numDe(r)));
+      else fkCopy(numDe(r), null).then(() => this._toast("📋 Kopiert"));
     }
     else if (a === "lock") {
       const appLock = this._app && window.__fkAppLock?.on?.();
@@ -1631,7 +1647,7 @@ class FixkostenCard extends HTMLElement {
       this._hass.callWS({ type: "fixkosten/factory_reset", ...this._bk() }).then(() => { this._toast("💣 Alles zurückgesetzt"); this._sheet = null; this._view = "home"; this._force = true; this._render(); }, (err) => this._toast("⚠️ " + (err?.message || "Das hat nicht geklappt")));
     }
     else if (a === "setgrp") { this._setOpen = this._setOpen === el.dataset.v ? null : el.dataset.v; redraw(); }
-    else if (a === "appcopy") { const u = d.app_url || ""; (navigator.clipboard?.writeText(u) || Promise.reject()).then(() => this._toast("📋 Adresse kopiert"), () => prompt(fkT("Adresse zum Kopieren:"), u)); }
+    else if (a === "appcopy") { const u = d.app_url || ""; fkCopy(u, this.shadowRoot.getElementById("appUrl")).then(() => this._toast("📋 Adresse kopiert")); }
     else if (a === "quicksave") { const t = this.shadowRoot.querySelector('[data-a="quicktext"]')?.value || ""; this._send({ type: "settings", settings: { quick: t.split("\n").map((x) => x.trim()).filter(Boolean) } }); this._toast("⚡ Schnellknöpfe gespeichert"); }
     else if (a === "hide") { this._hidden = !this._hidden; store.put(HKEY, this._hidden); redraw(); }
     else if (a === "tab") { this._view = el.dataset.v; this._open = null; this._sheet = null; if (this._pad?.step !== "unlock") this._pad = null; redraw(); }
@@ -1647,7 +1663,7 @@ class FixkostenCard extends HTMLElement {
     else if (a === "copy") {
       const k = d.konten.find((x) => x.id === id);
       const raw = (k?.iban || "").replace(/\s/g, "");
-      (navigator.clipboard?.writeText(raw) || Promise.reject()).then(() => this._toast("📋 IBAN kopiert"), () => prompt(fkT("IBAN zum Kopieren:"), raw));
+      fkCopy(raw, null).then(() => this._toast("📋 IBAN kopiert"));
     }
     else if (a === "clear") {
       const b = d.bookings.find((x) => x.id === id);

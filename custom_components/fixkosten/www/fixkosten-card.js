@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "0.1.0-beta.21";
+const FK_VERSION = "0.1.0-beta.22";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -38,6 +38,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["0.1.0-beta.22", "💡 Der Knopf <b>Bildschirm immer an</b> sieht jetzt aus wie bei der Einkaufsliste (blau, wenn an) · 🌑 Geht das Handy-Display aus, ist auch „Bildschirm an“ wieder aus"],
   ["0.1.0-beta.21", "📴🔒 <b>PIN geht jetzt auch ohne Netz:</b> Ist die Verbindung weg, prüft die Karte die PIN selbst – die ganze Karte, ⚙️ und „Bearbeiten“ lassen sich also auch offline entsperren. Einmal die PIN <b>mit Netz</b> eintippen, dann kennt das Gerät den Schlüssel. PIN ändern oder ausschalten geht weiter nur mit Netz."],
   ["0.1.0-beta.20", "💡 Neuer Knopf <b>Bildschirm anlassen</b> oben zwischen 👁️ und 🔒 (wie beim Kegelclub): einmal antippen, dann geht das Handy beim Abarbeiten nicht mehr aus"],
   ["0.1.0-beta.19", "🙏 <b>Credits wie bei der Einkaufsliste:</b> Mister-M-Logo, Version, Knöpfe für GitHub, 💡 Idee oder Wunsch, 🐞 Fehler melden und Spenden mit PayPal – in ⚙️ → Credits und unten in der Anleitung."],
@@ -560,7 +561,7 @@ input.swchk:checked::after { left:20px; }
 .iconbtn { background:none; border:0; cursor:pointer; padding:6px; border-radius:50%; display:inline-flex; color:var(--secondary-text-color); line-height:0; }
 .iconbtn:hover { background:var(--secondary-background-color, rgba(127,127,127,.12)); color:var(--primary-text-color); }
 .iconbtn.on { color:var(--pc); }
-.iconbtn.awake.on { color:#f9a825; }
+.iconbtn.awake.on { color:var(--primary-color,#03a9f4); }
 /* 🏷️ Kopf in der Karte – wie bei der Einkaufsliste: Symbol + Zähler links, Werkzeuge rechts */
 .head { display:flex; align-items:center; gap:4px; margin:0 2px 8px; min-height:36px; }
 .title { display:flex; align-items:center; gap:8px; font-size:1.25em; font-weight:600; flex:1; min-width:0; }
@@ -951,7 +952,7 @@ class FixkostenCard extends HTMLElement {
   }
   _inHaApp() { return !!this._hass?.auth?.external && !this._app; }
   _awakeHint() { return this._inHaApp() ? "💡 Bildschirm bleibt nur an mit: HA-App → Einstellungen → Companion App → „Keep screen On“ einschalten" : "💡 Der Bildschirm kann hier nicht angehalten werden – bitte in den Handy-Einstellungen die Bildschirmzeit erhöhen"; }
-  _awakeStop() { this._awakeOn = false; try { this._awakeH?.stop(); } catch (_) { /* egal */ } this._awakeH = null; }
+  _awakeStop() { this._awakeOn = false; if (this._awakeVis) document.removeEventListener("visibilitychange", this._awakeVis); this._awakeVis = null; try { this._awakeH?.stop(); } catch (_) { /* egal */ } this._awakeH = null; }
   _lb(t) { return this._labels ? `<span class="lbl">${esc(t)}</span>` : ""; } // 🔤 Beschriftung unter einem Symbol-Knopf
   _greet() {
     const h = new Date().getHours();
@@ -998,7 +999,7 @@ class FixkostenCard extends HTMLElement {
     if (inSet) this._calc = null;
     const tools = this._lockAll ? "" : `${inSet ? "" : `<button class="iconbtn ${this._calc ? "on" : ""}" data-a="calc" title="Taschenrechner">${ic("calculator-variant-outline")}${this._lb("Rechner")}</button>
       <button class="iconbtn ${this._hidden ? "on" : ""}" data-a="hide" title="Beträge ${this._hidden ? "zeigen" : "verstecken"}">${ic(this._hidden ? "eye-off-outline" : "eye-outline")}${this._lb(this._hidden ? "Zeigen" : "Verstecken")}</button>
-      <button class="iconbtn awake ${this._awakeOn ? "on" : ""}" data-a="awake" title="${this._awakeOn ? "Bildschirm bleibt an – antippen zum Ausschalten" : "Bildschirm anlassen (antippen)"}" aria-label="Bildschirm anlassen">${ic(this._awakeOn ? "lightbulb-on" : "lightbulb-outline")}${this._lb(this._awakeOn ? "Bleibt an" : "Bildschirm")}</button>`}
+      <button class="iconbtn awake ${this._awakeOn ? "on" : ""}" data-a="awake" title="${this._awakeOn ? "Bildschirm immer an – antippen zum Ausschalten" : "Bildschirm immer an (antippen)"}" aria-label="Bildschirm immer an">${ic(this._awakeOn ? "lightbulb-on" : "lightbulb-outline")}${this._lb("Bildschirm")}</button>`}
       <button class="iconbtn" data-a="lock" title="${appLock ? "App jetzt sperren" : isLocked ? "Gesperrt – PIN nötig für ⚙️ und Bearbeiten" : "Jetzt sperren"}">${ic(isLocked && !appLock ? "lock-outline" : "lock-open-variant-outline")}${this._lb(isLocked && !appLock ? "Gesperrt" : "Sperren")}</button>
       ${showBack ? `<button class="iconbtn" data-a="back" title="${deeper ? "Zurück" : "Schließen"}">${ic(deeper ? "arrow-left" : "close")}${this._lb(deeper ? "Zurück" : "Schließen")}</button>` : ""}`;
     let body;
@@ -1571,6 +1572,10 @@ class FixkostenCard extends HTMLElement {
     if (a === "awake") {
       if (this._awakeOn) { this._awakeStop(); this._toast("💡 Bildschirm wieder normal"); redraw(); return; }
       this._awakeOn = true; redraw();
+      if (!this._awakeVis) { // 🌑 Display aus (oder andere App) = „Bildschirm an“ ganz aus, Glühbirne wieder aus
+        this._awakeVis = () => { if (document.visibilityState === "hidden" && this._awakeOn) { this._awakeStop(); redraw(); } };
+        document.addEventListener("visibilitychange", this._awakeVis);
+      }
       fkKeepAwake(null, this._inHaApp()).then((w) => {
         if (!this._awakeOn || this._awakeH) { w.stop(); return; }
         if (!w.mode) { this._awakeOn = false; redraw(); this._toast(this._awakeHint()); w.stop(); return; }

@@ -425,5 +425,8 @@
 "Bleibt an": "Stays on",
 "Bildschirm": "Screen",
 "💡 Bildschirm bleibt nur an mit: HA-App → Einstellungen → Companion App → „Keep screen On“ einschalten": "💡 The screen only stays on with: HA app → Settings → Companion App → turn on “Keep screen On”",
-"💡 Der Bildschirm kann hier nicht angehalten werden – bitte in den Handy-Einstellungen die Bildschirmzeit erhöhen": "💡 The screen can't be kept on here – please increase the screen timeout in your phone settings"
+"💡 Der Bildschirm kann hier nicht angehalten werden – bitte in den Handy-Einstellungen die Bildschirmzeit erhöhen": "💡 The screen can't be kept on here – please increase the screen timeout in your phone settings",
+"Bildschirm immer an (antippen)": "Screen always on (tap)",
+"Bildschirm immer an – antippen zum Ausschalten": "Screen always on – tap to turn off",
+"Bildschirm immer an": "Screen always on"
 }

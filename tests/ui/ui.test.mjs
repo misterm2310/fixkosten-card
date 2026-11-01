@@ -77,6 +77,14 @@ big = await sr(`return h.querySelector('.big').textContent.trim();`);
 check("Ausgabe zieht sofort ab", big === fmt(exp.avail - 5.75), big);
 check("Änderung an HA geschickt", await p.evaluate(() => fake.applied.some((o) => o.type === "booking_add" && o.name === "Bäckerei" && o.amount === 5.75)));
 check("Ausgabe „Bäckerei“ hat die Farbe ihres Schnellknopfs", await sr(`const chip = h.querySelector('.quick .chip[data-v="Bäckerei"]'), row = [...h.querySelectorAll('.item[data-k="booking"]')].find((x) => /Bäckerei/.test(x.textContent)); return !!row && row.style.getPropertyValue('--cc') === chip.style.getPropertyValue('--qc');`));
+// 🎨 beta.2: Namensanfang zählt („PayPal - Claude“ → PayPal), Orange nur ohne passenden Knopf
+await sr(`const f = h.querySelector('form[data-a="booking"]'); f.name.value = "PayPal - Claude"; f.amount.value = "1"; f.requestSubmit();`);
+await p.waitForTimeout(80);
+await sr(`const f = h.querySelector('form[data-a="booking"]'); f.name.value = "PayPalX"; f.amount.value = "1"; f.requestSubmit();`);
+await p.waitForTimeout(80);
+check("„PayPal - Claude“ bekommt die PayPal-Farbe, „PayPalX“ bleibt orange, kein Knopf orange", await sr(`const row = (n) => [...h.querySelectorAll('.item[data-k="booking"]')].find((x) => x.querySelector('b').textContent === n); const pp = h.querySelector('.quick .chip[data-v="PayPal"]').style.getPropertyValue('--qc'); const chips = [...h.querySelectorAll('.quick .chip')].map((x) => x.style.getPropertyValue('--qc')); return row("PayPal - Claude").style.getPropertyValue('--cc') === pp && row("PayPalX").style.getPropertyValue('--cc') === "#ff9800" && !chips.includes("#ff9800");`));
+await sr(`for (const n of ["PayPal - Claude", "PayPalX"]) { const r = [...h.querySelectorAll('.item[data-k="booking"]')].find((x) => x.querySelector('b').textContent === n); r.querySelector('[data-a="bdel"]').click(); }`);
+await p.waitForTimeout(80);
 
 check("Schnellknöpfe in einer Zeile zum Wischen", await sr(`const q = getComputedStyle(h.querySelector('.quick')); return q.flexWrap === "nowrap" && q.overflowX === "auto";`));
 check("Heißt jetzt „Ausgaben“", await sr(`return /Ausgaben/.test(h.innerHTML) && !/Kartenzahlung/.test(h.innerHTML);`));

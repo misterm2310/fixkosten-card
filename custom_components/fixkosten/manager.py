@@ -32,6 +32,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    PIN_OFF_ITER,
     APP_URL,
     CURRENCIES,
     DEFAULT_GROUPS,
@@ -117,6 +118,7 @@ def _empty() -> dict[str, Any]:
         "settings": dict(DEFAULT_SETTINGS),
         "seen": [],
         "pin": None,  # 🔒 PIN für ⚙️ und Bearbeiten (nur als Prüfsumme)
+        "pin_off": None,  # 📴 Offline-Schlüssel: stark verwürfelte PIN (PBKDF2), damit die Karte ohne Netz selbst prüfen kann
     }
 
 
@@ -293,8 +295,9 @@ class FixkostenManager:
 
     def snapshot(self) -> dict[str, Any]:
         """Was die Karte bekommt (ohne interne Merkliste)."""
-        out = {k: v for k, v in self.data.items() if k not in ("seen", "pin")}
+        out = {k: v for k, v in self.data.items() if k not in ("seen", "pin", "pin_off")}
         out["pin"] = bool(self.data.get("pin"))
+        out["pin_off"] = self.data.get("pin_off") if self.data.get("pin") else None  # 📴 nie die echte PIN, nur der Offline-Schlüssel
         out["summary"] = self.summary()
         out["app_url"] = self._app_url()
         out["version"] = VERSION  # 🔄 damit die Karte merkt, wenn sie veraltet ist
@@ -320,6 +323,12 @@ class FixkostenManager:
     def _pin_hash(pin: str, salt: str) -> str:
         return salt + "$" + hashlib.sha256((salt + str(pin)).encode()).hexdigest()
 
+    @staticmethod
+    def _pin_offline(pin: str) -> dict[str, Any]:
+        """📴 Offline-Schlüssel: PBKDF2-SHA256 mit eigenem Salz – die Karte rechnet ohne Netz genauso nach."""
+        salt = secrets.token_hex(16)
+        return {"salt": salt, "iter": PIN_OFF_ITER, "hash": hashlib.pbkdf2_hmac("sha256", str(pin).encode(), bytes.fromhex(salt), PIN_OFF_ITER).hex()}
+
     def check_pin(self, pin: str | None) -> bool:
         """PIN prüfen. 5× falsch = 60 Sekunden Pause (gegen Durchprobieren)."""
         if not self.data.get("pin"):
@@ -331,6 +340,9 @@ class FixkostenManager:
         ok = hmac.compare_digest(self._pin_hash(str(pin or ""), salt), self.data["pin"])
         if ok:
             self._pin_fails = 0
+            if not self.data.get("pin_off"):  # 📴 ältere PIN: Offline-Schlüssel beim ersten richtigen Eintippen nachholen
+                self.data["pin_off"] = self._pin_offline(str(pin))
+                self._changed()
         else:
             self._pin_fails += 1
             if self._pin_fails >= 5:
@@ -345,11 +357,13 @@ class FixkostenManager:
         if pin and not re.fullmatch(r"\d{4,8}", pin):
             raise HomeAssistantError("Die PIN muss 4 bis 8 Ziffern haben")
         self.data["pin"] = self._pin_hash(pin, secrets.token_hex(8)) if pin else None
+        self.data["pin_off"] = self._pin_offline(pin) if pin else None
         self._changed()
 
     def clear_pin(self) -> None:
         """🔓 PIN vergessen? Ein Admin setzt sie unter Geräte & Dienste → Fixkosten → Konfigurieren zurück."""
         self.data["pin"] = None
+        self.data["pin_off"] = None
         self._pin_fails = 0
         self._pin_locked_until = 0.0
         self._changed()
@@ -479,9 +493,9 @@ class FixkostenManager:
 
     def factory_reset(self) -> None:
         """💣 Werkseinstellungen: alles zurück auf Anfang – nur die PIN bleibt."""
-        pin = self.data.get("pin")
+        pin, pin_off = self.data.get("pin"), self.data.get("pin_off")
         self.data = _empty()
-        self.data["pin"] = pin
+        self.data["pin"], self.data["pin_off"] = pin, pin_off
         self.data["month"] = month_key(dt_util.now())
         self.errors = []
         self._changed()

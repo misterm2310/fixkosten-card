@@ -381,6 +381,29 @@ await shot("11-ganze-karte-gesperrt.png");
 await keys("4711✔");
 await p.waitForTimeout(80);
 check("Richtige PIN zeigt die Übersicht", await sr(`return !!h.querySelector('.big') && !h.querySelector('.ppad');`));
+// 📴 PIN ohne Netz: Karte prüft selbst mit dem Offline-Schlüssel (beta.21)
+{
+  const salt = "a1b2c3d4e5f60718293a4b5c6d7e8f90", hash = (await import("crypto")).pbkdf2Sync("4711", Buffer.from(salt, "hex"), 100000, 32, "sha256").toString("hex");
+  await p.evaluate((po) => { fake.data.pin_off = null; cb && cb(JSON.parse(JSON.stringify(fake.data))); }, null);
+  await p.waitForTimeout(60);
+  await p.evaluate(() => setOnline(false));
+  await sr(`h.querySelector('.head [data-a="lock"]').click();`);
+  await keys("4711✔");
+  await p.waitForTimeout(150);
+  check("Offline ohne Schlüssel: ehrlicher Hinweis, bleibt zu", await sr(`return !!h.querySelector('.ppad');`) && await p.evaluate(() => toasts.some((t) => t.includes("kennt das Gerät noch nicht"))));
+  await p.evaluate(() => setOnline(true));
+  await p.evaluate((po) => { fake.data.pin_off = po; cb && cb(JSON.parse(JSON.stringify(fake.data))); }, { salt, iter: 100000, hash });
+  await p.waitForTimeout(60);
+  await p.evaluate(() => setOnline(false));
+  await keys("0000✔");
+  await p.waitForTimeout(400);
+  check("Offline: falsche PIN bleibt zu", await sr(`return !!h.querySelector('.ppad');`) && await p.evaluate(() => toasts.at(-1) === "❌ Falsche PIN"));
+  await keys("4711✔");
+  await p.waitForTimeout(400);
+  check("Offline: richtige PIN entsperrt", await sr(`return !!h.querySelector('.big') && !h.querySelector('.ppad');`), await p.evaluate(() => toasts.slice(-3).join(" | ")));
+  await p.evaluate(() => setOnline(true));
+  await p.waitForTimeout(100);
+}
 await sr(`h.querySelector('[data-a="tab"][data-v="set"]').click();`);
 await sr(`h.querySelector('[data-a="setgrp"][data-v="App & Info"]').click(); h.querySelector('[data-a="sheet"][data-v="pin"]').click();`);
 check("Schalter „Ganze Karte sperren“ in Schutz", await sr(`return !!h.querySelector('[data-a="setlockall"]')?.checked;`));

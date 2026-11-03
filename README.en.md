@@ -6,6 +6,8 @@
 
 **How much money is really left this month?** The card shows exactly that: big and at a glance, in your dashboard, in the sidebar and as a phone app that also works offline.
 
+One click opens it right in your Home Assistant: [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=misterm2310&repository=fixkosten-card&category=integration) [![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=fixkosten)
+
 ![Preview – made-up example values only](docs/screenshot.png)
 
 > 🔒 **Your numbers stay with you.** Everything is stored only in your Home Assistant. No cloud, no third-party server. This repo contains made-up example values only.

@@ -6,6 +6,8 @@
 
 **Wie viel Geld ist diesen Monat wirklich noch übrig?** Genau das zeigt dir die Karte: groß, auf einen Blick, im Dashboard, in der Seitenleiste und als eigene Handy-App, die auch ohne Netz geht.
 
+Ein Klick öffnet es direkt in deinem Home Assistant: [![In HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=misterm2310&repository=fixkosten-card&category=integration) [![Integration hinzufügen](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=fixkosten)
+
 ![Vorschau – Fixkosten (nur ausgedachte Beispielzahlen)](docs/screenshot.png)
 
 > 🔒 **Deine Zahlen bleiben bei dir.** Alles liegt nur in deinem Home Assistant. Keine Cloud, kein fremder Server. In diesem Repo stehen nur ausgedachte Beispielzahlen.

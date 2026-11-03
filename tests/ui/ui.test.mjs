@@ -42,7 +42,7 @@ let big = await sr(`return h.querySelector('.big').textContent.trim();`);
 const fmt = (v) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(v);
 check("Verfügbar richtig gerechnet", big === fmt(exp.avail), `${big} statt ${fmt(exp.avail)}`);
 check("Gruppen, Einnahmen, Töpfe sind zu", await sr(`return !h.querySelector('[data-a="paid"]') && !!h.querySelector('[data-a="sec"][data-v="g:g01"]') && !h.querySelector('[data-a="pot"]');`));
-check("Hinweis nur für festen Tag (Streaming am 20.)", await sr(`return /Streaming/.test(h.querySelector('.next')?.textContent || '') && !/Jetzt fällig/.test(h.innerHTML);`), await sr(`return h.querySelector('.next')?.textContent || 'kein Hinweis';`));
+check("Kein Hinweis „Nächste Abbuchung“ oben mehr", await sr(`return !h.querySelector('.next');`));
 check("Reiter: Übersicht · Bearbeiten", await sr(`return [...h.querySelectorAll('.tab')].map((t) => t.dataset.v).join() === "home,edit";`));
 await shot("1a-zugeklappt.png");
 await sr(`h.querySelector('[data-a="sec"][data-v="g:g01"]').click();`);
@@ -67,6 +67,25 @@ await sr(`h.querySelector('[data-a="mpreset"][data-id="p4"]').click();`);
 await p.waitForTimeout(100);
 check("↺ zurück auf normal", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_month" && o.id === "p4" && o.amount === "")) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail));
 check("Schnellknöpfe haben verschiedene Farben", await sr(`const c = [...h.querySelectorAll('.quick .chip')].map((x) => getComputedStyle(x).borderTopColor); return c.length >= 3 && new Set(c).size === c.length;`));
+// 🎨 beta.3: Farbe hängt am Namen – umsortieren ändert nichts; eigene Farbe gewinnt
+const colBefore = await sr(`return h.querySelector('.quick .chip[data-v="Amazon"]').style.getPropertyValue('--qc');`);
+await sr(`const c = h.host; c._server.settings.quick = ["Amazon", ...c._server.settings.quick.filter((q) => q !== "Amazon")]; c._force = true; c._render();`);
+await p.waitForTimeout(60);
+check("Schnellknopf behält Farbe beim Umsortieren", await sr(`return h.querySelector('.quick .chip').dataset.v === "Amazon" && h.querySelector('.quick .chip[data-v="Amazon"]').style.getPropertyValue('--qc') === "${colBefore}";`), colBefore);
+await sr(`const c = h.host; c._server.settings.quick_colors = { amazon: "#123456" }; c._force = true; c._render();`);
+await p.waitForTimeout(40);
+check("Eigene Farbe für Schnellknopf", await sr(`return h.querySelector('.quick .chip[data-v="Amazon"]').style.getPropertyValue('--qc') === "#123456";`));
+await sr(`const c = h.host; delete c._server.settings.quick_colors; c._force = true; c._render();`);
+// 💳 Raten
+await sr(`const c = h.host, d = c._server, [y, m] = d.month.split("-").map(Number), u = new Date(y, m - 1 + 2, 1); d.posten.find((p) => p.id === "p6").until = u.getFullYear() + "-" + String(u.getMonth() + 1).padStart(2, "0"); c._force = true; c._render();`);
+await p.waitForTimeout(40);
+check("Raten: „noch 3 Raten“ am Posten", await sr(`return /noch 3 Raten/.test(h.querySelector('[data-a="paid"][data-id="p6"]').closest('.item').textContent);`), await sr(`return h.querySelector('[data-a="paid"][data-id="p6"]').closest('.item').textContent;`));
+await shot("16-raten.png");
+await sr(`const c = h.host, d = c._server; d.posten.find((p) => p.id === "p6").until = "2020-01"; c._force = true; c._render();`);
+await p.waitForTimeout(40);
+check("Raten abbezahlt: zählt nicht mehr mit", await sr(`return !h.querySelector('[data-a="paid"][data-id="p6"]');`));
+await sr(`const c = h.host; delete c._server.posten.find((p) => p.id === "p6").until; c._force = true; c._render();`);
+await p.waitForTimeout(40);
 
 // 💳 Ausgabe über Schnellknopf
 await sr(`h.querySelector('[data-a="quick"][data-v="Bäckerei"]').click();`);
@@ -96,7 +115,7 @@ await sr(`const f = h.querySelector('form[data-a="bsave"]'); f.name.value = "Tan
 await p.waitForTimeout(80);
 check("Ausgabe ändern schickt Name und Betrag", await p.evaluate(() => fake.applied.some((o) => o.type === "booking_edit" && o.id === "b1" && o.name === "Tanken" && o.amount === 23.4)), await p.evaluate(() => JSON.stringify(fake.applied.filter((o) => o.type === "booking_edit"))));
 
-check("„abgebucht“ ist nur ein grüner Haken", await sr(`const b = h.querySelector('[data-a="clear"]'); return !!b && !b.innerText.trim() && /abgebucht/.test(b.title);`));
+check("Ausgaben abhaken mit dem Kreis vorne (wie Fixkosten)", await sr(`const b = h.querySelector('[data-a="clear"]'); return !!b && b.classList.contains('chk') && b.parentElement.firstElementChild === b && /abgebucht/.test(b.title);`));
 // 👆 lange drücken zeigt den Namen, löst aber nichts aus
 const cb = await p.evaluate(() => { const r = document.querySelector('#c1').shadowRoot.querySelector('[data-a="clear"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
 const nApplied = await p.evaluate(() => fake.applied.length);
@@ -366,7 +385,7 @@ await sr(`const x = h.querySelector('[data-a="setcalm"]'); x.checked = true; x.d
 check("Ruhiger Modus: nur auf diesem Gerät (localStorage)", await p.evaluate(() => document.querySelector('#c1').classList.contains('calm') && localStorage.getItem('fixkosten_calm') === 'true'));
 await sr(`const x = h.querySelector('[data-a="setcalm"]'); x.checked = false; x.dispatchEvent(new Event('change'));`);
 await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="sheet"][data-v="view"]').click();`);
-check("Ansicht: 7 Schalter, alle an", await sr(`const x = [...h.querySelectorAll('[data-a="setview"]')]; return x.length === 7 && x.every((i) => i.checked);`));
+check("Ansicht: 6 Schalter, alle an (ohne „Nächste Abbuchung“)", await sr(`const x = [...h.querySelectorAll('[data-a="setview"]')]; return x.length === 6 && x.every((i) => i.checked);`));
 await shot("9b-ansicht.png");
 await sr(`const x = h.querySelector('[data-a="setview"][data-v="toepfe"]'); x.checked = false; x.dispatchEvent(new Event('change'));`);
 await new Promise((r) => setTimeout(r, 80));

@@ -222,6 +222,9 @@ class FixkostenManager:
     def _counts_this_month(self, item: dict[str, Any]) -> bool:
         if not item.get("active", True):
             return False
+        until = item.get("until")  # 💳 Ratenzahlung: nach dem letzten Monat zählt der Posten nicht mehr
+        if until and str(self.data["month"]) > str(until):
+            return False
         months = item.get("months") or []
         return not months or int(self.data["month"][5:7] or 0) in months
 
@@ -641,6 +644,9 @@ class FixkostenManager:
                 d["settings"]["reset_checks"] = bool(s["reset_checks"])
             if "quick" in s:  # ⚡ Schnellknöpfe für Ausgaben
                 d["settings"]["quick"] = [str(x).strip()[:30] for x in s["quick"] if str(x).strip()][:16]
+            if isinstance(s.get("quick_colors"), dict):  # 🎨 selbst gewählte Farben je Schnellknopf (Name klein → #rrggbb)
+                d["settings"]["quick_colors"] = {str(k).strip().lower()[:30]: v for k, v in list(s["quick_colors"].items())[:32]
+                                                 if isinstance(v, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", v)}
             if "debts_subtract" in s:
                 d["settings"]["debts_subtract"] = bool(s["debts_subtract"])
             if "warn_enabled" in s:  # 🔕 Warnung an/aus
@@ -714,6 +720,11 @@ class FixkostenManager:
                     if day is not None and not 1 <= day <= 31:
                         raise HomeAssistantError("Fester Tag muss zwischen 1 und 31 liegen")
                     target["day"] = day
+                if kind == "posten" and "until" in item:  # 💳 Raten bis (JJJJ-MM, leer = keine Raten)
+                    until = str(item["until"] or "").strip()
+                    if until and not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", until):
+                        raise HomeAssistantError("Raten bis: Monat als JJJJ-MM")
+                    target["until"] = until or None
                 if kind == "einnahme" and "date" in item:  # 📅 nur Info, z. B. „30.01.2026“ oder „monatlich am 1.“
                     target["date"] = str(item["date"] or "")[:30]
         if existing is None:

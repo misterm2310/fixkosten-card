@@ -647,6 +647,9 @@ class FixkostenManager:
             if isinstance(s.get("quick_colors"), dict):  # 🎨 selbst gewählte Farben je Schnellknopf (Name klein → #rrggbb)
                 d["settings"]["quick_colors"] = {str(k).strip().lower()[:30]: v for k, v in list(s["quick_colors"].items())[:32]
                                                  if isinstance(v, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", v)}
+            if isinstance(s.get("quick_icons"), dict):  # ⚡ Symbol je Schnellknopf (Name klein → mdi:…)
+                d["settings"]["quick_icons"] = {str(k).strip().lower()[:30]: v for k, v in list(s["quick_icons"].items())[:32]
+                                                if isinstance(v, str) and re.fullmatch(r"mdi:[a-z0-9-]{1,60}", v)}
             if "debts_subtract" in s:
                 d["settings"]["debts_subtract"] = bool(s["debts_subtract"])
             if "warn_enabled" in s:  # 🔕 Warnung an/aus

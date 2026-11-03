@@ -123,7 +123,7 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 
 **In der Karte (⚙️)** – wie bei der Einkaufsliste: Kästen nach Zweck zum Aufklappen, jede Zeile öffnet eine eigene Seite in der Karte (← zurück). Die PIN tippst du auf einem Zahlenfeld wie am Handy:
 - 🧮 **Rechnen & Warnung:** Haken am Monatsanfang automatisch zurücksetzen (Standard an), offene Stände von „Verfügbar“ abziehen (Standard aus), Warnung an/aus und Warngrenze, 💱 Währung
-- ⚡ **Schnellknöpfe** für Ausgaben, einer pro Zeile
+- ⚡ **Schnellknöpfe** für Ausgaben – wie die Kategorien der Einkaufsliste: Liste mit Farbe und Symbol, ⠿ ziehen = Reihenfolge, ＋ Neu, antippen = Name, Farbe und Symbol ändern, 🗑️ löschen mit Rückgängig
 - 💾 **Daten:** Import & Sicherung (CSV einlesen und sichern, nur Admins), 📜 Verlauf (an/aus, leeren), 📊 Rückblick, 💣 Werkseinstellungen (nur Admins, zwei Sicherheitsfragen, nur die PIN bleibt)
 - 🩺 **Gesundheit:** Alles ok?, Fehler-Protokoll, Ressourcen
 - 👁️ **Ansicht:** Ansicht für alle (Abschnitte ein-/ausblenden, Einnahmen/Töpfe/Komplett verschleiern), Beschriftungen, Maskottchen (alle drei gelten für alle Geräte), Ruhiger Modus (nur dieses Gerät), in der Offline-App Hell / Dunkel

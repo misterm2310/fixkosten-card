@@ -54,7 +54,7 @@ await shot("1-uebersicht.png");
 check("Abgehakte Fixkosten zeigen das Datum", await sr(`return /\\d\\d\\.\\d\\d\\./.test(h.querySelector('[data-a="paid"][data-id="p1"]').closest('.item').querySelector('.meta').textContent) && !/\\d\\d\\.\\d\\d\\./.test(h.querySelector('[data-a="paid"][data-id="p4"]').closest('.item').textContent);`), await sr(`return h.querySelector('[data-a="paid"][data-id="p1"]').closest('.item').textContent;`));
 await sr(`h.querySelector('.amt[data-a="mprice"][data-id="p4"]').click();`);
 await p.waitForTimeout(60);
-check("Betrag antippen öffnet „nur diesen Monat“", await sr(`const f = h.querySelector('form[data-a="mpsave"][data-id="p4"]'); return !!f && /normal/.test(f.textContent) && f.amount.value === "50";`));
+check("Betrag antippen öffnet „nur diesen Monat“ unter der Zeile (Zeile bleibt)", await sr(`const f = h.querySelector('form[data-a="mpsave"][data-id="p4"]'); return !!f && /Normal/.test(f.textContent) && f.previousElementSibling?.classList.contains("opened") && f.amount.value === "50";`));
 await shot("14-preis-nur-diesen-monat.png");
 await sr(`const f = h.querySelector('form[data-a="mpsave"]'); f.amount.value = "70"; f.requestSubmit();`);
 await p.waitForTimeout(100);
@@ -85,6 +85,7 @@ await sr(`const c = h.host, d = c._server; d.posten.find((p) => p.id === "p6").u
 await p.waitForTimeout(40);
 check("Raten abbezahlt: zählt nicht mehr mit", await sr(`return !h.querySelector('[data-a="paid"][data-id="p6"]');`));
 await sr(`const c = h.host; delete c._server.posten.find((p) => p.id === "p6").until; c._force = true; c._render();`);
+check("Raten bis: Monat + Jahr als Auswahl (Jahr änderbar)", await sr(`const c = h.host, t = document.createElement("div"); t.innerHTML = c._form(c._server, "posten", { id: "p6", name: "Kredit", until: "2027-03" }); const m = t.querySelector('select[name="until_m"]'), y = t.querySelector('select[name="until_y"]'); return !!m && !!y && m.value === "03" && y.value === "2027" && y.options.length >= 10 && !t.querySelector('input[type="month"]');`));
 await p.waitForTimeout(40);
 
 // 💳 Ausgabe über Schnellknopf
@@ -312,9 +313,25 @@ check("Ressourcen zeigen Speicher", await sr(`return /In Home Assistant/.test(h.
 await sr(`h.querySelector('.head [data-a="back"]').click();`);
 await sr(`h.querySelector('[data-a="setgrp"][data-v="Rechnen"]').click();`);
 await sr(`h.querySelector('[data-a="sheet"][data-v="quick"]').click();`);
-await sr(`h.querySelector('[data-a="quicktext"]').value = "Bäckerei\\nNetto, Lidl & Co."; h.querySelector('[data-a="quicksave"]').click();`);
+await p.waitForTimeout(40);
+await shot("6a-schnellknoepfe-liste.png");
+check("Schnellknöpfe: Liste wie Kategorien (Farbstreifen, Symbol, Griff, antippen)", await sr(`const r = h.querySelectorAll('.pagehost .storelist[data-list="quick"] .storerow'); return r.length >= 3 && !!r[0].querySelector('.grip') && !!r[0].querySelector('.storepick ha-icon') && !!r[0].style.getPropertyValue('--sc') && !h.querySelector('[data-a="quicktext"]');`));
+await sr(`const f = h.querySelector('form[data-a="qadd"]'); f.querySelector('input[name="name"]').value = "Tankstelle"; f.requestSubmit();`);
 await p.waitForTimeout(50);
-check("Schnellknöpfe: einer pro Zeile, Komma erlaubt", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.quick?.join("|") === "Bäckerei|Netto, Lidl & Co.")));
+check("Schnellknöpfe: ＋ Neu hängt den Knopf hinten an", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.quick?.at(-1) === "Tankstelle")));
+await sr(`h.querySelector('[data-a="qsel"][data-v="Amazon"]').click();`);
+await p.waitForTimeout(40);
+check("Schnellknopf antippen: eigene Seite mit Farbe, Name, Löschen und Symbolen", await sr(`return /Amazon/.test(h.querySelector('.pagehost .storehead')?.textContent || "") && !!h.querySelector('[data-a="qcolor"]') && !!h.querySelector('[data-a="qrename"]') && !!h.querySelector('[data-a="qdel"]') && h.querySelectorAll('.qicons .qic').length > 10;`));
+await sr(`h.querySelector('.qic[data-i="mdi:package-variant-closed"]').click();`);
+await p.waitForTimeout(40);
+await shot("6b-schnellknopf-einstellen.png");
+check("Schnellknopf: Symbol wählen schickt quick_icons", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.quick_icons?.amazon === "mdi:package-variant-closed")));
+await sr(`const i = h.querySelector('[data-a="qrename"]'); i.value = "Amazon Prime"; i.dispatchEvent(new Event('change'));`);
+await p.waitForTimeout(40);
+check("Schnellknopf umbenennen: Name, Farbe und Symbol wandern mit", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.quick?.includes("Amazon Prime") && !o.settings.quick.includes("Amazon") && "quick_icons" in o.settings)));
+await sr(`h.querySelector('[data-a="qdel"]').click();`);
+await p.waitForTimeout(40);
+check("Schnellknopf löschen: mit Rückgängig", await sr(`return /Schnellknopf weg/.test(h.querySelector('.undobar')?.textContent || "") && !h.querySelector('.storehead');`));
 await sr(`h.querySelector('.head [data-a="back"]').click();`);
 await sr(`h.querySelector('[data-a="sheet"][data-v="rechnen"]').click();`);
 await sr(`const c = h.querySelector('[data-a="setreset"]'); c.checked = false; c.dispatchEvent(new Event('change'));`);

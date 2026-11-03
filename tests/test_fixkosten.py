@@ -512,3 +512,5 @@ async def test_raten_und_knopf_farben(hass, setup, freezer):
     assert m.find("posten", "Fernseher")["until"] is None
     m.apply([{"type": "settings", "settings": {"quick_colors": {"Bäckerei": "#123456", "Kaputt": "rot"}}}])
     assert m.data["settings"]["quick_colors"] == {"bäckerei": "#123456"}
+    m.apply([{"type": "settings", "settings": {"quick_icons": {"Bäckerei": "mdi:bread-slice-outline", "Böse": "javascript:alert(1)"}}}])
+    assert m.data["settings"]["quick_icons"] == {"bäckerei": "mdi:bread-slice-outline"}

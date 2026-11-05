@@ -447,3 +447,70 @@ async def test_pin_offline_key(hass, setup):
     assert m.data["pin_off"]
     m.clear_pin()
     assert m.snapshot()["pin_off"] is None
+
+
+async def test_preis_nur_diesen_monat(hass, setup, freezer):
+    """💶 1.0.1-beta.1: Sonderpreis gilt nur im laufenden Monat, danach wieder der gespeicherte Preis."""
+    m = mgr(hass)
+    m.import_csv(CSV)
+    strom = m.find("posten", "Strom")
+    before = m.summary()
+    res = m.apply([{"type": "posten_month", "id": strom["id"], "amount": "90,00", "month": "2026-11"}])
+    assert res[0]["ok"]
+    assert m.data["month_price"][strom["id"]] == 90
+    assert strom["amount"] == 65  # gespeicherter Preis bleibt
+    s = m.summary()
+    assert s["fix_total"] == round(before["fix_total"] + 25, 2)
+    assert s["fix_open"] == round(before["fix_open"] + 25, 2)
+    assert "nur diesen Monat" in m.data["log"][-1]["text"]
+    # Offline im alten Monat geändert → zählt nicht
+    m.apply([{"type": "posten_month", "id": strom["id"], "amount": "1", "month": "2026-10"}])
+    assert m.data["month_price"][strom["id"]] == 90
+    # Leer = wieder normal
+    m.apply([{"type": "posten_month", "id": strom["id"], "amount": ""}])
+    assert strom["id"] not in m.data["month_price"]
+    assert m.summary()["fix_total"] == before["fix_total"]
+    # Neuer Monat → Sonderpreis weg, Rückblick hat ihn noch mitgezählt
+    m.apply([{"type": "posten_month", "id": strom["id"], "amount": 100}])
+    freezer.move_to(datetime(2026, 12, 1, 0, 0, 10, tzinfo=dt_util.get_time_zone(TZ)))
+    m._on_midnight(dt_util.now())
+    assert m.data["month_price"] == {}
+    assert m.data["history"][-1]["fix_total"] == round(before["fix_total"] + 35, 2)
+    assert m.summary()["fix_total"] == before["fix_total"]
+    # Löschen räumt mit auf
+    m.apply([{"type": "posten_month", "id": strom["id"], "amount": 70}, {"type": "posten_delete", "id": strom["id"]}])
+    assert m.data["month_price"] == {}
+
+
+async def test_topf_datum_bei_jeder_aenderung(hass, setup):
+    """📅 Töpfe merken bei Rausnehmen, Zurücklegen und „nicht mehr zurücklegen“ das Datum."""
+    m = mgr(hass)
+    m.import_csv(CSV)
+    pot = m.find("topf", "Sparkonto")
+    m.apply([{"type": "topf_take", "id": pot["id"], "amount": 50, "ts": 1000}])
+    assert pot["updated"] == 1000
+    m.apply([{"type": "topf_keep", "id": pot["id"], "ts": 2000}])
+    assert pot["updated"] == 2000 and pot["lent"] == 0
+
+
+async def test_raten_und_knopf_farben(hass, setup, freezer):
+    """💳 1.0.1-beta.3: Raten bis (letzter Monat) und eigene Farben für Schnellknöpfe."""
+    m = mgr(hass)
+    m.import_csv(CSV)
+    before = m.summary()["fix_total"]
+    res = m.apply([{"type": "posten_save", "item": {"name": "Fernseher", "amount": 30, "group": "1", "until": "2026-12"}}])
+    assert res[0]["ok"]
+    assert m.find("posten", "Fernseher")["until"] == "2026-12"
+    assert m.summary()["fix_total"] == before + 30
+    freezer.move_to(datetime(2027, 1, 1, 0, 0, 10, tzinfo=dt_util.get_time_zone(TZ)))
+    m._on_midnight(dt_util.now())
+    assert m.data["month"] == "2027-01"
+    assert m.summary()["fix_total"] == before  # abbezahlt → zählt nicht mehr
+    res = m.apply([{"type": "posten_save", "item": {"id": m.find("posten", "Fernseher")["id"], "until": "Dezember"}}])
+    assert not res[0]["ok"]
+    m.apply([{"type": "posten_save", "item": {"id": m.find("posten", "Fernseher")["id"], "until": ""}}])
+    assert m.find("posten", "Fernseher")["until"] is None
+    m.apply([{"type": "settings", "settings": {"quick_colors": {"Bäckerei": "#123456", "Kaputt": "rot"}}}])
+    assert m.data["settings"]["quick_colors"] == {"bäckerei": "#123456"}
+    m.apply([{"type": "settings", "settings": {"quick_icons": {"Bäckerei": "mdi:bread-slice-outline", "Böse": "javascript:alert(1)"}}}])
+    assert m.data["settings"]["quick_icons"] == {"bäckerei": "mdi:bread-slice-outline"}

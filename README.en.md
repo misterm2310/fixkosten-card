@@ -6,6 +6,8 @@
 
 **How much money is really left this month?** The card shows exactly that: big and at a glance, in your dashboard, in the sidebar and as a phone app that also works offline.
 
+One click opens it right in your Home Assistant: [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=misterm2310&repository=fixkosten-card&category=integration) [![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=fixkosten)
+
 ![Preview – made-up example values only](docs/screenshot.png)
 
 > 🔒 **Your numbers stay with you.** Everything is stored only in your Home Assistant. No cloud, no third-party server. This repo contains made-up example values only.
@@ -15,7 +17,7 @@
 ## ✨ What does it do?
 
 - 💰 **Available** = balance − open fixed costs − payments (card, PayPal, cash …) not yet debited.
-- 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day, paused items shown greyed out.
+- 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day, paused items shown greyed out. Different price just this month? Tap the amount.
 - ⠿ **Reorder everything** by dragging (items also into another group), ↩️ **undo** after deleting.
 - 💳 **Card payments** via quick buttons ("bakery 5.75") – subtracted immediately.
 - 🧮 **Calculator** at the top of the card, result straight into a payment or the balance. 💡 Button to keep the screen on.
@@ -30,6 +32,8 @@
 ---
 
 ## 📦 Installation
+
+> 💡 **From Home Assistant 2026.11** HACS is built into Home Assistant and is called **Settings → Marketplace**. The steps stay the same, only the way there is new.
 
 1. Open **HACS**, top right **⋮ → Custom repositories**, add `https://github.com/misterm2310/fixkosten-card`, type **Integration**.
 2. Search for **Fixkosten**, **Download**, then **restart Home Assistant**.

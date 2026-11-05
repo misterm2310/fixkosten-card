@@ -112,6 +112,7 @@ def _empty() -> dict[str, Any]:
         "month": "",
         "paid": {},
         "received": {},
+        "month_price": {},  # 💶 Preis nur für diesen Monat (Posten-id → Betrag), am Monatsanfang wieder weg
         "bookings": [],
         "history": [],
         "log": [],  # 📜 Verlauf: wer, wann, was (die letzten MAX_LOG)
@@ -196,6 +197,7 @@ class FixkostenManager:
         if self.data["settings"].get("reset_checks", True):
             self.data["paid"] = {}
             self.data["received"] = {}
+        self.data["month_price"] = {}  # 💶 Sonderpreise gelten nur einen Monat – danach wieder der gespeicherte Preis
         self.data["month"] = now_key
         cutoff = (dt_util.utcnow() - timedelta(days=MAX_BOOKINGS_DAYS)).timestamp() * 1000
         self.data["bookings"] = [b for b in self.data["bookings"] if b.get("ts", 0) >= cutoff or not b.get("cleared")]
@@ -220,8 +222,16 @@ class FixkostenManager:
     def _counts_this_month(self, item: dict[str, Any]) -> bool:
         if not item.get("active", True):
             return False
+        until = item.get("until")  # 💳 Ratenzahlung: nach dem letzten Monat zählt der Posten nicht mehr
+        if until and str(self.data["month"]) > str(until):
+            return False
         months = item.get("months") or []
         return not months or int(self.data["month"][5:7] or 0) in months
+
+    def amount_of(self, item: dict[str, Any]) -> float:
+        """💶 Betrag eines Postens in diesem Monat: Sonderpreis (nur dieser Monat) oder der gespeicherte."""
+        special = (self.data.get("month_price") or {}).get(item.get("id"))
+        return float(special) if special is not None else float(item.get("amount", 0))
 
     def summary(self) -> dict[str, Any]:
         """Alle Zahlen für Karte und Sensoren (Beträge immer positiv = Geld, das weggeht/reinkommt)."""
@@ -235,15 +245,15 @@ class FixkostenManager:
         next_item = None
         for g in groups:
             items = [p for p in d["posten"] if p.get("group") == g["id"] and self._counts_this_month(p)]
-            total = sum(p["amount"] for p in items)
+            total = sum(self.amount_of(p) for p in items)
             open_items = [p for p in items if not paid.get(p["id"], {}).get("paid")]
-            open_sum = sum(p["amount"] for p in open_items)
+            open_sum = sum(self.amount_of(p) for p in open_items)
             due = today >= int(g.get("start_day", 1))
             fix_total += total
             fix_open += open_sum
             if open_items and next_item is None:
                 first = open_items[0]
-                next_item = {"name": first["name"], "amount": first["amount"], "group": g["name"],
+                next_item = {"name": first["name"], "amount": self.amount_of(first), "group": g["name"],
                              "start_day": g.get("start_day", 1), "due": due}
             group_info.append({"id": g["id"], "name": g["name"], "start_day": g.get("start_day", 1), "due": due,
                                "total": round(total, 2), "open": round(open_sum, 2), "count": len(items),
@@ -252,9 +262,9 @@ class FixkostenManager:
         known = {g["id"] for g in groups}
         for p in d["posten"]:
             if p.get("group") not in known and self._counts_this_month(p):
-                fix_total += p["amount"]
+                fix_total += self.amount_of(p)
                 if not paid.get(p["id"], {}).get("paid"):
-                    fix_open += p["amount"]
+                    fix_open += self.amount_of(p)
 
         incomes = [e for e in d["einnahmen"] if self._counts_this_month(e)]
         income_total = sum(e["amount"] for e in incomes)
@@ -442,6 +452,12 @@ class FixkostenManager:
             return f"{'✅' if on else '⭕'} „{self._name('posten', op.get('id'))}“ {'abgehakt' if on else 'Haken weg'}"
         if t == "received":
             return f"{'💵' if on else '⭕'} „{self._name('einnahme', op.get('id'))}“ {'ist da' if on else 'doch nicht da'}"
+        if t == "posten_month":
+            name = self._name("posten", op.get("id"))
+            raw = op.get("amount")
+            if raw is None or str(raw).strip() == "":
+                return f"💶 „{name}“ diesen Monat wieder zum normalen Preis"
+            return f"💶 „{name}“ nur diesen Monat: {self._eur(abs(parse_money(raw)))}"
         if t == "reset_checks":
             return "↩️ Alle Haken zurückgesetzt"
         if t == "konto" and "balance" in op:
@@ -524,6 +540,7 @@ class FixkostenManager:
                         p["group"] = fallback
             d["paid"].pop(item["id"], None)
             d["received"].pop(item["id"], None)
+            d["month_price"].pop(item["id"], None)
         elif t in ("paid", "received"):
             kind = "posten" if t == "paid" else "einnahme"
             item = self.find(kind, op["id"])
@@ -536,6 +553,17 @@ class FixkostenManager:
             if old and old.get("ts", 0) > ts:
                 return  # neuere Änderung ist schon da
             store[item["id"]] = {"paid": bool(op.get("value", True)), "ts": ts, "by": user}
+        elif t == "posten_month":  # 💶 Preis nur für diesen Monat (leer = wieder der gespeicherte Preis)
+            item = self.find("posten", op.get("id"))
+            if item is None:
+                raise HomeAssistantError(f"„{op.get('id')}“ gibt es nicht")
+            if op.get("month") and op["month"] != d["month"]:
+                return  # offline im alten Monat geändert – gilt im neuen Monat nicht mehr
+            raw = op.get("amount")
+            if raw is None or str(raw).strip() == "":
+                d["month_price"].pop(item["id"], None)
+            else:
+                d["month_price"][item["id"]] = abs(parse_money(raw))
         elif t == "reset_checks":
             d["paid"] = {}
             d["received"] = {}
@@ -585,6 +613,7 @@ class FixkostenManager:
             if pot is None:
                 raise HomeAssistantError("Topf nicht gefunden")
             pot["lent"] = 0.0
+            pot["updated"] = ts  # 📅 Datum der letzten Änderung
         elif t == "booking_delete":
             d["bookings"] = [b for b in d["bookings"] if b["id"] != op["id"]]
         elif t == "restore":  # ↩️ Rückgängig nach dem Löschen: Eintrag kommt an seinen alten Platz zurück
@@ -615,6 +644,12 @@ class FixkostenManager:
                 d["settings"]["reset_checks"] = bool(s["reset_checks"])
             if "quick" in s:  # ⚡ Schnellknöpfe für Ausgaben
                 d["settings"]["quick"] = [str(x).strip()[:30] for x in s["quick"] if str(x).strip()][:16]
+            if isinstance(s.get("quick_colors"), dict):  # 🎨 selbst gewählte Farben je Schnellknopf (Name klein → #rrggbb)
+                d["settings"]["quick_colors"] = {str(k).strip().lower()[:30]: v for k, v in list(s["quick_colors"].items())[:32]
+                                                 if isinstance(v, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", v)}
+            if isinstance(s.get("quick_icons"), dict):  # ⚡ Symbol je Schnellknopf (Name klein → mdi:…)
+                d["settings"]["quick_icons"] = {str(k).strip().lower()[:30]: v for k, v in list(s["quick_icons"].items())[:32]
+                                                if isinstance(v, str) and re.fullmatch(r"mdi:[a-z0-9-]{1,60}", v)}
             if "debts_subtract" in s:
                 d["settings"]["debts_subtract"] = bool(s["debts_subtract"])
             if "warn_enabled" in s:  # 🔕 Warnung an/aus
@@ -688,6 +723,11 @@ class FixkostenManager:
                     if day is not None and not 1 <= day <= 31:
                         raise HomeAssistantError("Fester Tag muss zwischen 1 und 31 liegen")
                     target["day"] = day
+                if kind == "posten" and "until" in item:  # 💳 Raten bis (JJJJ-MM, leer = keine Raten)
+                    until = str(item["until"] or "").strip()
+                    if until and not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", until):
+                        raise HomeAssistantError("Raten bis: Monat als JJJJ-MM")
+                    target["until"] = until or None
                 if kind == "einnahme" and "date" in item:  # 📅 nur Info, z. B. „30.01.2026“ oder „monatlich am 1.“
                     target["date"] = str(item["date"] or "")[:30]
         if existing is None:
@@ -731,7 +771,7 @@ class FixkostenManager:
         counts = {"ausgaben": 0, "einnahmen": 0, "toepfe": 0, "staende": 0, "konten": 0, "kontostand": 0, "uebersprungen": 0}
         if replace:
             self.data["posten"], self.data["einnahmen"], self.data["toepfe"], self.data["staende"] = [], [], [], []
-            self.data["paid"], self.data["received"] = {}, {}
+            self.data["paid"], self.data["received"], self.data["month_price"] = {}, {}, {}
         ts = int(dt_util.utcnow().timestamp() * 1000)
         kinds = {"ausgabe": "posten", "ausgaben": "posten", "posten": "posten", "fix": "posten",
                  "einnahme": "einnahme", "einnahmen": "einnahme", "topf": "topf", "toepfe": "topf", "töpfe": "topf", "iban": "konto", "bankkonto": "konto",

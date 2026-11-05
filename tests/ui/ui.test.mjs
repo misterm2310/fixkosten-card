@@ -42,7 +42,7 @@ let big = await sr(`return h.querySelector('.big').textContent.trim();`);
 const fmt = (v) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(v);
 check("Verfügbar richtig gerechnet", big === fmt(exp.avail), `${big} statt ${fmt(exp.avail)}`);
 check("Gruppen, Einnahmen, Töpfe sind zu", await sr(`return !h.querySelector('[data-a="paid"]') && !!h.querySelector('[data-a="sec"][data-v="g:g01"]') && !h.querySelector('[data-a="pot"]');`));
-check("Hinweis nur für festen Tag (Streaming am 20.)", await sr(`return /Streaming/.test(h.querySelector('.next')?.textContent || '') && !/Jetzt fällig/.test(h.innerHTML);`), await sr(`return h.querySelector('.next')?.textContent || 'kein Hinweis';`));
+check("Kein Hinweis „Nächste Abbuchung“ oben mehr", await sr(`return !h.querySelector('.next');`));
 check("Reiter: Übersicht · Bearbeiten", await sr(`return [...h.querySelectorAll('.tab')].map((t) => t.dataset.v).join() === "home,edit";`));
 await shot("1a-zugeklappt.png");
 await sr(`h.querySelector('[data-a="sec"][data-v="g:g01"]').click();`);
@@ -50,6 +50,43 @@ await sr(`h.querySelector('[data-a="sec"][data-v="g:g15"]').click();`);
 check("Aufklappen zeigt Posten, Pausierte grau + abgehakt", await sr(`const r = [...h.querySelectorAll('.item.paused')]; return !!h.querySelector('[data-a="paid"][data-id="p1"]') && r.length === 1 && /Zeitschrift/.test(r[0].textContent) && r[0].classList.contains('done');`));
 check("Aufgeklappt wird nicht gemerkt", await p.evaluate(() => localStorage.getItem("fixkosten_offen") === null));
 await shot("1-uebersicht.png");
+// ✅ 1.0.1-beta.1: abgehakt am … · 💶 Preis nur diesen Monat
+check("Abgehakte Fixkosten zeigen das Datum", await sr(`return /\\d\\d\\.\\d\\d\\./.test(h.querySelector('[data-a="paid"][data-id="p1"]').closest('.item').querySelector('.meta').textContent) && !/\\d\\d\\.\\d\\d\\./.test(h.querySelector('[data-a="paid"][data-id="p4"]').closest('.item').textContent);`), await sr(`return h.querySelector('[data-a="paid"][data-id="p1"]').closest('.item').textContent;`));
+await sr(`h.querySelector('.amt[data-a="mprice"][data-id="p4"]').click();`);
+await p.waitForTimeout(60);
+check("Betrag antippen öffnet „nur diesen Monat“ unter der Zeile (Zeile bleibt)", await sr(`const f = h.querySelector('form[data-a="mpsave"][data-id="p4"]'); return !!f && /Normal/.test(f.textContent) && f.previousElementSibling?.classList.contains("opened") && f.amount.value === "50";`));
+await shot("14-preis-nur-diesen-monat.png");
+await sr(`const f = h.querySelector('form[data-a="mpsave"]'); f.amount.value = "70"; f.requestSubmit();`);
+await p.waitForTimeout(100);
+check("Sonderpreis geschickt und gerechnet", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_month" && o.id === "p4" && o.amount === 70 && o.month)) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail - 20), await sr(`return h.querySelector('.big').textContent.trim();`));
+check("Sonderpreis: ✏️ nur … am Posten, Betrag 70", await sr(`const r = h.querySelector('.amt[data-id="p4"]').closest('.item'); return /nur /.test(r.querySelector('.tag.mp')?.textContent || '') && /70,00/.test(r.querySelector('.amt').textContent);`), await sr(`return h.querySelector('.amt[data-id="p4"]').closest('.item').textContent;`));
+await shot("15-sonderpreis.png");
+await sr(`h.querySelector('.amt[data-a="mprice"][data-id="p4"]').click();`);
+await p.waitForTimeout(60);
+await sr(`h.querySelector('[data-a="mpreset"][data-id="p4"]').click();`);
+await p.waitForTimeout(100);
+check("↺ zurück auf normal", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_month" && o.id === "p4" && o.amount === "")) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail));
+check("Schnellknöpfe haben verschiedene Farben", await sr(`const c = [...h.querySelectorAll('.quick .chip')].map((x) => getComputedStyle(x).borderTopColor); return c.length >= 3 && new Set(c).size === c.length;`));
+// 🎨 beta.3: Farbe hängt am Namen – umsortieren ändert nichts; eigene Farbe gewinnt
+const colBefore = await sr(`return h.querySelector('.quick .chip[data-v="Amazon"]').style.getPropertyValue('--qc');`);
+await sr(`const c = h.host; c._server.settings.quick = ["Amazon", ...c._server.settings.quick.filter((q) => q !== "Amazon")]; c._force = true; c._render();`);
+await p.waitForTimeout(60);
+check("Schnellknopf behält Farbe beim Umsortieren", await sr(`return h.querySelector('.quick .chip').dataset.v === "Amazon" && h.querySelector('.quick .chip[data-v="Amazon"]').style.getPropertyValue('--qc') === "${colBefore}";`), colBefore);
+await sr(`const c = h.host; c._server.settings.quick_colors = { amazon: "#123456" }; c._force = true; c._render();`);
+await p.waitForTimeout(40);
+check("Eigene Farbe für Schnellknopf", await sr(`return h.querySelector('.quick .chip[data-v="Amazon"]').style.getPropertyValue('--qc') === "#123456";`));
+await sr(`const c = h.host; delete c._server.settings.quick_colors; c._force = true; c._render();`);
+// 💳 Raten
+await sr(`const c = h.host, d = c._server, [y, m] = d.month.split("-").map(Number), u = new Date(y, m - 1 + 2, 1); d.posten.find((p) => p.id === "p6").until = u.getFullYear() + "-" + String(u.getMonth() + 1).padStart(2, "0"); c._force = true; c._render();`);
+await p.waitForTimeout(40);
+check("Raten: „noch 3 Raten“ am Posten", await sr(`return /noch 3 Raten/.test(h.querySelector('[data-a="paid"][data-id="p6"]').closest('.item').textContent);`), await sr(`return h.querySelector('[data-a="paid"][data-id="p6"]').closest('.item').textContent;`));
+await shot("16-raten.png");
+await sr(`const c = h.host, d = c._server; d.posten.find((p) => p.id === "p6").until = "2020-01"; c._force = true; c._render();`);
+await p.waitForTimeout(40);
+check("Raten abbezahlt: zählt nicht mehr mit", await sr(`return !h.querySelector('[data-a="paid"][data-id="p6"]');`));
+await sr(`const c = h.host; delete c._server.posten.find((p) => p.id === "p6").until; c._force = true; c._render();`);
+check("Raten bis: Monat + Jahr als Auswahl (Jahr änderbar)", await sr(`const c = h.host, t = document.createElement("div"); t.innerHTML = c._form(c._server, "posten", { id: "p6", name: "Kredit", until: "2027-03" }); const m = t.querySelector('select[name="until_m"]'), y = t.querySelector('select[name="until_y"]'); return !!m && !!y && m.value === "03" && y.value === "2027" && y.options.length >= 10 && !t.querySelector('input[type="month"]');`));
+await p.waitForTimeout(40);
 
 // 💳 Ausgabe über Schnellknopf
 await sr(`h.querySelector('[data-a="quick"][data-v="Bäckerei"]').click();`);
@@ -59,6 +96,15 @@ await p.waitForTimeout(80);
 big = await sr(`return h.querySelector('.big').textContent.trim();`);
 check("Ausgabe zieht sofort ab", big === fmt(exp.avail - 5.75), big);
 check("Änderung an HA geschickt", await p.evaluate(() => fake.applied.some((o) => o.type === "booking_add" && o.name === "Bäckerei" && o.amount === 5.75)));
+check("Ausgabe „Bäckerei“ hat die Farbe ihres Schnellknopfs", await sr(`const chip = h.querySelector('.quick .chip[data-v="Bäckerei"]'), row = [...h.querySelectorAll('.item[data-k="booking"]')].find((x) => /Bäckerei/.test(x.textContent)); return !!row && row.style.getPropertyValue('--cc') === chip.style.getPropertyValue('--qc');`));
+// 🎨 beta.2: Namensanfang zählt („PayPal - Claude“ → PayPal), Orange nur ohne passenden Knopf
+await sr(`const f = h.querySelector('form[data-a="booking"]'); f.name.value = "PayPal - Claude"; f.amount.value = "1"; f.requestSubmit();`);
+await p.waitForTimeout(80);
+await sr(`const f = h.querySelector('form[data-a="booking"]'); f.name.value = "PayPalX"; f.amount.value = "1"; f.requestSubmit();`);
+await p.waitForTimeout(80);
+check("„PayPal - Claude“ bekommt die PayPal-Farbe, „PayPalX“ bleibt orange, kein Knopf orange", await sr(`const row = (n) => [...h.querySelectorAll('.item[data-k="booking"]')].find((x) => x.querySelector('b').textContent === n); const pp = h.querySelector('.quick .chip[data-v="PayPal"]').style.getPropertyValue('--qc'); const chips = [...h.querySelectorAll('.quick .chip')].map((x) => x.style.getPropertyValue('--qc')); return row("PayPal - Claude").style.getPropertyValue('--cc') === pp && row("PayPalX").style.getPropertyValue('--cc') === "#ff9800" && !chips.includes("#ff9800");`));
+await sr(`for (const n of ["PayPal - Claude", "PayPalX"]) { const r = [...h.querySelectorAll('.item[data-k="booking"]')].find((x) => x.querySelector('b').textContent === n); r.querySelector('[data-a="bdel"]').click(); }`);
+await p.waitForTimeout(80);
 
 check("Schnellknöpfe in einer Zeile zum Wischen", await sr(`const q = getComputedStyle(h.querySelector('.quick')); return q.flexWrap === "nowrap" && q.overflowX === "auto";`));
 check("Heißt jetzt „Ausgaben“", await sr(`return /Ausgaben/.test(h.innerHTML) && !/Kartenzahlung/.test(h.innerHTML);`));
@@ -70,7 +116,7 @@ await sr(`const f = h.querySelector('form[data-a="bsave"]'); f.name.value = "Tan
 await p.waitForTimeout(80);
 check("Ausgabe ändern schickt Name und Betrag", await p.evaluate(() => fake.applied.some((o) => o.type === "booking_edit" && o.id === "b1" && o.name === "Tanken" && o.amount === 23.4)), await p.evaluate(() => JSON.stringify(fake.applied.filter((o) => o.type === "booking_edit"))));
 
-check("„abgebucht“ ist nur ein grüner Haken", await sr(`const b = h.querySelector('[data-a="clear"]'); return !!b && !b.innerText.trim() && /abgebucht/.test(b.title);`));
+check("Ausgaben abhaken mit dem Kreis vorne (wie Fixkosten)", await sr(`const b = h.querySelector('[data-a="clear"]'); return !!b && b.classList.contains('chk') && b.parentElement.firstElementChild === b && /abgebucht/.test(b.title);`));
 // 👆 lange drücken zeigt den Namen, löst aber nichts aus
 const cb = await p.evaluate(() => { const r = document.querySelector('#c1').shadowRoot.querySelector('[data-a="clear"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
 const nApplied = await p.evaluate(() => fake.applied.length);
@@ -192,6 +238,13 @@ await sr(`const f = h.querySelector('form[data-a="potset"]'); f.stand.value = "7
 await p.waitForTimeout(80);
 check("Topf: Stand korrigieren schickt topf_save", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_save" && o.item?.id === "t2" && o.item?.amount === 777)));
 await p.waitForTimeout(150);
+check("Töpfe zeigen das Datum der letzten Änderung", await sr(`return /\\d\\d\\.\\d\\d\\./.test(h.querySelector('.item[data-k="pot"][data-id="t2"] .meta')?.textContent || '');`), await sr(`return h.querySelector('.item[data-k="pot"][data-id="t2"]')?.textContent;`));
+await sr(`h.querySelector('.item[data-k="pot"][data-id="t3"]').click();`);
+await p.waitForTimeout(50);
+await sr(`const f = h.querySelector('form[data-a="potset"]'); f.stand.value = ""; f.requestSubmit();`);
+await p.waitForTimeout(80);
+check("Stand korrigieren: leeres Feld = 0,00", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_save" && o.item?.id === "t3" && o.item?.amount === 0)));
+await p.waitForTimeout(150);
 // 💾 CSV-Export: Kontostand-Zeile + Datum bei Töpfen
 const csv = await p.evaluate(async () => { const c = document.querySelector('#c1') || document.querySelector('fixkosten-card'); let blob; const o = URL.createObjectURL; URL.createObjectURL = (b) => { blob = b; return "blob:x"; }; const ac = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () {}; c._export(c._data); URL.createObjectURL = o; HTMLAnchorElement.prototype.click = ac; return await blob.text(); });
 check("CSV hat Kontostand-Zeile", /\nkontostand;Konto;1500,00;\d\d\.\d\d\.\d{4}/.test(csv), csv.slice(0, 200));
@@ -260,9 +313,25 @@ check("Ressourcen zeigen Speicher", await sr(`return /In Home Assistant/.test(h.
 await sr(`h.querySelector('.head [data-a="back"]').click();`);
 await sr(`h.querySelector('[data-a="setgrp"][data-v="Rechnen"]').click();`);
 await sr(`h.querySelector('[data-a="sheet"][data-v="quick"]').click();`);
-await sr(`h.querySelector('[data-a="quicktext"]').value = "Bäckerei\\nNetto, Lidl & Co."; h.querySelector('[data-a="quicksave"]').click();`);
+await p.waitForTimeout(40);
+await shot("6a-schnellknoepfe-liste.png");
+check("Schnellknöpfe: Liste wie Kategorien (Farbstreifen, Symbol, Griff, antippen)", await sr(`const r = h.querySelectorAll('.pagehost .storelist[data-list="quick"] .storerow'); return r.length >= 3 && !!r[0].querySelector('.grip') && !!r[0].querySelector('.storepick ha-icon') && !!r[0].style.getPropertyValue('--sc') && !h.querySelector('[data-a="quicktext"]');`));
+await sr(`const f = h.querySelector('form[data-a="qadd"]'); f.querySelector('input[name="name"]').value = "Tankstelle"; f.requestSubmit();`);
 await p.waitForTimeout(50);
-check("Schnellknöpfe: einer pro Zeile, Komma erlaubt", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.quick?.join("|") === "Bäckerei|Netto, Lidl & Co.")));
+check("Schnellknöpfe: ＋ Neu hängt den Knopf hinten an", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.quick?.at(-1) === "Tankstelle")));
+await sr(`h.querySelector('[data-a="qsel"][data-v="Amazon"]').click();`);
+await p.waitForTimeout(40);
+check("Schnellknopf antippen: eigene Seite mit Farbe, Name, Löschen und Symbolen", await sr(`return /Amazon/.test(h.querySelector('.pagehost .storehead')?.textContent || "") && !!h.querySelector('[data-a="qcolor"]') && !!h.querySelector('[data-a="qrename"]') && !!h.querySelector('[data-a="qdel"]') && h.querySelectorAll('.qicons .qic').length > 10;`));
+await sr(`h.querySelector('.qic[data-i="mdi:package-variant-closed"]').click();`);
+await p.waitForTimeout(40);
+await shot("6b-schnellknopf-einstellen.png");
+check("Schnellknopf: Symbol wählen schickt quick_icons", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.quick_icons?.amazon === "mdi:package-variant-closed")));
+await sr(`const i = h.querySelector('[data-a="qrename"]'); i.value = "Amazon Prime"; i.dispatchEvent(new Event('change'));`);
+await p.waitForTimeout(40);
+check("Schnellknopf umbenennen: Name, Farbe und Symbol wandern mit", await p.evaluate(() => fake.applied.some((o) => o.type === "settings" && o.settings.quick?.includes("Amazon Prime") && !o.settings.quick.includes("Amazon") && "quick_icons" in o.settings)));
+await sr(`h.querySelector('[data-a="qdel"]').click();`);
+await p.waitForTimeout(40);
+check("Schnellknopf löschen: mit Rückgängig", await sr(`return /Schnellknopf weg/.test(h.querySelector('.undobar')?.textContent || "") && !h.querySelector('.storehead');`));
 await sr(`h.querySelector('.head [data-a="back"]').click();`);
 await sr(`h.querySelector('[data-a="sheet"][data-v="rechnen"]').click();`);
 await sr(`const c = h.querySelector('[data-a="setreset"]'); c.checked = false; c.dispatchEvent(new Event('change'));`);
@@ -333,7 +402,7 @@ await sr(`const x = h.querySelector('[data-a="setcalm"]'); x.checked = true; x.d
 check("Ruhiger Modus: nur auf diesem Gerät (localStorage)", await p.evaluate(() => document.querySelector('#c1').classList.contains('calm') && localStorage.getItem('fixkosten_calm') === 'true'));
 await sr(`const x = h.querySelector('[data-a="setcalm"]'); x.checked = false; x.dispatchEvent(new Event('change'));`);
 await sr(`h.querySelector('.head [data-a="back"]').click(); h.querySelector('[data-a="sheet"][data-v="view"]').click();`);
-check("Ansicht: 7 Schalter, alle an", await sr(`const x = [...h.querySelectorAll('[data-a="setview"]')]; return x.length === 7 && x.every((i) => i.checked);`));
+check("Ansicht: 6 Schalter, alle an (ohne „Nächste Abbuchung“)", await sr(`const x = [...h.querySelectorAll('[data-a="setview"]')]; return x.length === 6 && x.every((i) => i.checked);`));
 await shot("9b-ansicht.png");
 await sr(`const x = h.querySelector('[data-a="setview"][data-v="toepfe"]'); x.checked = false; x.dispatchEvent(new Event('change'));`);
 await new Promise((r) => setTimeout(r, 80));
@@ -433,6 +502,20 @@ check("Einstellungen: Zahnrad vor der Überschrift, kein Rechner/Auge", await sr
 await shot("14-einstellungen-zahnrad.png");
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
 check("Übersicht: Rechner und Auge wieder da, Anleitung mit Buch-Symbol", await sr(`return !!h.querySelector('[data-a="calc"]') && !!h.querySelector('[data-a="hide"]') && h.querySelector('.foot ha-icon')?.getAttribute('icon') === 'mdi:book-open-page-variant-outline';`));
+
+// ⓘ beta.19: Erklärungen zugeklappt, ⓘ am Schalter bzw. an der Überschrift klappt auf (wie Einkaufsliste)
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "set"; c._sheet = "rechnen"; c._force = true; c._render(); });
+check("ⓘ: Währungs-Erklärung ist zu, ⓘ sitzt am Schalter", await sr(`const hi = h.querySelector('p.fhint'); const b = h.querySelector('.switch .finfo'); return !!hi && hi.hidden && !!b && b.getAttribute('aria-expanded') === 'false';`));
+await sr(`h.querySelector('.switch .finfo').click();`);
+check("ⓘ: antippen klappt auf", await sr(`return !h.querySelector('p.fhint').hidden && h.querySelector('.switch .finfo').getAttribute('aria-expanded') === 'true';`));
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._force = true; c._render(); });
+check("ⓘ: bleibt nach neuem Zeichnen offen", await sr(`return !h.querySelector('p.fhint').hidden;`));
+await shot("15-info-knopf.png");
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._sheet = "view"; c._force = true; c._render(); });
+check("ⓘ: Seiten ohne Schalter davor haben das ⓘ an der Überschrift", await sr(`return !!h.querySelector('.pagehost .sechead .finfo') && h.querySelector('p.fhint').hidden;`));
+await sr(`h.querySelector('.sechead .finfo').click();`);
+check("ⓘ: Überschrift-ⓘ klappt auf", await sr(`return !h.querySelector('p.fhint').hidden;`));
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
 
 // 🌍 Englisch (beta.17): language: en → Wörterbuch laden, alles übersetzen, eigene Namen bleiben
 await p.evaluate(() => { const c = document.querySelector('#c1'); c.setConfig({ title: "Fixkosten", language: "en" }); });

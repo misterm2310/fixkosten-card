@@ -6,6 +6,8 @@
 
 **Wie viel Geld ist diesen Monat wirklich noch übrig?** Genau das zeigt dir die Karte: groß, auf einen Blick, im Dashboard, in der Seitenleiste und als eigene Handy-App, die auch ohne Netz geht.
 
+Ein Klick öffnet es direkt in deinem Home Assistant: [![In HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=misterm2310&repository=fixkosten-card&category=integration) [![Integration hinzufügen](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=fixkosten)
+
 ![Vorschau – Fixkosten (nur ausgedachte Beispielzahlen)](docs/screenshot.png)
 
 > 🔒 **Deine Zahlen bleiben bei dir.** Alles liegt nur in deinem Home Assistant. Keine Cloud, kein fremder Server. In diesem Repo stehen nur ausgedachte Beispielzahlen.
@@ -15,7 +17,7 @@
 ## ✨ Was kann das Ding?
 
 - 💰 **Verfügbar** = Kontostand − offene Fixkosten − Ausgaben, die noch nicht abgebucht sind.
-- 📋 **Fixkosten in Gruppen** wie „ab dem 1.“ und „ab dem 15.“ – zum Aufklappen, abhaken, wenn abgebucht.
+- 📋 **Fixkosten in Gruppen** wie „ab dem 1.“ und „ab dem 15.“ – zum Aufklappen, abhaken, wenn abgebucht. Preis nur diesen Monat anders? Betrag antippen.
 - 💳 **Ausgaben** per Schnellknopf („Bäckerei 5,75“) – sofort abgezogen.
 - 🧮 **Taschenrechner** oben in der Karte, Ergebnis direkt als Zahlung oder Kontostand. 💡 Knopf, damit der Bildschirm anbleibt.
 - 🐷 **Töpfe**, 🧾 **offene Stände**, 🏦 **IBAN-Liste** zum Kopieren, 💵 **Einnahmen** als Info.
@@ -59,6 +61,8 @@
 
 ## 📦 Installation
 
+> 💡 **Ab Home Assistant 2026.11** ist HACS in Home Assistant eingebaut und heißt **Einstellungen → Marketplace**. Die Schritte sind dieselben, nur der Weg dahin ist neu.
+
 1. **HACS** öffnen, oben rechts **⋮ → Benutzerdefinierte Repositories**, `https://github.com/misterm2310/fixkosten-card` eintragen, Typ **Integration**, **Hinzufügen**.
 2. Nach **Fixkosten** suchen, **Herunterladen**, danach **Home Assistant neu starten**.
 3. **Einstellungen → Geräte & Dienste → Integration hinzufügen → Fixkosten** → Absenden, fertig. 🎉 (Hier kannst du auch gleich „In der Seitenleiste anzeigen“ anhaken.)
@@ -84,6 +88,7 @@ Den Ordner `custom_components/fixkosten` nach `/config/custom_components/fixkost
 
 1. **Kontostand eintragen:** Kachel „Konto“ antippen, Stand aus der Bank-App eingeben.
 2. **Abhaken:** Gruppe aufklappen (Tipp auf die Überschrift). Ist ein Posten abgebucht, den Kreis antippen ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️).
+   **Preis nur diesen Monat anders?** Hinten auf den Betrag tippen – nächsten Monat gilt wieder der gespeicherte Preis.
 3. **Etwas bezahlt (Karte, PayPal, bar …)?** Schnellknopf (z. B. „Bäckerei“), Betrag, **＋**. Sofort abgezogen. Später den grünen Haken ✓ tippen.
 4. **Rechnen:** Oben auf 🧮. Ergebnis per Tipp als Ausgabe, Kontostand oder kopieren.
 5. **Anlegen und ändern:** Reiter **„Bearbeiten“** → ＋ Neu oder Eintrag antippen. Reihenfolge am Griff ⠿ vorne. Ausgabe antippen = Name und Betrag ändern.
@@ -120,7 +125,7 @@ Hinter einem Reverse Proxy werden nur `/fixkosten/*`, `/auth/*` und `/api/*` geb
 
 **In der Karte (⚙️)** – wie bei der Einkaufsliste: Kästen nach Zweck zum Aufklappen, jede Zeile öffnet eine eigene Seite in der Karte (← zurück). Die PIN tippst du auf einem Zahlenfeld wie am Handy:
 - 🧮 **Rechnen & Warnung:** Haken am Monatsanfang automatisch zurücksetzen (Standard an), offene Stände von „Verfügbar“ abziehen (Standard aus), Warnung an/aus und Warngrenze, 💱 Währung
-- ⚡ **Schnellknöpfe** für Ausgaben, einer pro Zeile
+- ⚡ **Schnellknöpfe** für Ausgaben – wie die Kategorien der Einkaufsliste: Liste mit Farbe und Symbol, ⠿ ziehen = Reihenfolge, ＋ Neu, antippen = Name, Farbe und Symbol ändern, 🗑️ löschen mit Rückgängig
 - 💾 **Daten:** Import & Sicherung (CSV einlesen und sichern, nur Admins), 📜 Verlauf (an/aus, leeren), 📊 Rückblick, 💣 Werkseinstellungen (nur Admins, zwei Sicherheitsfragen, nur die PIN bleibt)
 - 🩺 **Gesundheit:** Alles ok?, Fehler-Protokoll, Ressourcen
 - 👁️ **Ansicht:** Ansicht für alle (Abschnitte ein-/ausblenden, Einnahmen/Töpfe/Komplett verschleiern), Beschriftungen, Maskottchen (alle drei gelten für alle Geräte), Ruhiger Modus (nur dieses Gerät), in der Offline-App Hell / Dunkel

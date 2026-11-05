@@ -503,6 +503,20 @@ await shot("14-einstellungen-zahnrad.png");
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
 check("Übersicht: Rechner und Auge wieder da, Anleitung mit Buch-Symbol", await sr(`return !!h.querySelector('[data-a="calc"]') && !!h.querySelector('[data-a="hide"]') && h.querySelector('.foot ha-icon')?.getAttribute('icon') === 'mdi:book-open-page-variant-outline';`));
 
+// ⓘ beta.19: Erklärungen zugeklappt, ⓘ am Schalter bzw. an der Überschrift klappt auf (wie Einkaufsliste)
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "set"; c._sheet = "rechnen"; c._force = true; c._render(); });
+check("ⓘ: Währungs-Erklärung ist zu, ⓘ sitzt am Schalter", await sr(`const hi = h.querySelector('p.fhint'); const b = h.querySelector('.switch .finfo'); return !!hi && hi.hidden && !!b && b.getAttribute('aria-expanded') === 'false';`));
+await sr(`h.querySelector('.switch .finfo').click();`);
+check("ⓘ: antippen klappt auf", await sr(`return !h.querySelector('p.fhint').hidden && h.querySelector('.switch .finfo').getAttribute('aria-expanded') === 'true';`));
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._force = true; c._render(); });
+check("ⓘ: bleibt nach neuem Zeichnen offen", await sr(`return !h.querySelector('p.fhint').hidden;`));
+await shot("15-info-knopf.png");
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._sheet = "view"; c._force = true; c._render(); });
+check("ⓘ: Seiten ohne Schalter davor haben das ⓘ an der Überschrift", await sr(`return !!h.querySelector('.pagehost .sechead .finfo') && h.querySelector('p.fhint').hidden;`));
+await sr(`h.querySelector('.sechead .finfo').click();`);
+check("ⓘ: Überschrift-ⓘ klappt auf", await sr(`return !h.querySelector('p.fhint').hidden;`));
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+
 // 🌍 Englisch (beta.17): language: en → Wörterbuch laden, alles übersetzen, eigene Namen bleiben
 await p.evaluate(() => { const c = document.querySelector('#c1'); c.setConfig({ title: "Fixkosten", language: "en" }); });
 await p.waitForFunction(() => /Available/.test(document.querySelector('#c1').shadowRoot.querySelector('.hero .lbl')?.textContent || ""), null, { timeout: 4000 }).catch(() => {});

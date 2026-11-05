@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.1-beta.4";
+const FK_VERSION = "1.0.1-beta.5";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -33,11 +33,13 @@ const FK_GUIDE = [
   { icon: "cellphone-lock", color: "#1e88e5", title: "Offline-App mit Fingerabdruck", text: `Deine Adresse für die App steht in ⚙️ → <b>„Offline-App“</b> (mit Kopieren-Knopf). Im Handy-Browser öffnen → anmelden → im Browser-Menü „Zum Startbildschirm“.<br>Ohne Netz siehst du den letzten Stand. Was du einträgst, wartet im <b>Postausgang</b> (oben „⏳ wartet“) und wird von selbst nachgeschickt. Nichts zählt doppelt.<br>Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. Ist sie an, sperrt das 🔒 Schloss oben die ganze App sofort. Abmelden löscht nur die Kopie im Handy, in Home Assistant bleibt alles erhalten.` },
   { icon: "shield-key-outline", color: "#455a64", title: "PIN-Sperre und Seitenleiste", text: `In ⚙️ unter <b>„Schutz (PIN)“</b> legst du eine PIN (4–8 Ziffern) fest. Dann fragen ⚙️ und „Bearbeiten“ danach. Übersicht, Abhaken und Ausgaben gehen weiter ohne PIN. Das 🔓 Schloss unter der Leiste (neben 🧮 und 👁️) sperrt sofort wieder (sonst nach 10 Minuten Ruhe). Die PIN tippst du wie am Handy auf dem Zahlenfeld ein.<br><b>PIN vergessen?</b> Kein Drama: Ein Admin geht auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.<br>Im selben Fenster schaltest du auch <b>„In der Seitenleiste anzeigen“</b> an oder aus.` },
   { icon: "upload", color: "#546e7a", title: "CSV einlesen und sichern", text: `In ⚙️ → <b>„Daten (CSV)“</b> (nur Admins): Datei wählen oder Text einfügen → „Einlesen“. Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b>. „Als CSV sichern“ lädt alles als Datei herunter.` },
+  { icon: "storefront-outline", color: "#1e88e5", title: "Installieren und Updates (HACS / Marketplace)", text: `Fixkosten kommt über <b>HACS</b>. Ab <b>Home Assistant 2026.11</b> steckt HACS direkt in Home Assistant und heißt <b>Einstellungen → Marketplace</b>. Dort findest du Fixkosten, Updates und die Beta-Versionen – alles andere bleibt gleich.<br>Die kleinen <b>ⓘ</b> in ⚙️ klappen die Erklärung zu einem Schalter auf.` },
   { icon: "lock-outline", color: "#455a64", title: "Datenschutz", text: `Alles bleibt in <b>deinem</b> Home Assistant. Keine Cloud, kein Tracking, nichts geht ins Internet. IBANs stehen bewusst in keinem Sensor.` },
   { icon: "eye-outline", color: "#00897b", title: "Verlauf, Ansicht und Sparschwein", text: `<b>📜 Verlauf</b> (⚙️ → Daten): wer hat wann was geändert – abgehakt, Kontostand, Ausgaben, Töpfe … Die letzten 300 Einträge, ausschaltbar, Admins können ihn leeren.<br><b>👁️ Ansicht</b> (⚙️ → Ansicht, gilt für alle): Abschnitte wie Töpfe, Einnahmen oder Meine Konten ausblenden. <b>Beschriftungen</b> zeigen kurzen Text unter den Symbol-Knöpfen. <b>Ruhiger Modus</b> (nur dieses Gerät): gedämpfte Farben, nichts bewegt sich. In der Offline-App gibt es noch <b>Hell / Dunkel</b>.<br><b>🐷 Sparschwein</b> (⚙️ → Ansicht → Maskottchen): sitzt oben links und zeigt, wie es um dein Geld steht – fröhlich im Plus, skeptisch knapp über der Warngrenze, erschrocken im Minus. Sind alle Fixkosten abgehakt, hüpft es. Morgens gähnt es, ab 21 Uhr schläft es. Antippen = zurück zur Übersicht.` },
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.1-beta.5", "ⓘ <b>Weniger Textwand in ⚙️:</b> Die Erklärungen sind jetzt zugeklappt. Ein kleines <b>ⓘ</b> neben dem Schalter (oder neben der Überschrift) klappt sie auf – wie bei der Einkaufsliste. · 🛒 <b>Marketplace:</b> Ab Home Assistant 2026.11 steckt HACS in Home Assistant drin und heißt <b>Einstellungen → Marketplace</b>. Steht jetzt in der Anleitung und im README."],
   ["1.0.1-beta.4", "⚡ <b>Schnellknöpfe wie die Kategorien der Einkaufsliste:</b> unter ⚙️ → Schnellknöpfe jede Zeile mit Farbe und <b>Symbol</b>, ⠿ ziehen = Reihenfolge, ＋ Neu, antippen = Name, Farbe und Symbol ändern, 🗑️ löschen mit Rückgängig. Das Symbol steht auch auf dem Knopf. · ✏️ <b>Bearbeiten klappt unter der Zeile auf</b> (Preis nur diesen Monat, Ausgaben, Töpfe, Bearbeiten) – die Zeile bleibt stehen, nochmal antippen = zu, wie in der Einkaufsliste. · 📅 <b>Raten bis</b> jetzt mit Monat + Jahr zum Auswählen – das Jahr lässt sich überall ändern."],
   ["1.0.1-beta.3", "🎨 <b>Schnellknöpfe behalten ihre Farbe</b>, auch wenn du sie umsortierst – und unter ⚙️ → Schnellknöpfe kannst du jede Farbe selbst wählen. · ⭕ <b>Ausgaben abhaken mit dem Kreis vorne</b>, genau wie bei den Fixkosten. · 💳 <b>Ratenzahlung:</b> beim Posten „Raten bis“ eintragen – dran steht, wie viele Raten noch kommen, danach zählt er nicht mehr mit. · 🧹 Der Hinweis „Nächste Abbuchung“ oben ist weg – der feste Tag steht weiter am Posten."],
   ["1.0.1-beta.2", "🎨 <b>Ausgaben-Farben repariert:</b> Fängt der Name mit einem Schnellknopf an (z. B. „PayPal - Claude“), bekommt die Ausgabe dessen Farbe. Kein Schnellknopf ist mehr orange – Orange heißt jetzt nur noch „passt zu keinem Knopf“."],
@@ -825,6 +827,10 @@ a { color:var(--pc); }
 .sec { margin:4px 2px 16px; }
 .sechead { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
 .sechead h3 { min-width:0; margin:0; font-size:1em; }
+.finfo { flex:none; width:20px; height:20px; padding:0; border-radius:50%; border:1.5px solid var(--primary-color, #03a9f4); background:none; color:var(--primary-color, #03a9f4); font:700 11px/1 serif; font-style:italic; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; }
+.finfo[aria-expanded="true"] { background:var(--primary-color, #03a9f4); color:#fff; }
+.fhint { margin:4px 2px 8px; padding:8px 10px; border-radius:10px; background:color-mix(in srgb, var(--primary-color, #03a9f4) 10%, transparent); }
+.fhint[hidden] { display:none; }
 .pagebody p { line-height:1.4; }
 /* 🔢 PIN-Eingabe wie am Handy – wie bei der Einkaufsliste */
 .pinpad { text-align:center; max-width:300px; width:100%; margin:0 auto; }
@@ -1115,6 +1121,7 @@ class FixkostenCard extends HTMLElement {
     if (FK_LANG !== "de" && FK_DICT) { // 🌍 erst übersetzen, dann Emojis zu Symbolen machen
       try { fkCollectUser(this._data); if (this._config?.title && this._config.title !== "Fixkosten") FK_USER.add(fkNorm(this._config.title)); fkTranslateTree(this.shadowRoot); } catch (_) { /* dann eben Deutsch */ }
     }
+    try { this._helpify(); } catch (_) { /* ⓘ ist nur Komfort */ }
     if (!window.__fkNoIcons) try { fkIconizeTree(this.shadowRoot); } catch (_) { /* Symbole sind nur Deko */ } // (__fkNoIcons nur für den Text-Sammler der Tests)
     this._bind();
     FK_CARDS.add(this);
@@ -1511,7 +1518,7 @@ class FixkostenCard extends HTMLElement {
     return `<p class="small">${d.pin ? "🔒 PIN ist <b>an</b>. ⚙️ und „Bearbeiten“ fragen nach der PIN." : "Mit einer PIN (4–8 Ziffern) sperrst du ⚙️ und „Bearbeiten“, z. B. auf dem Wand-Tablet. Abhaken und Ausgaben gehen weiter ohne PIN."}</p>
       <div class="btnrow">${d.pin ? `<button class="btn main" data-a="padstart" data-v="set">${ic("lock-reset")}PIN ändern</button><button class="btn" data-a="padstart" data-v="off">${ic("lock-open-variant-outline")}PIN ausschalten</button>` : `<button class="btn main" data-a="padstart" data-v="set">${ic("lock-outline")}PIN einschalten</button>`}</div>
       ${d.pin ? `<label class="switch"><span>${ic("lock-outline")}<span class="vt"><b>Ganze Karte sperren</b><small>Aus = nur ⚙️ und Bearbeiten. An = ohne PIN sieht man gar nichts.</small></span></span><input type="checkbox" class="swchk" data-a="setlockall" ${d.settings.lock_all ? "checked" : ""}></label>` : ""}
-      <p class="small">Die PIN tippst du wie am Handy auf dem Zahlenfeld ein. Sie liegt nur als Prüfsumme in Home Assistant. Vergessen? Admin → <b>Geräte & Dienste → Fixkosten → Konfigurieren → „PIN zurücksetzen“</b>. 5× falsch = 1 Minute Pause.</p>`;
+      <p class="small help">Die PIN tippst du wie am Handy auf dem Zahlenfeld ein. Sie liegt nur als Prüfsumme in Home Assistant. Vergessen? Admin → <b>Geräte & Dienste → Fixkosten → Konfigurieren → „PIN zurücksetzen“</b>. 5× falsch = 1 Minute Pause.</p>`;
   }
 
   // ⚙️ Einstellungen wie bei der Einkaufsliste: Kategorien mit Kacheln, jede Kachel öffnet ein eigenes Fenster
@@ -1524,10 +1531,10 @@ class FixkostenCard extends HTMLElement {
         <label class="switch"><span>${ic("bell-outline")}Warnung an (Warn-Sensor)</span><input type="checkbox" class="swchk" data-a="setwarnon" ${st.warn_enabled !== false ? "checked" : ""}></label>
         ${st.warn_enabled === false ? "" : `<div class="switch"><span>${ic("alert-circle-outline")}Warnen, wenn „Verfügbar“ unter</span><span><input data-a="setwarn" inputmode="decimal" value="${numDe(st.warn_below ?? 0)}" style="width:90px;text-align:right"> ${FK_MONEY.sym}</span></div>`}
         <div class="switch"><span>${ic("cash-multiple")}Währung</span><select data-a="setcur" style="width:auto;max-width:60%">${Object.entries(FK_CUR).map(([c, n]) => `<option value="${c}" ${(st.currency || "EUR") === c ? "selected" : ""}>${n}</option>`).join("")}</select></div>
-        <p class="small">Ändert nur das Zeichen und die Schreibweise (z. B. <b>CHF 1’234.50</b>). Es wird <b>nichts umgerechnet</b>. Gilt für <b>alle</b> und auch für die Sensoren.</p>
+        <p class="small help">Ändert nur das Zeichen und die Schreibweise (z. B. <b>CHF 1’234.50</b>). Es wird <b>nichts umgerechnet</b>. Gilt für <b>alle</b> und auch für die Sensoren.</p>
         <div class="btnrow"><button class="btn" data-a="resetnow">${ic("undo-variant")}Alle Haken jetzt zurücksetzen</button></div>` },
       quick: { icon: "lightning-bolt-outline", color: "#fb8c00", title: "Schnellknöpfe", info: `${(st.quick || []).length} Knöpfe`, html: () => this._quickHtml(d) },
-      csv: { icon: "database-import-outline", color: "#1e88e5", title: "Import & Sicherung", info: admin ? "CSV einlesen & sichern" : "nur Admins", html: () => admin ? `<p class="small">Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b> – Typ = ausgabe, einnahme, topf, stand (offener Stand), iban (Konto-Info, IBAN in Spalte 3) oder kontostand (Betrag, Datum in Spalte 4). Gruppe = 1 oder 15 (oder der Name). Zahlart = ü, d, l, p, a, g, b oder -.</p>
+      csv: { icon: "database-import-outline", color: "#1e88e5", title: "Import & Sicherung", info: admin ? "CSV einlesen & sichern" : "nur Admins", html: () => admin ? `<p class="small help">Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b> – Typ = ausgabe, einnahme, topf, stand (offener Stand), iban (Konto-Info, IBAN in Spalte 3) oder kontostand (Betrag, Datum in Spalte 4). Gruppe = 1 oder 15 (oder der Name). Zahlart = ü, d, l, p, a, g, b oder -.</p>
         <input type="file" accept=".csv,text/csv,text/plain" data-a="file"><textarea data-a="csv" rows="5" style="margin-top:6px" placeholder="ausgabe;Miete;800,00;1;d"></textarea>
         <label class="switch"><span>vorhandene Posten, Einnahmen, Töpfe und offenen Stände vorher löschen</span><input type="checkbox" class="swchk" data-a="csvreplace"></label>
         <div class="btnrow"><button class="btn main" data-a="import">${ic("upload")}Einlesen</button><button class="btn" data-a="export">${ic("download")}Als CSV sichern</button></div>` : `<p class="small">Nur für Admins.</p>` },
@@ -1546,25 +1553,25 @@ class FixkostenCard extends HTMLElement {
         <div class="btnrow"><button class="btn danger" data-a="factory">${ic("nuke")}Werkseinstellungen – alles löschen</button></div>` : `<p class="small">💣 Werkseinstellungen gibt es nur für Admins.</p>` },
       log: { icon: "history", color: "#5e35b1", title: "Verlauf", info: st.log_on === false ? "aus" : `${(d.log || []).length} Einträge · wer, wann, was`, html: () => this._logHtml(d, admin) },
       view: { icon: "eye-outline", color: "#00897b", title: "Ansicht – für alle", info: (() => { const n = FK_VIEW.filter(([k]) => (st.view || {})[k] === false).length; return n ? `${n} ausgeblendet` : "alles sichtbar"; })(), html: () => `
-        <p class="small">Was auf der Übersicht zu sehen ist. Gilt für <b>alle</b> – auf allen Handys, im Dashboard und in der App. Ausgeblendetes ist nicht weg, nur versteckt. Unter „Bearbeiten“ bleibt alles da.</p>
+        <p class="small help">Was auf der Übersicht zu sehen ist. Gilt für <b>alle</b> – auf allen Handys, im Dashboard und in der App. Ausgeblendetes ist nicht weg, nur versteckt. Unter „Bearbeiten“ bleibt alles da.</p>
         <label class="switch"><span>${ic("eye-off-outline")}<span class="vt"><b>Summen von Einnahmen, Töpfen und „Komplett“ verschleiern</b><small>PC: Maus drüber · Handy: Betrag antippen = 4 Sekunden sichtbar</small></span></span><input type="checkbox" class="swchk" data-a="setveil" ${st.veil !== false ? "checked" : ""}></label>
         ${FK_VIEW.map(([k, i, t, sub]) => `<label class="switch"><span>${ic(i)}<span class="vt"><b>${t}</b><small>${sub}</small></span></span><input type="checkbox" class="swchk" data-a="setview" data-v="${k}" ${(st.view || {})[k] !== false ? "checked" : ""}></label>`).join("")}` },
       labels: { icon: "format-text", color: "#546e7a", title: "Beschriftungen", info: st.labels ? "an – für alle" : "aus", html: () => `
         <label class="switch"><span>${ic("format-text")}Beschriftungen anzeigen</span><input type="checkbox" class="swchk" data-a="setlabels" ${st.labels ? "checked" : ""}></label>
-        <p class="small">Zeigt unter den kleinen Symbol-Knöpfen (🧮 Rechner, 👁️ Verstecken, ✓ abgebucht …) einen kurzen Text. Handys haben ja keine Tooltips. Gilt für <b>alle</b>. Auch ohne den Schalter gilt: <b>Länger auf ein Symbol drücken</b> zeigt kurz, was es macht.</p>` },
+        <p class="small help">Zeigt unter den kleinen Symbol-Knöpfen (🧮 Rechner, 👁️ Verstecken, ✓ abgebucht …) einen kurzen Text. Handys haben ja keine Tooltips. Gilt für <b>alle</b>. Auch ohne den Schalter gilt: <b>Länger auf ein Symbol drücken</b> zeigt kurz, was es macht.</p>` },
       mascot: { icon: "piggy-bank-outline", color: "#ec407a", title: "Maskottchen", info: st.mascot ? "Sparschwein ist da" : "aus", html: () => `
         <label class="switch"><span>${ic("piggy-bank-outline")}Sparschwein oben links zeigen</span><input type="checkbox" class="swchk" data-a="setmascot" ${st.mascot ? "checked" : ""}></label>
-        <p class="small">Statt der Geldbörse sitzt oben links ein <b>Sparschwein</b> und zeigt, wie es um dein Geld steht. Antippen = zurück zur Übersicht. Gilt für <b>alle</b>.</p>
+        <p class="small help">Statt der Geldbörse sitzt oben links ein <b>Sparschwein</b> und zeigt, wie es um dein Geld steht. Antippen = zurück zur Übersicht. Gilt für <b>alle</b>.</p>
         <div class="mascotprev">${[["happy", "im Plus"], ["worried", "knapp"], ["shock", "im Minus"], ["tired", "morgens"], ["sleep", "ab 21 Uhr"]].map(([m, t]) => `<span>${fkMascotSvg(m)}<small>${t}</small></span>`).join("")}</div>
-        <p class="small">😄 <b>Im Plus</b> freut es sich und wackelt · 😐 <b>knapp über der Warngrenze</b> guckt es skeptisch · 😱 <b>im Minus</b> erschrickt es · 🎉 Sind <b>alle Fixkosten abgehakt</b>, hüpft es einmal · 🥱 Morgens bis 9 Uhr gähnt es, 😴 ab 21 Uhr schläft es.</p>
+        <p class="small help">😄 <b>Im Plus</b> freut es sich und wackelt · 😐 <b>knapp über der Warngrenze</b> guckt es skeptisch · 😱 <b>im Minus</b> erschrickt es · 🎉 Sind <b>alle Fixkosten abgehakt</b>, hüpft es einmal · 🥱 Morgens bis 9 Uhr gähnt es, 😴 ab 21 Uhr schläft es.</p>
         <p class="small"><b>👗 Kostüme</b> – das Schwein zieht sich selbst um, je nach Datum:</p>
         <div class="mascotprev">${[["spring", "Frühling"], ["summer", "Sommer"], ["autumn", "Herbst"], ["winter", "Winter"], ["bunny", "Ostern"], ["pumpkin", "Halloween"], ["santa", "Advent"], ["party", "Silvester"]].map(([c, t]) => `<span class="${fkMascotDeco() === c ? "now" : ""}">${fkMascotSvg("happy", c)}<small>${t}</small></span>`).join("")}</div>
-        <p class="small">🌸 März–Mai Blume · 😎 Juni–August Sonnenbrille · 🍂 September–November Blatt · 🧣 Dezember–Februar Schal · 🐰 Ostern Hasenohren · 🎃 17.10.–7.11. Kürbis · 🎅 bis 26.12. Mütze · 🎉 Silvester/Neujahr Partyhut. Das heutige Kostüm ist eingerahmt.</p>` },
+        <p class="small help">🌸 März–Mai Blume · 😎 Juni–August Sonnenbrille · 🍂 September–November Blatt · 🧣 Dezember–Februar Schal · 🐰 Ostern Hasenohren · 🎃 17.10.–7.11. Kürbis · 🎅 bis 26.12. Mütze · 🎉 Silvester/Neujahr Partyhut. Das heutige Kostüm ist eingerahmt.</p>` },
       calm: { icon: "meditation", color: "#5c6bc0", title: "Ruhiger Modus", info: store.get(CALMKEY, false) ? "an – nur dieses Gerät" : "aus", html: () => `
         <label class="switch"><span>${ic("meditation")}Ruhiger Modus</span><input type="checkbox" class="swchk" data-a="setcalm" ${store.get(CALMKEY, false) ? "checked" : ""}></label>
-        <p class="small">Nur für <b>dieses Gerät</b>. Gedämpfte Farben, keine Animationen, das Sparschwein hält still – angenehm für empfindliche Augen und alte Tablets.</p>` },
+        <p class="small help">Nur für <b>dieses Gerät</b>. Gedämpfte Farben, keine Animationen, das Sparschwein hält still – angenehm für empfindliche Augen und alte Tablets.</p>` },
       ...(this._app ? { theme: { icon: "theme-light-dark", color: "#37474f", title: "Hell / Dunkel", info: { light: "☀️ Hell", dark: "🌙 Dunkel" }[fkTheme()] || "🌓 Automatisch", html: () => `
-        <p class="small">Nur für die Offline-App auf diesem Gerät. „Automatisch“ richtet sich nach dem Handy – so wie Home Assistant auch.</p>
+        <p class="small help">Nur für die Offline-App auf diesem Gerät. „Automatisch“ richtet sich nach dem Handy – so wie Home Assistant auch.</p>
         <div class="btnrow">${[["auto", "🌓 Automatisch"], ["light", "☀️ Hell"], ["dark", "🌙 Dunkel"]].map(([v, l]) => `<button class="btn ${fkTheme() === v ? "main" : ""}" data-a="theme" data-v="${v}">${l}</button>`).join("")}</div>` } } : {}),
       check: { icon: "check-decagram-outline", color: "#43a047", title: "Alles ok?", info: "prüfen", html: () => this._checkHtml(d) },
       errors: { icon: "bug-outline", color: "#e53935", title: "Fehler-Protokoll", info: this._health ? (this._health.errors.length ? `${this._health.errors.length} Meldungen` : "keine Fehler 🎉") : "Meldungen ansehen", html: () => this._errorsHtml() },
@@ -1593,7 +1600,7 @@ class FixkostenCard extends HTMLElement {
       rows += `<div class="logrow"><span class="lt">${dt.toLocaleTimeString(fkLoc(), { hour: "2-digit", minute: "2-digit" })}</span><span class="lx ${this._hidden ? "hidden-amt" : ""}">${esc(e.text)}</span>${e.by ? `<span class="tag">${esc(e.by)}</span>` : ""}</div>`;
     }
     return `<label class="switch"><span>${ic("history")}Verlauf an</span><input type="checkbox" class="swchk" data-a="setlog" ${on ? "checked" : ""}></label>
-      <p class="small">Merkt sich <b>wer wann was</b> geändert hat: abgehakt, Kontostand, Ausgaben, Töpfe, Bearbeiten … Die letzten 300 Einträge, nur in deinem Home Assistant.${this._queue.length ? " Was noch im Postausgang wartet, kommt dazu, sobald es angekommen ist." : ""}</p>
+      <p class="small help">Merkt sich <b>wer wann was</b> geändert hat: abgehakt, Kontostand, Ausgaben, Töpfe, Bearbeiten … Die letzten 300 Einträge, nur in deinem Home Assistant.${this._queue.length ? " Was noch im Postausgang wartet, kommt dazu, sobald es angekommen ist." : ""}</p>
       ${log.length ? rows + (log.length > 150 ? `<p class="small">… und ${log.length - 150} ältere.</p>` : "") : `<p class="okmsg">Noch nichts passiert 🙂</p>`}
       ${admin && log.length ? `<div class="btnrow"><button class="btn" data-a="logclear">${ic("delete-sweep-outline")}Verlauf leeren</button></div>` : ""}`;
   }
@@ -1614,7 +1621,7 @@ class FixkostenCard extends HTMLElement {
   }
   _checkHtml(d) {
     const res = this._checks(d);
-    return `<p class="small">Sucht nach Dingen, die nicht zusammenpassen: Posten ohne Gruppe oder ohne Betrag, alter Kontostand, vergessene Ausgaben, Töpfe im Minus, komische IBANs. Jeder Fund steht einzeln da – mit „so reparierst du's“.</p>
+    return `<p class="small help">Sucht nach Dingen, die nicht zusammenpassen: Posten ohne Gruppe oder ohne Betrag, alter Kontostand, vergessene Ausgaben, Töpfe im Minus, komische IBANs. Jeder Fund steht einzeln da – mit „so reparierst du's“.</p>
       ${res.length ? `<p><b>${res.length} ${res.length === 1 ? "Sache" : "Sachen"} gefunden:</b></p>` + res.map((x) => `<div class="finding"><b>⚠️ ${esc(x.t)}</b><div class="small" style="margin:2px 0 0">${x.fix}</div>${x.act ? `<div class="btnrow">${x.act}</div>` : ""}</div>`).join("") : `<p class="okmsg">✅ Alles ok – nichts gefunden. 🎉</p>`}`;
   }
   async _loadHealth() {
@@ -1626,7 +1633,7 @@ class FixkostenCard extends HTMLElement {
     const h = this._health;
     if (!h) return `<p class="small">Lade …</p>`;
     if (h.offline) return `<p class="small">📴 Das Protokoll liegt in Home Assistant – dafür braucht es Netz.</p>`;
-    return `<p class="small">Hier steht, was beim Speichern nicht geklappt hat (z. B. eine Änderung, die Home Assistant abgelehnt hat). Nur Art und Fehler, keine Beträge. Wird beim Neustart von Home Assistant geleert.</p>
+    return `<p class="small help">Hier steht, was beim Speichern nicht geklappt hat (z. B. eine Änderung, die Home Assistant abgelehnt hat). Nur Art und Fehler, keine Beträge. Wird beim Neustart von Home Assistant geleert.</p>
       ${h.errors.length ? h.errors.map((e) => `<div class="finding"><b>${esc(e.error)}</b><div class="small" style="margin:2px 0 0">${new Date(e.ts).toLocaleString(fkLoc())} · ${esc(e.type)}${e.by ? ` · ${esc(e.by)}` : ""}</div></div>`).join("")
         + `<div class="btnrow"><button class="btn" data-a="errclear">${ic("delete-sweep-outline")}Protokoll leeren</button></div>` : `<p class="okmsg">Keine Fehler 🎉</p>`}`;
   }
@@ -1650,6 +1657,22 @@ class FixkostenCard extends HTMLElement {
   }
 
   // ---------------------------------------------------------------- 👆 Klicks
+  // ⓘ wie bei der Einkaufsliste: Erklärtexte sind zu, ein kleines ⓘ neben dem Feld (oder der Überschrift) klappt sie auf
+  _helpify() {
+    const root = this.shadowRoot, ps = [...root.querySelectorAll("p.help")];
+    if (!ps.length) return;
+    this._fhOpen = this._fhOpen || new Set();
+    const pg = this._view + ":" + (this._sheet || ""), tip = fkT("Was ist das?");
+    const btn = (k, open) => { const b = document.createElement("button"); b.type = "button"; b.className = "finfo"; b.dataset.a = "finfo"; b.dataset.v = k; b.title = tip; b.setAttribute("aria-label", tip); b.setAttribute("aria-expanded", String(open)); b.textContent = "i"; return b; };
+    let headBtn = null;
+    ps.forEach((p, i) => {
+      const prev = p.previousElementSibling, sw = prev?.classList.contains("switch") ? prev : null;
+      const k = sw ? `${pg}:${i}` : `${pg}:head`, open = this._fhOpen.has(k);
+      p.classList.add("fhint"); p.dataset.h = k; p.hidden = !open;
+      if (sw) (sw.firstElementChild || sw).appendChild(btn(k, open));
+      else if (!headBtn) { const h = root.querySelector(".pagehost .sechead h3"); if (h) { headBtn = btn(k, open); h.after(headBtn); } else p.hidden = false; }
+    });
+  }
   _bind() {
     const root = this.shadowRoot;
     root.querySelectorAll("input,textarea,select").forEach((el) => el.addEventListener("blur", () => {
@@ -1689,6 +1712,11 @@ class FixkostenCard extends HTMLElement {
   _act(el, e) {
     const a = el.dataset.a, id = el.dataset.id, d = this._data;
     const redraw = () => { this._force = true; this._render(); };
+    if (a === "finfo") {
+      e?.preventDefault?.(); const k = el.dataset.v, hs = this.shadowRoot.querySelectorAll(`p.fhint[data-h="${k}"]`), open = !this._fhOpen.has(k);
+      if (open) this._fhOpen.add(k); else this._fhOpen.delete(k);
+      hs.forEach((h) => { h.hidden = !open; }); el.setAttribute("aria-expanded", String(open)); return;
+    }
     if (a === "awake") {
       if (this._awakeOn) { this._awakeStop(); this._toast("💡 Bildschirm wieder normal"); redraw(); return; }
       this._awakeOn = true; redraw();

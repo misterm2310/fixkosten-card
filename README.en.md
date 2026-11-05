@@ -33,6 +33,8 @@ One click opens it right in your Home Assistant: [![Open in HACS](https://my.hom
 
 ## 📦 Installation
 
+> 💡 **From Home Assistant 2026.11** HACS is built into Home Assistant and is called **Settings → Marketplace**. The steps stay the same, only the way there is new.
+
 1. Open **HACS**, top right **⋮ → Custom repositories**, add `https://github.com/misterm2310/fixkosten-card`, type **Integration**.
 2. Search for **Fixkosten**, **Download**, then **restart Home Assistant**.
 3. **Settings → Devices & services → Add integration → Fixkosten** → Submit, done. 🎉

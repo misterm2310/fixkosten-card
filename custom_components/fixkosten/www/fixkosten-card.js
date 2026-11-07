@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.1-beta.5";
+const FK_VERSION = "1.0.1-beta.6";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -26,7 +26,7 @@ const FK_GUIDE = [
   { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Ausgabe</b>, als <b>Kontostand</b> oder kopierst es.` },
   { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter: <b>Stand korrigieren</b> mit grünem Haken ✓ (z. B. nach dem Nachzählen; leeres Feld = 0). Unter jedem Topf steht, <b>wann</b> er zuletzt geändert wurde. Auf den Namen tippen klappt wieder zu. Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). Kommt es nicht mehr zurück: Topf öffnen und den <b>orangen Zettel antippen</b> → weg. „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst. Erledigt? Grünen Haken ✓ antippen. Auf Wunsch zieht ⚙️ sie von „Verfügbar“ ab.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
   { icon: "pencil-outline", color: "#00897b", title: "Bearbeiten", text: `Unter <b>„Bearbeiten“</b> legst du alles an (＋ Neu) oder tippst einen Eintrag zum Ändern an. Posten können auf <b>bestimmte Monate</b> beschränkt werden (z. B. Kfz-Steuer nur im März) oder <b>pausiert</b> werden. Neue Gruppen bekommen einen Starttag (1–28).<br><b>Reihenfolge ändern:</b> am Griff ⠿ vorne ziehen. Fixkosten kannst du so auch in eine andere Gruppe schieben. Das klappt auch bei Gruppen, Töpfen, Einnahmen, offenen Ständen und Konten.` },
-  { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Ausgaben, Einnahmen und was am Ende übrig war (bis zu 3 Jahre). Du findest ihn in <b>⚙️ → Daten → Rückblick</b>.` },
+  { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Ausgaben, Einnahmen und was am Ende übrig war (bis zu 3 Jahre). Du findest ihn im Reiter <b>📊 Statistik</b> (und in ⚙️ → Daten → Rückblick). Dort stehen auch Durchschnitt, bester und schlechtester Monat, Vergleich zum Vormonat und Vorjahr, die Jahressumme und wie viel Prozent deines Einkommens für Fixkosten weggehen.` },
   { icon: "stethoscope", color: "#00897b", title: "Gesundheit, Fehler und Werkseinstellungen", text: `In ⚙️ → <b>🩺 Gesundheit</b>: <b>„Alles ok?“</b> sucht nach Dingen, die nicht zusammenpassen (Posten ohne Gruppe, alter Kontostand, vergessene Ausgaben …) und sagt, wie man es repariert. <b>Fehler-Protokoll</b> zeigt, was beim Speichern nicht geklappt hat. <b>Ressourcen</b> zeigt, wie viel Platz alles braucht.<br><b>💣 Werkseinstellungen</b> (⚙️ → Daten, nur Admins): alles zurück auf Anfang, nur die PIN bleibt. Zwei Sicherheitsfragen – vorher lieber „Als CSV sichern“.` },
   { icon: "eye-off-outline", color: "#607d8b", title: "Beträge verstecken", text: `Das 👁️ oben verschwimmt alle Beträge und IBANs, z. B. wenn jemand mitschaut. Nochmal tippen = wieder zeigen. Mit <code>privat: true</code> im Karten-YAML startet die Karte versteckt.` },
   { icon: "book-multiple-outline", color: "#8e24aa", title: "Mehrere Bücher (eins pro Person)", text: `Wie bei mehreren Anlagen: <b>Einstellungen → Geräte &amp; Dienste → Fixkosten → Eintrag hinzufügen</b> und einen Namen geben (z. B. „Partnerin“). Jedes Buch hat eigene Fixkosten, Töpfe, Kontostand, PIN und Sensoren.<br>Neue Karte anlegen, im Karten-Editor bei <b>„Welches Buch?“</b> wählen und unter <b>Sichtbarkeit</b> nur die passende Person anhaken. Ehrlich: Ordnung, kein Tresor – ein HA-Admin kann alles sehen.` },
@@ -39,6 +39,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.1-beta.6", "📊 <b>Neuer Reiter „Statistik“</b> neben Übersicht und Bearbeiten: Ø pro Monat (ausgegeben, Einnahmen, übrig), 🏆 bester und 🙈 schlechtester Monat, <b>Vergleich</b> zum Vormonat und Vorjahr (▲ rot = mehr ausgegeben), <b>Jahressumme</b>, <b>Fixkosten-Anteil</b> am Einkommen und die Monats-Balken. Der Rückblick steht weiter auch in ⚙️ → Daten."],
   ["1.0.1-beta.5", "ⓘ <b>Weniger Textwand in ⚙️:</b> Die Erklärungen sind jetzt zugeklappt. Ein kleines <b>ⓘ</b> neben dem Schalter (oder neben der Überschrift) klappt sie auf – wie bei der Einkaufsliste. · 🛒 <b>Marketplace:</b> Ab Home Assistant 2026.11 steckt HACS in Home Assistant drin und heißt <b>Einstellungen → Marketplace</b>. Steht jetzt in der Anleitung und im README."],
   ["1.0.1-beta.4", "⚡ <b>Schnellknöpfe wie die Kategorien der Einkaufsliste:</b> unter ⚙️ → Schnellknöpfe jede Zeile mit Farbe und <b>Symbol</b>, ⠿ ziehen = Reihenfolge, ＋ Neu, antippen = Name, Farbe und Symbol ändern, 🗑️ löschen mit Rückgängig. Das Symbol steht auch auf dem Knopf. · ✏️ <b>Bearbeiten klappt unter der Zeile auf</b> (Preis nur diesen Monat, Ausgaben, Töpfe, Bearbeiten) – die Zeile bleibt stehen, nochmal antippen = zu, wie in der Einkaufsliste. · 📅 <b>Raten bis</b> jetzt mit Monat + Jahr zum Auswählen – das Jahr lässt sich überall ändern."],
   ["1.0.1-beta.3", "🎨 <b>Schnellknöpfe behalten ihre Farbe</b>, auch wenn du sie umsortierst – und unter ⚙️ → Schnellknöpfe kannst du jede Farbe selbst wählen. · ⭕ <b>Ausgaben abhaken mit dem Kreis vorne</b>, genau wie bei den Fixkosten. · 💳 <b>Ratenzahlung:</b> beim Posten „Raten bis“ eintragen – dran steht, wie viele Raten noch kommen, danach zählt er nicht mehr mit. · 🧹 Der Hinweis „Nächste Abbuchung“ oben ist weg – der feste Tag steht weiter am Posten."],
@@ -740,6 +741,12 @@ form.add input.amount { text-align:right; }
 .hist { display:flex; align-items:flex-end; gap:6px; height:150px; padding:8px 0 0; border-bottom:1px solid var(--divider-color); }
 .hist .m { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:2px; min-width:0; }
 .hist .m span { font-size:10.5px; color:var(--secondary-text-color); }
+.stiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(96px, 1fr)); gap:8px; margin:0 0 8px; }
+.stile { display:flex; flex-direction:column; gap:2px; padding:10px; border-radius:12px; background:color-mix(in srgb, var(--primary-text-color, #000) 5%, transparent); min-width:0; }
+.stile b { font-size:1.05em; overflow-wrap:anywhere; } .stile small { color:var(--secondary-text-color); font-size:.78em; }
+.trend { font-weight:700; white-space:nowrap; } .trend.up { color:var(--error-color, #e53935); } .trend.down { color:var(--success-color, #43a047); }
+.share { margin:0 2px 6px; } .share b { font-size:1.3em; }
+.sharebar { height:10px; border-radius:6px; background:color-mix(in srgb, var(--primary-text-color, #000) 8%, transparent); overflow:hidden; margin:0 2px 6px; } .sharebar i { display:block; height:100%; border-radius:6px; }
 .legend { display:flex; gap:12px; font-size:12px; color:var(--secondary-text-color); margin:6px 4px; }
 .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
 table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
@@ -1101,7 +1108,7 @@ class FixkostenCard extends HTMLElement {
     } else {
       const openFix = d.summary.groups.reduce((n, g) => n + g.count - g.done, 0), openBk = d.bookings.filter((b) => !b.cleared).length;
       const open = openFix + openBk; // 🔵 offene Fixkosten + Ausgaben, die noch nicht abgebucht sind
-      const tabs = [["home", "view-dashboard-outline", "Übersicht"], ["edit", "pencil-outline", "Bearbeiten"]]; // 📊 Rückblick wohnt jetzt in ⚙️ → Daten
+      const tabs = [["home", "view-dashboard-outline", "Übersicht"], ["stat", "chart-bar", "Statistik"], ["edit", "pencil-outline", "Bearbeiten"]]; // 📊 Statistik als eigener Reiter (der Rückblick steht zusätzlich in ⚙️ → Daten)
       // 🐷 Maskottchen statt Geldbörse (Schalter in ⚙️ → Ansicht) – hüpft einmal, wenn die letzte Fixkosten abgehakt wird
       const hop = this._prevOpenFix > 0 && openFix === 0 && d.posten.length > 0;
       this._prevOpenFix = openFix;
@@ -1113,7 +1120,7 @@ class FixkostenCard extends HTMLElement {
       if (this._calc) body += this._calcView(d);
       if (!locked) pinTouch();
       body += page ? `<div class="sec pagehost"><div class="sechead"><span class="ic" style="--ic:${page.color}">${ic(page.icon)}</span><h3>${page.title}</h3></div><div class="pagebody">${page.html}</div></div>`
-        : this._view === "edit" ? this._editView(d) :  this._view === "set" ? this._setView(d) : this._homeView(d);
+        : this._view === "edit" ? this._editView(d) : this._view === "stat" ? this._statView(d) : this._view === "set" ? this._setView(d) : this._homeView(d);
     }
     this.shadowRoot.innerHTML = `<style>${CSS}</style>${top}<ha-card>${body}</ha-card>
       <div class="foot"><button class="${this._view === "guide" ? "on" : ""}" data-a="tab" data-v="${this._view === "guide" ? "home" : "guide"}">${ic("book-open-page-variant-outline")}<span>Anleitung</span></button></div>
@@ -1400,6 +1407,45 @@ class FixkostenCard extends HTMLElement {
       <button type="button" class="btn" data-a="cancel">${ic("close")}Abbrechen</button><button class="btn main" type="submit">${ic("check")}Speichern</button></div></form>`;
   }
 
+  // 📊 Statistik: Durchschnitt, bester/schlechtester Monat, Vergleich und Jahressumme – nur aus dem, was schon gemerkt ist
+  _statView(d) {
+    const hist = d.history || [], s = d.summary, spent = (x) => (x.fix_total || 0) + (x.bookings || 0);
+    const cur = { month: d.month, fix_total: s.fix_total, income_total: s.income_total, bookings: s.bookings_month, available_end: s.available };
+    const avg = (f) => hist.reduce((a, x) => a + f(x), 0) / hist.length;
+    const tile = (emo, lbl, val, sub = "") => `<div class="stile"><small>${emo} ${lbl}</small><b>${val}</b>${sub ? `<small>${sub}</small>` : ""}</div>`;
+    const pct = (a, b, good = false) => { if (!b) return ""; const p = Math.round(((a - b) / Math.abs(b)) * 100); return `<span class="trend ${(good ? -p : p) > 0 ? "up" : (good ? -p : p) < 0 ? "down" : ""}">${p > 0 ? "▲" : p < 0 ? "▼" : "＝"} ${p > 0 ? "+" : ""}${p} %</span>`; };
+    let h = "";
+    if (hist.length) {
+      const best = hist.reduce((a, x) => (x.available_end > a.available_end ? x : a)), worst = hist.reduce((a, x) => (x.available_end < a.available_end ? x : a));
+      h += `<div class="sec"><div class="sechead"><span class="ic" style="--ic:#5e35b1">${ic("chart-line")}</span><h3>Durchschnitt pro Monat</h3></div>
+        <div class="stiles">${tile("💸", "Ausgegeben", this._m(avg(spent)), "Fixkosten + Ausgaben")}${tile("💵", "Einnahmen", this._m(avg((x) => x.income_total || 0)))}${tile("🐷", "Übrig am Ende", this._m(avg((x) => x.available_end || 0)))}</div>
+        <div class="stiles">${tile("🏆", "Bester Monat", esc(this._monthName(best.month)), `${this._m(best.available_end)} übrig`)}${tile("🙈", "Schlechtester Monat", esc(this._monthName(worst.month)), `${this._m(worst.available_end)} übrig`)}</div>
+        <p class="small">Aus ${hist.length} ${hist.length === 1 ? "fertigen Monat" : "fertigen Monaten"}. Der laufende Monat zählt erst mit, wenn er vorbei ist.</p></div>`;
+      const last = hist[hist.length - 1], prev = hist[hist.length - 2];
+      const [ly, lm] = last.month.split("-"), yago = hist.find((x) => x.month === `${Number(ly) - 1}-${lm}`);
+      h += `<div class="sec"><div class="sechead"><span class="ic" style="--ic:#00897b">${ic("compare-horizontal")}</span><h3>Vergleich</h3></div>
+        <table><tr><th></th><th>Ausgegeben</th><th>Einnahmen</th></tr>
+        <tr><td><b>${esc(this._monthName(last.month))}</b></td><td>${this._m(spent(last))}</td><td>${this._m(last.income_total)}</td></tr>
+        ${prev ? `<tr><td>zum Vormonat</td><td>${pct(spent(last), spent(prev))}</td><td>${pct(last.income_total, prev.income_total, true)}</td></tr>` : ""}
+        ${yago ? `<tr><td>zum Vorjahr</td><td>${pct(spent(last), spent(yago))}</td><td>${pct(last.income_total, yago.income_total, true)}</td></tr>` : ""}</table>
+        ${prev ? "" : `<p class="small">Den Vergleich gibt's ab dem zweiten fertigen Monat.</p>`}
+        <p class="small">Grün = gut für dich (weniger ausgegeben oder mehr eingenommen), rot = andersrum.</p></div>`;
+    } else h += `<div class="sec"><p class="okmsg">📊 Durchschnitt und Vergleich gibt's nach dem ersten Monatsende. Die Karte merkt sich jeden Monat von selbst.</p></div>`;
+    const yr = d.month.slice(0, 4), ym = [...hist.filter((x) => x.month.startsWith(yr)), cur], sum = (f) => ym.reduce((a, x) => a + (f(x) || 0), 0);
+    h += `<div class="sec"><div class="sechead"><span class="ic" style="--ic:#fb8c00">${ic("calendar-month-outline")}</span><h3>${yr} bisher</h3></div>
+      <div class="stiles">${tile("📅", "Fixkosten", this._m(sum((x) => x.fix_total)))}${tile("💳", "Ausgaben", this._m(sum((x) => x.bookings)))}${tile("💵", "Einnahmen", this._m(sum((x) => x.income_total)))}</div>
+      <p class="small">${ym.length} ${ym.length === 1 ? "Monat" : "Monate"}, der laufende Monat mit dem Stand von heute.</p></div>`;
+    const fixAvg = hist.length ? avg((x) => x.fix_total || 0) : cur.fix_total || 0, incAvg = hist.length ? avg((x) => x.income_total || 0) : cur.income_total || 0;
+    if (incAvg > 0) {
+      const share = Math.round((fixAvg / incAvg) * 100), col = share <= 50 ? "#43a047" : share <= 70 ? "#fb8c00" : "#e53935";
+      h += `<div class="sec"><div class="sechead"><span class="ic" style="--ic:${col}">${ic("chart-donut")}</span><h3>Fixkosten-Anteil</h3></div>
+        <p class="share"><b style="color:${col}">${share} %</b> deines Einkommens gehen für Fixkosten weg.</p>
+        <div class="sharebar"><i style="width:${Math.min(100, share)}%;background:${col}"></i></div>
+        <p class="small">${share <= 50 ? "😎 Entspannt – da bleibt Luft." : share <= 70 ? "😐 Geht, aber viel Spielraum ist nicht." : "😱 Puh, das ist eng."} ${hist.length ? "Durchschnitt der fertigen Monate." : "Stand des laufenden Monats."}</p></div>`;
+    }
+    h += `<div class="sec"><div class="sechead"><span class="ic" style="--ic:#e91e63">${ic("chart-bar")}</span><h3>Monat für Monat</h3></div>${this._histView(d)}</div>`;
+    return h;
+  }
   _histView(d) {
     const hist = [...(d.history || [])].slice(-12);
     const s = d.summary;

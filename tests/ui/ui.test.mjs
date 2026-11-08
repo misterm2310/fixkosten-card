@@ -43,7 +43,7 @@ const fmt = (v) => new Intl.NumberFormat("de-DE", { style: "currency", currency:
 check("Verfügbar richtig gerechnet", big === fmt(exp.avail), `${big} statt ${fmt(exp.avail)}`);
 check("Gruppen, Einnahmen, Töpfe sind zu", await sr(`return !h.querySelector('[data-a="paid"]') && !!h.querySelector('[data-a="sec"][data-v="g:g01"]') && !h.querySelector('[data-a="pot"]');`));
 check("Kein Hinweis „Nächste Abbuchung“ oben mehr", await sr(`return !h.querySelector('.next');`));
-check("Reiter: Übersicht · Bearbeiten", await sr(`return [...h.querySelectorAll('.tab')].map((t) => t.dataset.v).join() === "home,edit";`));
+check("Reiter: Übersicht · Statistik · Bearbeiten", await sr(`return [...h.querySelectorAll('.tab')].map((t) => t.dataset.v).join() === "home,stat,edit";`));
 await shot("1a-zugeklappt.png");
 await sr(`h.querySelector('[data-a="sec"][data-v="g:g01"]').click();`);
 await sr(`h.querySelector('[data-a="sec"][data-v="g:g15"]').click();`);
@@ -517,13 +517,25 @@ await sr(`h.querySelector('.sechead .finfo').click();`);
 check("ⓘ: Überschrift-ⓘ klappt auf", await sr(`return !h.querySelector('p.fhint').hidden;`));
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
 
+// 📊 Statistik-Reiter (1.0.1-beta.6): Durchschnitt, bester/schlechtester Monat, Vergleich, Jahressumme, Fixkosten-Anteil, Balken
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+await sr(`h.querySelector('[data-a="tab"][data-v="stat"]').click();`);
+check("Statistik: Reiter da und alle Teile sichtbar", await sr(`const t = h.querySelector('ha-card').textContent; return /Durchschnitt pro Monat/.test(t) && /Bester Monat/.test(t) && /Vergleich/.test(t) && /bisher/.test(t) && /Fixkosten-Anteil/.test(t) && h.querySelectorAll('.hist .m').length >= 2;`), await sr(`return h.querySelector('ha-card').textContent.slice(0, 300);`));
+check("Statistik: Vergleich mit Pfeil", await sr(`return !!h.querySelector('.trend');`));
+await shot("16-statistik.png");
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._force = true; c._render(); });
+
 // 🌍 Englisch (beta.17): language: en → Wörterbuch laden, alles übersetzen, eigene Namen bleiben
 await p.evaluate(() => { const c = document.querySelector('#c1'); c.setConfig({ title: "Fixkosten", language: "en" }); });
 await p.waitForFunction(() => /Available/.test(document.querySelector('#c1').shadowRoot.querySelector('.hero .lbl')?.textContent || ""), null, { timeout: 4000 }).catch(() => {});
-check("Englisch: „Available“, Reiter Overview/Edit", await sr(`return /^Available/.test(h.querySelector('.hero .lbl').textContent) && [...h.querySelectorAll('.tab')].map((x) => x.textContent.trim()).join("|") === "Overview|Edit";`), await sr(`return h.querySelector('.hero .lbl').textContent;`));
+check("Englisch: „Available“, Reiter Overview/Statistics/Edit", await sr(`return /^Available/.test(h.querySelector('.hero .lbl').textContent) && [...h.querySelectorAll('.tab')].map((x) => x.textContent.trim()).join("|") === "Overview|Statistics|Edit";`), await sr(`return h.querySelector('.hero .lbl').textContent;`));
 check("Englisch: eigene Namen bleiben deutsch (Schnellknopf „Bäckerei“)", await sr(`return [...h.querySelectorAll('.quick .chip')].some((x) => x.textContent.trim() === "Bäckerei");`));
 check("Englisch: Euro englisch geschrieben (€ vorn)", await sr(`return /^-?€/.test(h.querySelector('.big').textContent.trim());`), await sr(`return h.querySelector('.big').textContent;`));
 await shot("13-englisch.png");
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "stat"; c._sheet = null; c._force = true; c._render(); });
+await new Promise((r) => setTimeout(r, 80));
+check("Englisch: Statistik übersetzt", await sr(`const t = h.querySelector('ha-card').textContent; return /Average per month/.test(t) && /Comparison/.test(t) && /so far/.test(t) && !/Durchschnitt|Vergleich|bisher|Einkommens|übrig/.test(t);`), await sr(`return h.querySelector('ha-card').textContent.replace(/\s+/g, " ").slice(0, 900);`));
+await shot("17-statistik-englisch.png");
 await sr(`h.querySelector('[data-a="tab"][data-v="set"]').click();`);
 check("Englisch: Einstellungen übersetzt", await sr(`const t = h.querySelector('ha-card').textContent; return /Calculation/.test(t) && /Health/.test(t) && !/Gesundheit|Rechnen/.test(t);`));
 await p.evaluate(() => { const c = document.querySelector('#c1'); c.setConfig({ title: "Fixkosten" }); c._view = "home"; c._sheet = null; c._force = true; c._render(); });

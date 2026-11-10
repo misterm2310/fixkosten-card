@@ -253,6 +253,8 @@ Jedes Buch hat **eigene** Fixkosten, Töpfe, Kontostand, PIN, Rückblick und Sen
 
 **Holt die Karte meine Umsätze von der Bank?** Nein, mit Absicht. Kontostand und Zahlungen trägst du selbst ein – dafür geht nichts an fremde Server.
 
+**⏳ Wann kommt die nächste Beta?** Ehrlich gesagt: Ich baue die Integrationen mit Hilfe von Claude (KI). Wie schnell neue Betas kommen, hängt davon ab, wie viel Claude-Kontingent (Tokens) gerade frei ist. Ist es aufgebraucht, muss ich warten, bis es wieder aufgefüllt ist – keine Tokens, keine Betas. 😅 Danke für eure Geduld und euer Verständnis! 🙏
+
 ---
 
 ## 💙 Gefällt dir die Fixkosten-Karte?

@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.1";
+const FK_VERSION = "1.0.2-beta.1";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -39,6 +39,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.2-beta.1", "🔢 <b>„Was ist neu“ richtig sortiert:</b> Die höchste Version steht immer oben, eine offizielle Version vor ihren Betas – egal in welcher Reihenfolge sie eingetragen wurden."],
   ["1.0.1", "🎉 <b>Offizielle Version 1.0.1:</b> Alles aus 6 Betas ist jetzt fest drin – danke fürs Testen! · 📊 Neuer Reiter <b>Statistik</b> (Ø pro Monat, bester und schlechtester Monat, Vergleich, Jahressumme, Fixkosten-Anteil) · ⚡ Schnellknöpfe wie die Kategorien der Einkaufsliste (Farbe, Symbol, ziehen) · 💶 Preis nur für diesen Monat · 💳 Raten bis Monat/Jahr · ✅ Datum beim Abhaken · ⓘ Erklärungen zum Antippen statt Textwand"],
   ["1.0.1-beta.6", "📊 <b>Neuer Reiter „Statistik“</b> neben Übersicht und Bearbeiten: Ø pro Monat (ausgegeben, Einnahmen, übrig), 🏆 bester und 🙈 schlechtester Monat, <b>Vergleich</b> zum Vormonat und Vorjahr (▲ rot = mehr ausgegeben), <b>Jahressumme</b>, <b>Fixkosten-Anteil</b> am Einkommen und die Monats-Balken. Der Rückblick steht weiter auch in ⚙️ → Daten."],
   ["1.0.1-beta.5", "ⓘ <b>Weniger Textwand in ⚙️:</b> Die Erklärungen sind jetzt zugeklappt. Ein kleines <b>ⓘ</b> neben dem Schalter (oder neben der Überschrift) klappt sie auf – wie bei der Einkaufsliste. · 🛒 <b>Marketplace:</b> Ab Home Assistant 2026.11 steckt HACS in Home Assistant drin und heißt <b>Einstellungen → Marketplace</b>. Steht jetzt in der Anleitung und im README."],
@@ -1480,7 +1481,7 @@ class FixkostenCard extends HTMLElement {
     const li = (t) => `<ul>${t.split(" · ").map((x) => `<li>${x}</li>`).join("")}</ul>`;
     const cur = FK_NEWS.find((n) => n[0] === FK_VERSION);
     const beta = /-beta/.test(FK_VERSION) && cur ? `<div class="betabox"><b>🧪 Du bist in der Beta ${FK_VERSION}</b><p class="small" style="margin:4px 0 2px">Neu in dieser Beta:</p>${li(cur[1])}</div>` : "";
-    return `${beta}<p class="small">Das Neueste steht oben.</p>${FK_NEWS.filter((n) => !beta || n !== cur).map((n) => `<p style="margin:10px 0 0"><b>v${n[0]}</b></p>${li(n[1])}`).join("")}`;
+    return `${beta}<p class="small">Das Neueste steht oben.</p>${[...FK_NEWS].sort((a, b) => fkVerCmp(b[0], a[0])) /* 🔢 höchste Version oben, offizielle vor ihren Betas */.filter((n) => !beta || n !== cur).map((n) => `<p style="margin:10px 0 0"><b>v${n[0]}</b></p>${li(n[1])}`).join("")}`;
   }
   // 🙏 Credits – genau wie bei der Einkaufsliste (Logo, Version, Knöpfe, PayPal), in ⚙️ und in der Anleitung
   _creditsHtml() {
@@ -2082,6 +2083,7 @@ class FixkostenCard extends HTMLElement {
 
 if (!customElements.get("fixkosten-card")) customElements.define("fixkosten-card", FixkostenCard);
 FixkostenCard.mascotDeco = fkMascotDeco; // 🧪 für Tests: welches Kostüm an welchem Tag
+FixkostenCard.verCmp = (a, b) => fkVerCmp(b, a); // 🧪 für Tests: so sortiert „Was ist neu“ (absteigend)
 FixkostenCard.i18n = { fkBlockKey, fkNorm, fkT, skip: FK_SKIP, attrs: FK_ATTRS }; // 🧪 für Tests: Übersetzung
 
 // ✏️ Karten-Editor: Titel, welches Buch, Beträge erst nach Antippen zeigen

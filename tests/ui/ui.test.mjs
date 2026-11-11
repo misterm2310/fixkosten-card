@@ -525,6 +525,12 @@ check("Statistik: Vergleich mit Pfeil", await sr(`return !!h.querySelector('.tre
 await shot("16-statistik.png");
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._force = true; c._render(); });
 
+// 🔢 „Was ist neu“ nach Version sortiert (1.0.2-beta.1): höchste oben, offizielle Version vor ihren Betas
+check("Versionen: offiziell vor Beta, höchste zuerst", await p.evaluate(() => { const C = customElements.get("fixkosten-card"); return ["1.0.1-beta.6", "1.0.0", "1.0.2-beta.1", "1.0.1", "0.1.0-beta.23", "1.0.1-beta.10"].sort(C.verCmp).join() === "1.0.2-beta.1,1.0.1,1.0.1-beta.10,1.0.1-beta.6,1.0.0,0.1.0-beta.23"; }));
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "guide"; c._force = true; c._render(); });
+check("Was ist neu: Liste absteigend sortiert", await sr(`const v = [...h.querySelectorAll('.elg p b')].map((b) => b.textContent).filter((t) => /^v[0-9]/.test(t)).map((t) => t.slice(1)); const C = customElements.get("fixkosten-card"); return v.length > 5 && v.join() === [...v].sort(C.verCmp).join();`));
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._force = true; c._render(); });
+
 // 🌍 Englisch (beta.17): language: en → Wörterbuch laden, alles übersetzen, eigene Namen bleiben
 await p.evaluate(() => { const c = document.querySelector('#c1'); c.setConfig({ title: "Fixkosten", language: "en" }); });
 await p.waitForFunction(() => /Available/.test(document.querySelector('#c1').shadowRoot.querySelector('.hero .lbl')?.textContent || ""), null, { timeout: 4000 }).catch(() => {});

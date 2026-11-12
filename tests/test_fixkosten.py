@@ -514,3 +514,17 @@ async def test_raten_und_knopf_farben(hass, setup, freezer):
     assert m.data["settings"]["quick_colors"] == {"bäckerei": "#123456"}
     m.apply([{"type": "settings", "settings": {"quick_icons": {"Bäckerei": "mdi:bread-slice-outline", "Böse": "javascript:alert(1)"}}}])
     assert m.data["settings"]["quick_icons"] == {"bäckerei": "mdi:bread-slice-outline"}
+
+
+async def test_stand_ich_bekomme(hass, setup):
+    # 💚 Offene Stände in beide Richtungen: ohne Schalter zählt nichts, mit Schalter rot ab und grün dazu
+    m = mgr(hass)
+    m.import_csv("Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz\nkontostand;Konto;1000;;;\nstand;Zahnarzt;120,00;;;\nforderung;Kumpel Tim;50,00;;;Pizza\n")
+    s = m.summary()
+    assert s["debts"] == 120 and s["claims"] == 50
+    assert m.find("stand", "Kumpel Tim")["dir"] == "get" and m.find("stand", "Zahnarzt")["dir"] == "pay"
+    before = s["available"]
+    m.data["settings"]["debts_subtract"] = True
+    assert m.summary()["available"] == before - 120 + 50  # Schalter an: rot ab, grün dazu
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.fixkosten_offene_staende_ich_bekomme").state) == 50

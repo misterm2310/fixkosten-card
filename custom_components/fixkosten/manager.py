@@ -275,10 +275,11 @@ class FixkostenManager:
         bookings_open = sum(b["amount"] for b in d["bookings"] if not b.get("cleared"))
         mk = d["month"]
         bookings_month = sum(b["amount"] for b in d["bookings"] if b.get("month") == mk)
-        debts = sum(x["amount"] for x in d["staende"])
+        debts = sum(x["amount"] for x in d["staende"] if x.get("dir") != "get")  # 🧾 was ich noch zahlen muss
+        claims = sum(x["amount"] for x in d["staende"] if x.get("dir") == "get")  # 💚 was ich noch bekomme
         available = float(konto.get("balance", 0)) - fix_open - bookings_open  # „Vorgemerkt“ gibt es nicht mehr (doppelt mit Ausgaben)
-        if d["settings"].get("debts_subtract"):
-            available -= debts
+        if d["settings"].get("debts_subtract"):  # 🧾 Schalter „Offene Stände mitrechnen“: rot ab, grün dazu
+            available += claims - debts
         pots = sum(t["amount"] for t in d["toepfe"])
         lent = sum(float(t.get("lent", 0) or 0) for t in d["toepfe"])  # 🐷 aus Töpfen geliehen, noch nicht zurückgelegt
         return {
@@ -297,6 +298,7 @@ class FixkostenManager:
             "pots_total": round(pots, 2),
             "pots_lent": round(lent, 2),
             "debts": round(debts, 2),
+            "claims": round(claims, 2),
             "total": round(pots + available, 2),  # 💰 wie in der Tabelle: was verfügbar ist + alle Töpfe
             "warn": d["settings"].get("warn_enabled", True) is not False and available < float(d["settings"].get("warn_below", 0) or 0),
             "next": next_item,
@@ -661,7 +663,7 @@ class FixkostenManager:
                 if code not in CURRENCIES:
                     raise HomeAssistantError(f"Währung „{s['currency']}“ kenne ich nicht")
                 d["settings"]["currency"] = code
-            for flag in ("log_on", "labels", "mascot", "veil", "lock_all"):  # 📜 🔤 🐷 einfache Schalter
+            for flag in ("log_on", "labels", "mascot", "veil", "lock_all", "show_by"):  # 📜 🔤 🐷 einfache Schalter
                 if flag in s:
                     d["settings"][flag] = bool(s[flag])
             if isinstance(s.get("view"), dict):  # 👁️ Abschnitte ein-/ausblenden (für alle)
@@ -703,6 +705,8 @@ class FixkostenManager:
                 target["amount"] = abs(parse_money(item.get("amount", 0)))
             if kind in ("topf", "stand"):
                 target["updated"] = ts
+                if kind == "stand" and ("dir" in item or existing is None):  # 💚 „Ich bekomme“ oder 🧾 „Ich muss zahlen“
+                    target["dir"] = "get" if item.get("dir") == "get" else "pay"
                 if "note" in item:
                     target["note"] = str(item["note"] or "")[:200]
             else:
@@ -757,7 +761,7 @@ class FixkostenManager:
 
     # ------------------------------------------------------------------ 📥 CSV-Import
     def import_csv(self, text: str, replace: bool = False) -> dict[str, int]:
-        """Spalten: Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz (Typ = ausgabe | einnahme | topf | stand | iban | kontostand). Kopfzeile optional.
+        """Spalten: Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz (Typ = ausgabe | einnahme | topf | stand | forderung | iban | kontostand). Kopfzeile optional.
 
         Bei Einnahmen steht in Spalte 4 ein Datum als Info (Einnahmen sind nur Info, sie ändern „Verfügbar“ nicht)."""
         if not text or not text.strip():
@@ -775,7 +779,8 @@ class FixkostenManager:
         ts = int(dt_util.utcnow().timestamp() * 1000)
         kinds = {"ausgabe": "posten", "ausgaben": "posten", "posten": "posten", "fix": "posten",
                  "einnahme": "einnahme", "einnahmen": "einnahme", "topf": "topf", "toepfe": "topf", "töpfe": "topf", "iban": "konto", "bankkonto": "konto",
-                 "stand": "stand", "offen": "stand", "staende": "stand", "stände": "stand", "schulden": "stand"}
+                 "stand": "stand", "offen": "stand", "staende": "stand", "stände": "stand", "schulden": "stand",
+                 "forderung": "stand", "forderungen": "stand", "bekomme": "stand", "guthaben": "stand"}
         for row in rows:
             cells = [c.strip() for c in row] + [""] * 6
             typ = cells[0].lower()
@@ -803,7 +808,7 @@ class FixkostenManager:
             if kind == "posten":
                 item.update(group=cells[3], pay=cells[4], note=cells[5])
             elif kind == "stand":
-                item.update(note=cells[5])
+                item.update(note=cells[5], dir="get" if typ in ("forderung", "forderungen", "bekomme", "guthaben") else "pay")
             elif kind == "konto":
                 item = {"name": cells[1], "iban": cells[2], "note": cells[5] or cells[3]}
             elif kind == "einnahme":

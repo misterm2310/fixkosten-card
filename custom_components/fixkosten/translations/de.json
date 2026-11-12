@@ -111,7 +111,7 @@
     },
     "csv_import": {
       "name": "CSV importieren",
-      "description": "Posten, Einnahmen und Töpfe aus einer CSV-Datei einlesen (Typ;Name;Betrag;Gruppe;Zahlart;Notiz – Typ = ausgabe, einnahme, topf, stand).",
+      "description": "Posten, Einnahmen und Töpfe aus einer CSV-Datei einlesen (Typ;Name;Betrag;Gruppe;Zahlart;Notiz – Typ = ausgabe, einnahme, topf, stand, forderung).",
       "fields": {
         "text": {
           "name": "Text",

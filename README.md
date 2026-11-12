@@ -152,7 +152,8 @@ Spalten (Semikolon): `Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz`
 | `ausgabe` | Fixkosten-Posten | Gruppe: `1`, `15` (oder Name). Neue Starttage legen eine Gruppe an |
 | `einnahme` | Einnahme (nur Info) | Datum als Text |
 | `topf` | Stand eines Topfs | Datum der letzten Änderung (`TT.MM.JJJJ`, optional) |
-| `stand` | offener Stand | Datum (optional) |
+| `stand` | offener Stand – ich muss zahlen | Datum (optional) |
+| `forderung` | offener Stand – ich bekomme | Datum (optional) |
 | `iban` | Konto-Info, IBAN steht in Spalte 3 | – |
 | `kontostand` | Kontostand (darf negativ sein) | Datum (optional) |
 
@@ -202,7 +203,8 @@ language: en       # optional: de oder en (ohne = wie Home Assistant), auch im K
 | `sensor.fixkosten_ueberschuss` | Einnahmen − Fixkosten |
 | `sensor.fixkosten_ausgaben_offen` | Noch nicht abgebuchte Ausgaben |
 | `sensor.fixkosten_ausgaben_monat` | Alle Ausgaben dieses Monats |
-| `sensor.fixkosten_offene_staende` | Summe der offenen Stände |
+| `sensor.fixkosten_offene_staende` | Summe der offenen Stände, die du noch zahlen musst |
+| `sensor.fixkosten_offene_staende_ich_bekomme` | Summe der offenen Stände, die du noch bekommst (💚 „Ich bekomme“) |
 | `sensor.fixkosten_gesamtvermoegen` | Verfügbar + alle Töpfe |
 | `sensor.fixkosten_naechste_abbuchung` | Name des nächsten offenen Postens (Attribute: Betrag, Gruppe, ab Tag, fällig) |
 | `binary_sensor.fixkosten_warnung` | An, wenn „Verfügbar“ unter der Grenze aus ⚙️ liegt |

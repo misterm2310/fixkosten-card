@@ -703,8 +703,19 @@ class FixkostenManager:
         else:
             if "amount" in item or existing is None:
                 target["amount"] = abs(parse_money(item.get("amount", 0)))
-            if kind in ("topf", "stand"):
+            if kind == "topf":
                 target["updated"] = ts
+            elif kind == "stand":  # 📅 Datum ist änderbar: „date“ (JJJJ-MM-TT) setzt es, sonst bleibt es (neu = heute)
+                day = str(item.get("date") or "").strip()
+                if day:
+                    try:
+                        when = datetime.strptime(day, "%Y-%m-%d").replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+                    except ValueError as err:
+                        raise HomeAssistantError("Datum stimmt nicht") from err
+                    target["updated"] = int(when.timestamp() * 1000)
+                elif not target.get("updated"):
+                    target["updated"] = ts
+            if kind in ("topf", "stand"):
                 if kind == "stand" and ("dir" in item or existing is None):  # 💚 „Ich bekomme“ oder 🧾 „Ich muss zahlen“
                     target["dir"] = "get" if item.get("dir") == "get" else "pay"
                 if "note" in item:

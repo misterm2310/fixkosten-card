@@ -33,14 +33,14 @@ Ein Klick öffnet es direkt in deinem Home Assistant: [![In HACS öffnen](https:
 | --- | --- |
 | 💰 **Verfügbar** | Kontostand − offene Fixkosten − Ausgaben, die noch nicht abgebucht sind = was du wirklich ausgeben kannst. Grün im Plus, rot im Minus |
 | 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“, standardmäßig zugeklappt (Summe und „2 / 4“ stehen im Kopf). Freiwillig ein **fester Tag** (z. B. am 5.) – dann gibt es oben einen Hinweis auf die nächste Abbuchung. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder **pausiert** (steht grau und abgehakt drin, zählt nicht mit) |
-| ⠿ **Verschieben** | Gruppen, Posten, Töpfe, Einnahmen, offene Stände und Konten am Griff ⠿ ziehen. Posten auch in eine andere Gruppe |
+| ⠿ **Verschieben** | Gruppen, Posten, Töpfe, Einnahmen und Konten am Griff ⠿ ziehen. Posten auch in eine andere Gruppe |
 | ↩️ **Rückgängig** | Nach Löschen, „beglichen“ oder „abgebucht“ steht 8 Sekunden lang „Rückgängig“ unten in der Karte |
 | 💳 **Ausgaben** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: grüner Haken ✓. Eintrag antippen = ändern. Lange drücken auf einen Symbol-Knopf zeigt, was er macht |
-| 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Ausgabe, Kontostand oder kopieren. Rechnet selbst, ohne `eval` |
+| 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Ausgabe, Kontostand oder kopieren. Am PC auch per Tastatur (Ziffern, + − * /, Enter, ⌫, Esc). Rechnet selbst, ohne `eval` |
 | 💡 **Bildschirm an** | Glühbirne oben zwischen 👁️ und 🔒: einmal antippen, dann geht das Handy nicht aus (z. B. beim Abarbeiten der Rechnungen). Noch mal antippen = wieder normal. In der HA-App hilft nur deren Einstellung „Keep screen On“ |
 | 💵 **Einnahmen** | Nur zur Info (Lohn, Nebenjob …), mit Kreis zum Abhaken, sobald sie auf dem Konto sind. Zeigt, was nach den Fixkosten übrig bleibt |
 | 🐷 **Töpfe** | Was wo liegt: Sparkonto, Bargeld zu Hause, PayPal … plus „Komplett“ = Verfügbar + alle Töpfe. ➖ Rausnehmen und ➕ Zurücklegen, Geliehenes steht in Orange dabei (im geöffneten Topf antippen = nicht mehr zurücklegen) |
-| 🧾 **Offene Stände** | Was du noch begleichen musst (rot) oder bekommst (grün). Zum Zuklappen, beide Summen in der Überschrift, Antippen = Bearbeiten klappt darunter auf, grüner Haken = erledigt. Auf Wunsch bei „Verfügbar“ mitrechnen |
+| 🧾 **Offene Stände** | Was du noch begleichen musst (rot) oder bekommst (grün). Direkt in der Übersicht eintragen wie die Ausgaben (aufklappen, „Ich muss zahlen“ oder „Ich bekomme“ wählen, Name, Betrag, ＋). Zum Zuklappen (dann ist auch die Eingabe weg), beide Summen in der Überschrift, neuestes Datum oben, Antippen = Bearbeiten klappt darunter auf (auch das Datum ist änderbar), grüner Haken = erledigt. Auf Wunsch bei „Verfügbar“ mitrechnen |
 | 🏦 **Meine Konten** | IBAN-Liste zum schnellen Kopieren (📋) |
 | 👁️ **Verstecken** | Ein Tipp verschwimmt alle Beträge, z. B. wenn jemand mitschaut |
 | 🙈 **Verschleiert** | Die Summen von Einnahmen und Töpfen (in der Überschrift) und „Komplett“ sind verschwommen, die einzelnen Einträge nicht. Am PC Maus drüber, am Handy auf den Betrag drücken = 4 Sekunden sichtbar. Abschaltbar in ⚙️ → Ansicht |

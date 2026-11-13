@@ -40,7 +40,7 @@ Ein Klick öffnet es direkt in deinem Home Assistant: [![In HACS öffnen](https:
 | 💡 **Bildschirm an** | Glühbirne oben zwischen 👁️ und 🔒: einmal antippen, dann geht das Handy nicht aus (z. B. beim Abarbeiten der Rechnungen). Noch mal antippen = wieder normal. In der HA-App hilft nur deren Einstellung „Keep screen On“ |
 | 💵 **Einnahmen** | Nur zur Info (Lohn, Nebenjob …), mit Kreis zum Abhaken, sobald sie auf dem Konto sind. Zeigt, was nach den Fixkosten übrig bleibt |
 | 🐷 **Töpfe** | Was wo liegt: Sparkonto, Bargeld zu Hause, PayPal … plus „Komplett“ = Verfügbar + alle Töpfe. ➖ Rausnehmen und ➕ Zurücklegen, Geliehenes steht in Orange dabei (im geöffneten Topf antippen = nicht mehr zurücklegen) |
-| 🧾 **Offene Stände** | Was du noch begleichen musst. Auf Wunsch auch von „Verfügbar“ abziehen |
+| 🧾 **Offene Stände** | Was du noch begleichen musst (rot) oder bekommst (grün). Zum Zuklappen, beide Summen in der Überschrift, Antippen = Bearbeiten klappt darunter auf, grüner Haken = erledigt. Auf Wunsch bei „Verfügbar“ mitrechnen |
 | 🏦 **Meine Konten** | IBAN-Liste zum schnellen Kopieren (📋) |
 | 👁️ **Verstecken** | Ein Tipp verschwimmt alle Beträge, z. B. wenn jemand mitschaut |
 | 🙈 **Verschleiert** | Die Summen von Einnahmen und Töpfen (in der Überschrift) und „Komplett“ sind verschwommen, die einzelnen Einträge nicht. Am PC Maus drüber, am Handy auf den Betrag drücken = 4 Sekunden sichtbar. Abschaltbar in ⚙️ → Ansicht |
@@ -204,7 +204,7 @@ language: en       # optional: de oder en (ohne = wie Home Assistant), auch im K
 | `sensor.fixkosten_ausgaben_offen` | Noch nicht abgebuchte Ausgaben |
 | `sensor.fixkosten_ausgaben_monat` | Alle Ausgaben dieses Monats |
 | `sensor.fixkosten_offene_staende` | Summe der offenen Stände, die du noch zahlen musst |
-| `sensor.fixkosten_offene_staende_ich_bekomme` | Summe der offenen Stände, die du noch bekommst (💚 „Ich bekomme“) |
+| `sensor.fixkosten_offene_staende_ich_bekomme` | Summe der offenen Stände, die du noch bekommst („Ich bekomme“) |
 | `sensor.fixkosten_gesamtvermoegen` | Verfügbar + alle Töpfe |
 | `sensor.fixkosten_naechste_abbuchung` | Name des nächsten offenen Postens (Attribute: Betrag, Gruppe, ab Tag, fällig) |
 | `binary_sensor.fixkosten_warnung` | An, wenn „Verfügbar“ unter der Grenze aus ⚙️ liegt |

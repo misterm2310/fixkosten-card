@@ -528,14 +528,14 @@ await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "hom
 // 🔢 „Was ist neu“ nach Version sortiert (1.0.2-beta.1): höchste oben, offizielle Version vor ihren Betas
 check("Versionen: offiziell vor Beta, höchste zuerst", await p.evaluate(() => { const C = customElements.get("fixkosten-card"); return ["1.0.1-beta.6", "1.0.0", "1.0.2-beta.1", "1.0.1", "0.1.0-beta.23", "1.0.1-beta.10"].sort(C.verCmp).join() === "1.0.2-beta.1,1.0.1,1.0.1-beta.10,1.0.1-beta.6,1.0.0,0.1.0-beta.23"; }));
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "guide"; c._force = true; c._render(); });
-check("Was ist neu: Beta-Kasten wie Einkaufsliste (höchste Beta oben), darunter max. 15", await sr(`const box = h.querySelector('.elg .betabox'); const b = [...(box?.querySelectorAll('li > b') || [])].map((x) => x.textContent); const rest = box?.parentElement.querySelectorAll(':scope > ul > li').length; return b[0] === "beta.2" && b.includes("beta.1") && /Die letzten Neuerungen bis Version/.test(h.querySelector('.elg').textContent) && rest > 0 && rest <= 15;`), await sr(`const box = h.querySelector('.elg .betabox'); return (box ? box.outerHTML.slice(0, 200) : "kein Kasten") + " | " + [...h.querySelectorAll('.elg ul')].length;`));
+check("Was ist neu: Beta-Kasten wie Einkaufsliste (höchste Beta oben), darunter max. 15", await sr(`const box = h.querySelector('.elg .betabox'); const b = [...(box?.querySelectorAll('li > b') || [])].map((x) => x.textContent); const rest = box?.parentElement.querySelectorAll(':scope > ul > li').length; return b[0] === "beta.3" && b.includes("beta.2") && b.includes("beta.1") && /Die letzten Neuerungen bis Version/.test(h.querySelector('.elg').textContent) && rest > 0 && rest <= 15;`), await sr(`const box = h.querySelector('.elg .betabox'); return (box ? box.outerHTML.slice(0, 200) : "kein Kasten") + " | " + [...h.querySelectorAll('.elg ul')].length;`));
 await p.evaluate(() => { const c = document.querySelector('#c1'); const d = c.shadowRoot.querySelector('details.elg-sec'); if (d) d.open = true; });
 await shot("19-was-ist-neu.png");
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._force = true; c._render(); });
 
 // 💚 Offene Stände „Ich bekomme“ (1.0.2-beta.2): grün, eigene Summe, Verfügbar bleibt gleich
 const availBefore = await p.evaluate(() => document.querySelector('#c1')._data.summary.available);
-await p.evaluate(() => { const c = document.querySelector('#c1'); c._server.staende.push({ id: "s2", name: "Rückerstattung", amount: 25, note: "", dir: "get", updated: Date.now() }); c._view = "home"; c._force = true; c._render(); });
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._server.staende.push({ id: "s2", name: "Rückerstattung", amount: 25, note: "", dir: "get", updated: Date.now() }); c._openSec.add("staende"); c._view = "home"; c._force = true; c._render(); });
 check("Ich bekomme: grüner Stand mit +25, Schuld bleibt rot", await sr(`const it = [...h.querySelectorAll('.item')].filter((x) => /Rückerstattung|Kumpel Tim/.test(x.textContent)); return it.length === 2 && it.some((x) => /Kumpel Tim/.test(x.textContent) && /ich muss zahlen/.test(x.textContent)) && it.some((x) => /Rückerstattung/.test(x.textContent) && /ich bekomme/.test(x.textContent) && !!x.querySelector('.amt .pos'));`));
 check("Ich bekomme: Verfügbar unverändert, eigene Summe", await p.evaluate((a) => { const s = document.querySelector('#c1')._data.summary; return s.available === a && s.claims === 25 && s.debts === 40; }, availBefore));
 check("Übersicht: Stand mit Datum", await sr(`return [...h.querySelectorAll('.item')].some((x) => /Rückerstattung/.test(x.textContent) && !!x.querySelector('.tag[title="eingetragen am"]'));`));
@@ -545,6 +545,19 @@ check("Übersicht: Stände so wie eingetragen", await p.evaluate(() => { const c
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "edit"; c._force = true; c._render(); });
 check("Bearbeiten: Stand zeigt Richtung", await sr(`return /ich bekomme/.test(h.querySelector('ha-card').textContent);`));
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._server.staende = c._server.staende.filter((x) => x.id !== "s2"); c._view = "home"; c._force = true; c._render(); });
+
+// 🧾 Offene Stände aufgeräumt (1.0.2-beta.3): zuklappbar, Summen oben, Datum zuerst, kein Herz, Antippen = Bearbeiten darunter
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._server.staende.push({ id: "s3", name: "Oma", amount: 15, note: "Geburtstag", dir: "get", updated: Date.now() }); c._openSec.delete("staende"); c._open = null; c._view = "home"; c._force = true; c._render(); });
+check("Stände: beim Öffnen zu, Summen rot+grün in der Überschrift", await sr(`const g = [...h.querySelectorAll('.ghead.click')].find((x) => /Offene Stände/.test(x.textContent)); return !!g && !!g.querySelector('.neg') && !!g.querySelector('.pos') && ![...h.querySelectorAll('.item b')].some((b) => b.textContent === "Oma");`));
+await sr(`[...h.querySelectorAll('.ghead.click')].find((x) => /Offene Stände/.test(x.textContent)).click();`);
+check("Stände: aufgeklappt, Reihenfolge Datum → bekomme/zahle → Notiz, kein 💚", await sr(`const it = [...h.querySelectorAll('.item')].find((x) => /Oma/.test(x.textContent)); const t = [...it.querySelectorAll('.meta .tag')].map((x) => x.textContent); return t.length === 3 && it.querySelector('.meta .tag').title === "eingetragen am" && t[1] === "ich bekomme" && t[2] === "Geburtstag" && !h.innerHTML.includes("💚");`));
+await sr(`[...h.querySelectorAll('.item')].find((x) => /Oma/.test(x.textContent)).querySelector('.n').click();`);
+check("Stände: Antippen klappt Bearbeiten darunter auf", await sr(`const f = h.querySelector('form.edit[data-k="stand"]'); const prev = f?.previousElementSibling; return !!f && /Oma/.test(prev?.textContent || "") && f.dir.value === "get" && f.note.value === "Geburtstag" && !/💚/.test(f.innerHTML);`));
+await shot("20-stand-bearbeiten.png");
+await sr(`const f = h.querySelector('form.edit[data-k="stand"]'); f.amount.value = "20"; f.dir.value = "pay"; f.requestSubmit();`);
+await p.waitForTimeout(200);
+check("Stände: stand_save geschickt, Formular zu", await p.evaluate(() => { const c = document.querySelector('#c1'); const o = fake.applied.find((y) => y.type === "stand_save" && y.item?.id === "s3"); return !!o && o.item.amount === 20 && o.item.dir === "pay" && o.item.note === "Geburtstag" && !c.shadowRoot.querySelector('form.edit[data-k="stand"]'); }));
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._server.staende = c._server.staende.filter((x) => x.id !== "s3"); c._queue = []; c._openSec.delete("staende"); c._view = "home"; c._force = true; c._render(); });
 
 // 👤 Name bei Ausgaben nur mit Schalter (1.0.2-beta.2)
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._server.bookings[0].by = "Testperson"; c._server.settings.show_by = false; c._view = "home"; c._force = true; c._render(); });

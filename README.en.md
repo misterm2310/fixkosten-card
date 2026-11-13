@@ -21,7 +21,7 @@ One click opens it right in your Home Assistant: [![Open in HACS](https://my.hom
 - ⠿ **Reorder everything** by dragging (items also into another group), ↩️ **undo** after deleting.
 - 💳 **Card payments** via quick buttons ("bakery 5.75") – subtracted immediately.
 - 🧮 **Calculator** at the top of the card, result straight into a payment or the balance. 💡 Button to keep the screen on.
-- 🐷 **Pots**, 🧾 **open balances**, 🏦 **IBAN list** with copy button, 💵 **income** as info.
+- 🐷 **Pots**, 🧾 **open balances** (I owe = red, I get = green; collapsible, tap = edit below), 🏦 **IBAN list** with copy button, 💵 **income** as info.
 - 📱 **Offline app** with fingerprint lock and 🔒 **PIN lock** for settings.
 - 📊 **Monthly review** for up to 3 years, 📥 **CSV** import and export, 📜 **history log** (who changed what and when).
 - 👁️ **View** settings like the shopping list: hide sections for everyone, labels under icon buttons, calm mode, light/dark in the offline app – plus a 🐷 **piggy bank mascot** that reacts to your money and dresses up for the season (flower, sunglasses, leaf, scarf, bunny ears, pumpkin, Santa hat, party hat).

@@ -514,3 +514,33 @@ async def test_raten_und_knopf_farben(hass, setup, freezer):
     assert m.data["settings"]["quick_colors"] == {"bäckerei": "#123456"}
     m.apply([{"type": "settings", "settings": {"quick_icons": {"Bäckerei": "mdi:bread-slice-outline", "Böse": "javascript:alert(1)"}}}])
     assert m.data["settings"]["quick_icons"] == {"bäckerei": "mdi:bread-slice-outline"}
+
+
+async def test_stand_ich_bekomme(hass, setup):
+    # 💚 Offene Stände in beide Richtungen: ohne Schalter zählt nichts, mit Schalter rot ab und grün dazu
+    m = mgr(hass)
+    m.import_csv("Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz\nkontostand;Konto;1000;;;\nstand;Zahnarzt;120,00;;;\nforderung;Kumpel Tim;50,00;;;Pizza\n")
+    s = m.summary()
+    assert s["debts"] == 120 and s["claims"] == 50
+    assert m.find("stand", "Kumpel Tim")["dir"] == "get" and m.find("stand", "Zahnarzt")["dir"] == "pay"
+    before = s["available"]
+    m.data["settings"]["debts_subtract"] = True
+    assert m.summary()["available"] == before - 120 + 50  # Schalter an: rot ab, grün dazu
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.fixkosten_offene_staende_ich_bekomme").state) == 50
+
+
+async def test_stand_datum_aenderbar(hass, setup):
+    # 📅 Datum bei offenen Ständen: neu = heute, Ändern lässt es in Ruhe, „date“ setzt es neu
+    m = mgr(hass)
+    m.import_csv("Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz\nstand;Zahnarzt;120,00;01.10.2026;;\n")
+    st = m.find("stand", "Zahnarzt")
+    alt = st["updated"]
+    m._save_item("stand", {"id": st["id"], "name": "Zahnarzt", "amount": 130}, 999)
+    assert st["updated"] == alt and st["amount"] == 130  # Betrag ändern = Datum bleibt
+    m._save_item("stand", {"id": st["id"], "date": "2026-11-05"}, 999)
+    assert datetime.fromtimestamp(st["updated"] / 1000, dt_util.DEFAULT_TIME_ZONE).strftime("%d.%m.%Y") == "05.11.2026"
+    neu = m._save_item("stand", {"name": "Kumpel", "amount": 5, "dir": "get"}, 4242)
+    assert neu["updated"] == 4242
+    with pytest.raises(HomeAssistantError):
+        m._save_item("stand", {"id": st["id"], "date": "kaputt"}, 1)

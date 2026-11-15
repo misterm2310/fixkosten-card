@@ -111,7 +111,7 @@
     },
     "csv_import": {
       "name": "Import CSV",
-      "description": "Import items, incomes and pots from a CSV file (type;name;amount;group;payment;note – type = ausgabe, einnahme, topf, stand).",
+      "description": "Import items, incomes and pots from a CSV file (type;name;amount;group;payment;note – type = ausgabe, einnahme, topf, stand, forderung).",
       "fields": {
         "text": {
           "name": "Text",

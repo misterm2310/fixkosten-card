@@ -309,7 +309,7 @@ await sr(`h.querySelector('[data-a="sheet"][data-v="news"]').click();`);
 // 🧪 Beta-Kasten nur in Testversionen; in offiziellen Versionen steht er NICHT da
 const fkVer = JSON.parse(fs.readFileSync(path.join(root, "custom_components/fixkosten/manifest.json"), "utf8")).version;
 const hatBetaKasten = await sr(`return /Du bist in der Beta/.test(h.querySelector('.pagehost')?.textContent || '');`);
-check(/-beta/.test(fkVer) ? "Was ist neu: Beta-Kasten" : "Was ist neu: kein Beta-Kasten (offizielle Version)", /-beta/.test(fkVer) ? hatBetaKasten : !hatBetaKasten && await sr(`return (h.querySelector('.pagehost')?.textContent || '').includes('v${fkVer}');`));
+check(/-beta/.test(fkVer) ? "Was ist neu: Beta-Kasten" : "Was ist neu: kein Beta-Kasten (offizielle Version)", /-beta/.test(fkVer) ? hatBetaKasten : !hatBetaKasten && await sr(`return (h.querySelector('.pagehost')?.textContent || '').includes('bis Version ${fkVer}');`));
 await sr(`h.querySelector('.head [data-a="back"]').click();`);
 // 📊 Rückblick, 🩺 Gesundheit, 💣 Werkseinstellungen in ⚙️
 await sr(`h.querySelector('[data-a="setgrp"][data-v="Daten"]').click(); h.querySelector('[data-a="sheet"][data-v="hist"]').click();`);
@@ -544,7 +544,9 @@ await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "hom
 // 🔢 „Was ist neu“ nach Version sortiert (1.0.2-beta.1): höchste oben, offizielle Version vor ihren Betas
 check("Versionen: offiziell vor Beta, höchste zuerst", await p.evaluate(() => { const C = customElements.get("fixkosten-card"); return ["1.0.1-beta.6", "1.0.0", "1.0.2-beta.1", "1.0.1", "0.1.0-beta.23", "1.0.1-beta.10"].sort(C.verCmp).join() === "1.0.2-beta.1,1.0.1,1.0.1-beta.10,1.0.1-beta.6,1.0.0,0.1.0-beta.23"; }));
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "guide"; c._force = true; c._render(); });
-check("Was ist neu: Beta-Kasten wie Einkaufsliste (höchste Beta oben), darunter max. 15", await sr(`const box = h.querySelector('.elg .betabox'); const b = [...(box?.querySelectorAll('li > b') || [])].map((x) => x.textContent); const rest = box?.parentElement.querySelectorAll(':scope > ul > li').length; return b[0] === "beta.4" && b.includes("beta.3") && b.includes("beta.2") && b.includes("beta.1") && /Die letzten Neuerungen bis Version/.test(h.querySelector('.elg').textContent) && rest > 0 && rest <= 15;`), await sr(`const box = h.querySelector('.elg .betabox'); return (box ? box.outerHTML.slice(0, 200) : "kein Kasten") + " | " + [...h.querySelectorAll('.elg ul')].length;`));
+// offizielle Version: kein Kasten, nur „Die letzten Neuerungen bis Version …“ (max. 15), die neue Version zuerst
+if (!/-beta/.test(fkVer)) check("Was ist neu: offiziell ohne Beta-Kasten, max. 15, neueste Version oben", await sr(`const e = h.querySelector('.elg'); const n = e?.querySelectorAll('ul > li').length || 0; return !e.querySelector('.betabox') && e.textContent.includes('bis Version ${fkVer}') && n > 0 && n <= 15;`));
+else check("Was ist neu: Beta-Kasten wie Einkaufsliste (höchste Beta oben), darunter max. 15", await sr(`const box = h.querySelector('.elg .betabox'); const b = [...(box?.querySelectorAll('li > b') || [])].map((x) => x.textContent); const rest = box?.parentElement.querySelectorAll(':scope > ul > li').length; return b[0] === "beta.4" && b.includes("beta.3") && b.includes("beta.2") && b.includes("beta.1") && /Die letzten Neuerungen bis Version/.test(h.querySelector('.elg').textContent) && rest > 0 && rest <= 15;`), await sr(`const box = h.querySelector('.elg .betabox'); return (box ? box.outerHTML.slice(0, 200) : "kein Kasten") + " | " + [...h.querySelectorAll('.elg ul')].length;`));
 await p.evaluate(() => { const c = document.querySelector('#c1'); const d = c.shadowRoot.querySelector('details.elg-sec'); if (d) d.open = true; });
 await shot("19-was-ist-neu.png");
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._force = true; c._render(); });

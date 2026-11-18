@@ -56,7 +56,7 @@ privat: true   # optional: hide amounts until 👁️ is tapped
 3. Browser menu → **"Add to home screen"**
 4. Tap **"👆 Fingerabdruck-Sperre einschalten"** at the bottom (only shown if your phone supports fingerprint or Face ID). After 1 minute in the background the app asks again
 
-Offline, the app shows the last known state. Changes wait in an **outbox** and are sent automatically once Home Assistant is reachable again. Nothing is counted twice. **Logging out** only removes the copy on the phone; your data in Home Assistant stays.
+Offline, the app shows the last known state. Changes wait in an **outbox** and are sent automatically once Home Assistant is reachable again (the card then shows “✅ Back online – N changes sent”). **On Android (Chrome) even in the background:** close the app with a full outbox and the phone sends it as soon as the network is back, just like the shopping list. iPhones can’t do that; there it happens the next time you open the app. Nothing is counted twice. **Logging out** only removes the copy on the phone; your data in Home Assistant stays.
 Behind a reverse proxy only `/fixkosten/*`, `/auth/*` and `/api/*` are needed. Fingerprint requires **https**.
 
 </details>

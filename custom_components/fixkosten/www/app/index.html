@@ -53,7 +53,8 @@ body.locked #wrap { display:none; }
 "use strict";
 // 📱 Fixkosten – die Offline-App. Version __FK_VERSION__
 // Hier läuft GENAU DIESELBE Karte wie im Dashboard. Diese Seite spielt nur „Home Assistant“ für sie:
-// Anmeldung, Verbindung und „letzten Stand merken“. Den Postausgang (Änderungen ohne Netz) hat die Karte selbst.
+// Anmeldung, Verbindung und „letzten Stand merken“. Den Postausgang (Änderungen ohne Netz) hat die Karte selbst –
+// ist die App zu, schickt ihn der Hintergrund-Helfer (sw.js) los, sobald das Netz zurück ist.
 window.__fkOfflineApp = true;
 try { const t = localStorage.getItem("fkapp_theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (_) { /* egal */ }
 const BASE = "/fixkosten/app/";
@@ -70,6 +71,64 @@ function toast(msg) {
   document.body.append(el); setTimeout(() => el.remove(), 3500);
 }
 window.addEventListener("hass-notification", (e) => toast(e.detail?.message || ""));
+
+// ---------------------------------------------------------------- 🔄 Kleiner Speicher, den auch der Hintergrund-Helfer (sw.js) lesen kann
+// Darin: Postausgang (je Buch), Anmeldung und „was schon im Hintergrund nachgeschickt wurde“.
+// So kann Android auch bei geschlossener App nachschicken – genau wie bei der Einkaufsliste.
+let dbp = null;
+function db() {
+  if (!("indexedDB" in window)) return Promise.reject(new Error("idb"));
+  return dbp || (dbp = new Promise((ok, fail) => {
+    const r = indexedDB.open("fixkosten-app", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => ok(r.result);
+    r.onerror = () => { dbp = null; fail(r.error); };
+  }));
+}
+async function kv(mode, fn) {
+  const d = await db();
+  return new Promise((ok, fail) => {
+    const tx = d.transaction("kv", mode);
+    let out;
+    fn(tx.objectStore("kv"), (v) => { out = v; });
+    tx.oncomplete = () => ok(out);
+    tx.onerror = () => fail(tx.error);
+  });
+}
+const kvGet = (k) => kv("readonly", (st, set) => { const r = st.get(k); r.onsuccess = () => set(r.result); }).catch(() => undefined);
+const kvSet = (k, v) => kv("readwrite", (st) => { st.put(v, k); }).catch(() => {});
+const kvDel = (k) => kv("readwrite", (st) => { st.delete(k); }).catch(() => {});
+// Postausgang eines Buchs in den gemeinsamen Speicher legen (ein Schreibvorgang, damit sich nichts überholt)
+const kvQueue = (key, book, ops) => kv("readwrite", (st) => {
+  const r = st.get("queues");
+  r.onsuccess = () => { const all = r.result || {}; if (ops.length) all[key] = { book, ops }; else delete all[key]; st.put(all, "queues"); };
+}).catch(() => {});
+window.addEventListener("fixkosten-queue", (e) => { const d = e.detail || {}; if (d.key) kvQueue(d.key, d.book || "", d.ops || []); });
+const saveAuth = () => { if (auth) kvSet("auth", { ...auth, client_id: CLIENT_ID }); }; // 🔑 der Helfer braucht die Anmeldung zum Nachschicken
+// Hat der Helfer im Hintergrund schon nachgeschickt? Dann diese Änderungen aus dem Postausgang im Handy nehmen und Bescheid sagen
+async function takeFlushed() {
+  const f = await kvGet("flushed");
+  if (!f?.ids?.length) return;
+  await kvDel("flushed");
+  const done = new Set(f.ids);
+  for (const k of fkKeys("fixkosten_queue")) {
+    const q = get(k, []);
+    const rest = Array.isArray(q) ? q.filter((o) => !done.has(o.op_id)) : [];
+    if (!Array.isArray(q) || rest.length !== q.length) put(k, rest);
+  }
+  card?._dropSent?.(f.ids);
+  const n = f.n || f.ids.length;
+  const msg = n === 1 ? "✅ 1 Änderung wurde im Hintergrund nachgeschickt" : `✅ ${n} Änderungen wurden im Hintergrund nachgeschickt`;
+  setTimeout(() => (card?._toast ? card._toast(msg) : toast(msg)), 300);
+}
+// App geht in den Hintergrund und im Postausgang wartet noch etwas? Android bitten, nachzuschicken, sobald Netz da ist
+function askBackgroundSync() {
+  const waiting = fkKeys("fixkosten_queue").some((k) => (get(k, []) || []).length);
+  if (!waiting || !("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.ready.then((reg) => reg.sync?.register("fk-queue")).catch(() => {});
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) askBackgroundSync(); });
+window.addEventListener("pagehide", askBackgroundSync);
 
 // ---------------------------------------------------------------- 🎨 Symbole (in Home Assistant gibt es <ha-icon> schon – hier bauen wir es nach)
 let ICONS = null;
@@ -112,7 +171,7 @@ async function finishLogin() {
   localStorage.removeItem("fkapp_state");
   if (!saved || q.get("state") !== saved) return;
   auth = await tokenRequest({ grant_type: "authorization_code", code: q.get("code") });
-  put(K.auth, auth);
+  put(K.auth, auth); saveAuth();
 }
 let flow = null, flowBusy = false, flowN = 0, flowLast = {};
 const LABEL = { username: "Benutzername", password: "Passwort", code: "Code aus der Authentifizierungs-App" };
@@ -140,7 +199,7 @@ async function flowStep(res) {
   if (res.type === "create_entry") {
     flow = null;
     auth = await tokenRequest({ grant_type: "authorization_code", code: res.result });
-    put(K.auth, auth); update(); connect(); return;
+    put(K.auth, auth); saveAuth(); update(); connect(); return;
   }
   if (res.type === "abort") { flow = null; toast("Anmeldung abgebrochen"); update(); return; }
   flow = { n: ++flowN, id: res.flow_id, step: res.step_id, schema: res.data_schema || [], errors: res.errors || {} };
@@ -173,7 +232,7 @@ function flowHtml() {
 async function accessToken() {
   if (auth && auth.expires > Date.now()) return auth.access;
   auth = { ...(await tokenRequest({ grant_type: "refresh_token", refresh_token: auth.refresh })), refresh: auth.refresh };
-  put(K.auth, auth);
+  put(K.auth, auth); saveAuth();
   return auth.access;
 }
 
@@ -227,7 +286,11 @@ window.addEventListener("online", connect);
 window.addEventListener("offline", () => { try { ws?.close(); } catch (_) { /* egal */ } update(); });
 // 🔒 Das Schloss in der Karte sperrt die ganze App sofort (nur wenn die Fingerabdruck-Sperre an ist)
 window.__fkAppLock = { on: () => !!lock, now: () => { if (lock) { locked = true; showLock(); } } };
-document.addEventListener("visibilitychange", () => { if (!document.hidden) connect(); });
+document.addEventListener("visibilitychange", async () => {
+  if (document.hidden) return;
+  await takeFlushed(); // erst abgleichen – vielleicht wurde im Hintergrund schon nachgeschickt
+  connect();
+});
 
 // ---------------------------------------------------------------- 👆 App-Sperre mit Fingerabdruck / Face ID
 // Nutzt die Entsperr-Funktion vom Handy (WebAuthn, wie Passkeys). Funktioniert auch ohne Netz.
@@ -335,6 +398,7 @@ function update() {
     card = document.createElement("fixkosten-card");
     card.setConfig({ title: "Fixkosten", ...(appBook() ? { buch: appBook() } : {}) });
     wrap.append(card);
+    card._saveQueue?.(); // 🔄 Postausgang gleich in den gemeinsamen Speicher (für den Hintergrund-Helfer)
     const foot = document.createElement("div");
     foot.className = "foot";
     foot.innerHTML = `<button id="lockBtn" hidden></button> <button id="logoutBtn">Abmelden</button><p class="small">Abmelden meldet nur dieses Handy ab. Deine Daten in Home Assistant bleiben komplett erhalten, nur die Kopie hier im Handy wird gelöscht.</p>`;
@@ -366,7 +430,9 @@ function logout(silent) {
   const refresh = auth?.refresh;
   auth = null;
   localStorage.removeItem(K.auth);
+  kvDel("auth");
   if (!silent) {
+    kvDel("queues"); kvDel("flushed");
     // 🔒 Alles Persönliche aus dem Handy löschen
     for (const k of [K.user, ...fkKeys("fixkosten_data", "fixkosten_queue"), "fixkosten_hidden", "fkapp_buch", "fixkosten_calm", LOCK_KEY]) localStorage.removeItem(k);
     user = null;
@@ -380,6 +446,10 @@ function logout(silent) {
 (async () => {
   if ("serviceWorker" in navigator) navigator.serviceWorker.register(BASE + "sw.js", { scope: BASE }).catch(() => {});
   try { await finishLogin(); } catch (_) { toast("Anmeldung hat nicht geklappt 🙈"); }
+  if (auth) {
+    await takeFlushed();
+    saveAuth();
+  }
   const s = document.createElement("script");
   s.type = "module";
   s.src = "/fixkosten/files/fixkosten-card.js?v=" + VERSION;

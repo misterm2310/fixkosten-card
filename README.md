@@ -109,7 +109,7 @@ Alles Weitere steht in der Karte unter **📖 Anleitung** – einfach aufklappen
 3. Im Browser-Menü **„Zum Startbildschirm“** – schon gibt es ein eigenes App-Symbol
 4. Unten **„👆 Fingerabdruck-Sperre einschalten“** (der Knopf erscheint nur, wenn dein Handy Fingerabdruck oder Face ID kann). Nach 1 Minute im Hintergrund fragt die App wieder
 
-**Ohne Netz?** Die App zeigt den zuletzt bekannten Stand. Was du einträgst oder abhakst, wartet im **Postausgang** (oben „⏳ wartet“) und wird von selbst nachgeschickt, sobald Home Assistant wieder erreichbar ist. Nichts zählt doppelt.
+**Ohne Netz?** Die App zeigt den zuletzt bekannten Stand. Was du einträgst oder abhakst, wartet im **Postausgang** (oben „⏳ wartet“) und wird von selbst nachgeschickt, sobald Home Assistant wieder erreichbar ist – dann meldet die Karte kurz „✅ Wieder online – N Änderungen nachgeschickt“. **Auf Android (Chrome) sogar im Hintergrund:** Machst du die App mit vollem Postausgang zu, schickt das Handy ihn los, sobald das Netz zurück ist – wie bei der Einkaufsliste. Beim nächsten Öffnen steht dann „✅ … im Hintergrund nachgeschickt“. iPhones können das nicht, dort geht es beim nächsten Öffnen los. Nichts zählt doppelt.
 
 **Ehrlich gesagt:** Die Fingerabdruck-Sperre ist eine Sperre vor der Anzeige, kein Tresor. **Abmelden** löscht nur die Kopie im Handy, deine Daten in Home Assistant bleiben erhalten.
 

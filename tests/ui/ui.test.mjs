@@ -141,10 +141,13 @@ const off = await sr(`return { banner: h.querySelector('.pill.wait')?.textConten
 check("Offline: Postausgang wird angezeigt", /1 wartet/.test(off.banner), off.banner);
 check("Offline: Haken zählt sofort", off.big === fmt(exp.avail - 5.75 + 45), off.big);
 check("Offline: Postausgang im Speicher", await p.evaluate(() => JSON.parse(localStorage.getItem("fixkosten_queue")).length === 1));
+check("Offline: Karte meldet den Postausgang für den Hintergrund-Helfer", await p.evaluate(() => { let got = null; const f = (e) => { got = e.detail; }; window.addEventListener("fixkosten-queue", f); document.querySelector("#c1")._saveQueue(); window.removeEventListener("fixkosten-queue", f); return got?.key === "fixkosten_queue" && got.ops.length === 1 && got.book === ""; }));
 await shot("2-offline.png");
 await p.evaluate(() => setOnline(true));
 await p.waitForTimeout(150);
 check("Wieder online: nachgeschickt", await p.evaluate(() => fake.applied.some((o) => o.type === "paid" && o.id === "p5") && JSON.parse(localStorage.getItem("fixkosten_queue")).length === 0));
+check("Wieder online: Meldung „1 Änderung nachgeschickt“ (wie Einkaufsliste)", await p.evaluate(() => toasts.some((t) => /Wieder online – 1 Änderung nachgeschickt/.test(t))), await p.evaluate(() => toasts.slice(-3).join(" | ")));
+check("Online: normale Änderung meldet KEIN „Wieder online“", await (async () => { const n = await p.evaluate(() => toasts.filter((t) => /Wieder online/.test(t)).length); await sr(`h.querySelector('[data-a="paid"][data-id="p5"]').click();`); await p.waitForTimeout(120); await sr(`h.querySelector('[data-a="paid"][data-id="p5"]').click();`); await p.waitForTimeout(120); return n === await p.evaluate(() => toasts.filter((t) => /Wieder online/.test(t)).length); })());
 
 // 🖱️ Schnellknopf-Leiste mit der Maus ziehen: schiebt die Leiste, löst aber keinen Knopf aus
 {
@@ -546,7 +549,7 @@ check("Versionen: offiziell vor Beta, höchste zuerst", await p.evaluate(() => {
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "guide"; c._force = true; c._render(); });
 // offizielle Version: kein Kasten, nur „Die letzten Neuerungen bis Version …“ (max. 15), die neue Version zuerst
 if (!/-beta/.test(fkVer)) check("Was ist neu: offiziell ohne Beta-Kasten, max. 15, neueste Version oben", await sr(`const e = h.querySelector('.elg'); const n = e?.querySelectorAll('ul > li').length || 0; return !e.querySelector('.betabox') && e.textContent.includes('bis Version ${fkVer}') && n > 0 && n <= 15;`));
-else check("Was ist neu: Beta-Kasten wie Einkaufsliste (höchste Beta oben), darunter max. 15", await sr(`const box = h.querySelector('.elg .betabox'); const b = [...(box?.querySelectorAll('li > b') || [])].map((x) => x.textContent); const rest = box?.parentElement.querySelectorAll(':scope > ul > li').length; return b[0] === "beta.4" && b.includes("beta.3") && b.includes("beta.2") && b.includes("beta.1") && /Die letzten Neuerungen bis Version/.test(h.querySelector('.elg').textContent) && rest > 0 && rest <= 15;`), await sr(`const box = h.querySelector('.elg .betabox'); return (box ? box.outerHTML.slice(0, 200) : "kein Kasten") + " | " + [...h.querySelectorAll('.elg ul')].length;`));
+else check("Was ist neu: Beta-Kasten wie Einkaufsliste (höchste Beta oben), darunter max. 15", await sr(`const box = h.querySelector('.elg .betabox'); const b = [...(box?.querySelectorAll('li > b') || [])].map((x) => x.textContent); const rest = box?.parentElement.querySelectorAll(':scope > ul > li').length; return b[0] === "beta.${fkVer.split("-beta.")[1]}" && b.includes("beta.1") && /Die letzten Neuerungen bis Version/.test(h.querySelector('.elg').textContent) && rest > 0 && rest <= 15;`), await sr(`const box = h.querySelector('.elg .betabox'); return (box ? box.outerHTML.slice(0, 200) : "kein Kasten") + " | " + [...h.querySelectorAll('.elg ul')].length;`));
 await p.evaluate(() => { const c = document.querySelector('#c1'); const d = c.shadowRoot.querySelector('details.elg-sec'); if (d) d.open = true; });
 await shot("19-was-ist-neu.png");
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._force = true; c._render(); });
@@ -615,6 +618,47 @@ await a.waitForSelector("#loginBtn");
 check("App: Anmeldeseite da", await a.evaluate(() => document.querySelector("h1")?.textContent === "Fixkosten"));
 check("App: Icon lädt", await a.evaluate(() => { const i = document.querySelector(".login img"); return i && i.complete && i.naturalWidth === 192; }));
 if (shots) await a.screenshot({ path: path.join(shots, "6-app-anmeldung.png") });
+
+// 🔄 Hintergrund-Helfer (sw.js): schickt den Postausgang ohne offene App nach – hier mit nachgebautem Home Assistant (WebSocket)
+{
+  const w = await b.newPage();
+  w.on("pageerror", (e) => errs.push("sw: " + String(e)));
+  await w.goto(`http://localhost:${port}/fixkosten/app/manifest.webmanifest`);
+  await w.setContent("<!doctype html><title>sw</title>");
+  await w.evaluate(() => {
+    window.sent = [];
+    window.WebSocket = class { // 🏠 nachgebautes Home Assistant
+      constructor() { setTimeout(() => this.onmessage({ data: JSON.stringify({ type: "auth_required" }) }), 5); }
+      send(t) {
+        const m = JSON.parse(t);
+        if (m.type === "auth") { setTimeout(() => this.onmessage({ data: JSON.stringify({ type: "auth_ok" }) }), 5); return; }
+        sent.push(m);
+        const results = m.ops.map((o) => ({ op_id: o.op_id, ok: o.op_id !== "o3", ...(o.op_id === "o3" ? { error: "gibt es nicht mehr" } : {}) }));
+        setTimeout(() => this.onmessage({ data: JSON.stringify({ id: m.id, type: "result", success: true, result: { results } }) }), 5);
+      }
+      close() {}
+    };
+  });
+  await w.addScriptTag({ content: fs.readFileSync(path.join(app, "sw.js"), "utf8").replaceAll("__FK_VERSION__", "test") });
+  const r = await w.evaluate(async () => {
+    await kvSet("auth", { access: "x", refresh: "r", expires: Date.now() + 600000, client_id: "c" });
+    await kvSet("queues", { fixkosten_queue: { book: "", ops: [{ op_id: "o1", type: "paid", id: "p1" }, { op_id: "o2", type: "paid", id: "p2" }] }, fixkosten_queue_partnerin: { book: "Partnerin", ops: [{ op_id: "o3", type: "paid", id: "x" }] } });
+    await flushQueue(true);
+    return { sent, queues: await kvGet("queues"), flushed: await kvGet("flushed") };
+  });
+  check("Hintergrund: beide Bücher nachgeschickt (mit Buch-Namen)", r.sent.length === 2 && r.sent[0].type === "fixkosten/apply" && !r.sent[0].book && r.sent[1].book === "Partnerin", JSON.stringify(r.sent));
+  check("Hintergrund: Postausgang danach leer, 2 angekommen gemerkt (abgelehnte nicht gezählt)", Object.keys(r.queues).length === 0 && r.flushed.n === 2 && r.flushed.ids.join() === "o1,o2,o3", JSON.stringify(r));
+  await w.close();
+  // 📱 App wieder öffnen (Stand wie eben vom Helfer gemerkt): Angekommenes fliegt aus dem Postausgang im Handy, Meldung „im Hintergrund nachgeschickt“
+  await a.evaluate(async () => { await kvSet("flushed", { n: 2, ids: ["o1", "o2", "o3"] }); localStorage.setItem("fkapp_auth", JSON.stringify({ access: "x", refresh: "r", expires: Date.now() + 600000 })); localStorage.setItem("fixkosten_queue", JSON.stringify([{ op_id: "o1", type: "paid", id: "p1" }, { op_id: "o9", type: "paid", id: "p9" }])); });
+  await a.reload();
+  await a.waitForFunction(() => /im Hintergrund nachgeschickt/.test(document.querySelector("body > .toast")?.textContent || ""), null, { timeout: 4000 }).catch(() => {});
+  const ar = await a.evaluate(() => ({ toast: document.querySelector("body > .toast")?.textContent || "", q: JSON.parse(localStorage.getItem("fixkosten_queue") || "[]").map((o) => o.op_id) }));
+  check("App: Meldung „2 Änderungen wurden im Hintergrund nachgeschickt“", /2 Änderungen wurden im Hintergrund nachgeschickt/.test(ar.toast), ar.toast);
+  check("App: Angekommenes aus dem Postausgang im Handy genommen, Rest wartet", ar.q.join() === "o9", ar.q.join());
+  if (shots) { await a.waitForTimeout(400); await a.screenshot({ path: path.join(shots, "6b-app-hintergrund.png") }); }
+  await a.evaluate(() => { localStorage.clear(); indexedDB.deleteDatabase("fixkosten-app"); });
+}
 
 // 📚 Zweites Buch: Karte mit „buch“ fragt nach genau diesem Buch, eigener Postausgang, Editor zeigt alle Bücher
 const rb = await p.evaluate(async () => {

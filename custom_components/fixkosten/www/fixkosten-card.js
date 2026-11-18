@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.2";
+const FK_VERSION = "1.0.3-beta.1";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -30,7 +30,7 @@ const FK_GUIDE = [
   { icon: "stethoscope", color: "#00897b", title: "Gesundheit, Fehler und Werkseinstellungen", text: `In ⚙️ → <b>🩺 Gesundheit</b>: <b>„Alles ok?“</b> sucht nach Dingen, die nicht zusammenpassen (Posten ohne Gruppe, alter Kontostand, vergessene Ausgaben …) und sagt, wie man es repariert. <b>Fehler-Protokoll</b> zeigt, was beim Speichern nicht geklappt hat. <b>Ressourcen</b> zeigt, wie viel Platz alles braucht.<br><b>💣 Werkseinstellungen</b> (⚙️ → Daten, nur Admins): alles zurück auf Anfang, nur die PIN bleibt. Zwei Sicherheitsfragen – vorher lieber „Als CSV sichern“.` },
   { icon: "eye-off-outline", color: "#607d8b", title: "Beträge verstecken", text: `Das 👁️ oben verschwimmt alle Beträge und IBANs, z. B. wenn jemand mitschaut. Nochmal tippen = wieder zeigen. Mit <code>privat: true</code> im Karten-YAML startet die Karte versteckt.` },
   { icon: "book-multiple-outline", color: "#8e24aa", title: "Mehrere Bücher (eins pro Person)", text: `Wie bei mehreren Anlagen: <b>Einstellungen → Geräte &amp; Dienste → Fixkosten → Eintrag hinzufügen</b> und einen Namen geben (z. B. „Partnerin“). Jedes Buch hat eigene Fixkosten, Töpfe, Kontostand, PIN und Sensoren.<br>Neue Karte anlegen, im Karten-Editor bei <b>„Welches Buch?“</b> wählen und unter <b>Sichtbarkeit</b> nur die passende Person anhaken. Ehrlich: Ordnung, kein Tresor – ein HA-Admin kann alles sehen.` },
-  { icon: "cellphone-lock", color: "#1e88e5", title: "Offline-App mit Fingerabdruck", text: `Deine Adresse für die App steht in ⚙️ → <b>„Offline-App“</b> (mit Kopieren-Knopf). Im Handy-Browser öffnen → anmelden → im Browser-Menü „Zum Startbildschirm“.<br>Ohne Netz siehst du den letzten Stand. Was du einträgst, wartet im <b>Postausgang</b> (oben „⏳ wartet“) und wird von selbst nachgeschickt. Nichts zählt doppelt.<br>Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. Ist sie an, sperrt das 🔒 Schloss oben die ganze App sofort. Abmelden löscht nur die Kopie im Handy, in Home Assistant bleibt alles erhalten.` },
+  { icon: "cellphone-lock", color: "#1e88e5", title: "Offline-App mit Fingerabdruck", text: `Deine Adresse für die App steht in ⚙️ → <b>„Offline-App“</b> (mit Kopieren-Knopf). Im Handy-Browser öffnen → anmelden → im Browser-Menü „Zum Startbildschirm“.<br>Ohne Netz siehst du den letzten Stand. Was du einträgst, wartet im <b>Postausgang</b> (oben „⏳ wartet“) und wird von selbst nachgeschickt – auf Android sogar, wenn die App schon zu ist, sobald das Netz zurück ist. Nichts zählt doppelt.<br>Unten in der App: <b>„👆 Fingerabdruck-Sperre“</b>. Ist sie an, sperrt das 🔒 Schloss oben die ganze App sofort. Abmelden löscht nur die Kopie im Handy, in Home Assistant bleibt alles erhalten.` },
   { icon: "shield-key-outline", color: "#455a64", title: "PIN-Sperre und Seitenleiste", text: `In ⚙️ unter <b>„Schutz (PIN)“</b> legst du eine PIN (4–8 Ziffern) fest. Dann fragen ⚙️ und „Bearbeiten“ danach. Übersicht, Abhaken und Ausgaben gehen weiter ohne PIN. Das 🔓 Schloss unter der Leiste (neben 🧮 und 👁️) sperrt sofort wieder (sonst nach 10 Minuten Ruhe). Die PIN tippst du wie am Handy auf dem Zahlenfeld ein.<br><b>PIN vergessen?</b> Kein Drama: Ein Admin geht auf <b>Einstellungen → Geräte & Dienste → Fixkosten → Konfigurieren</b> und hakt <b>„PIN zurücksetzen“</b> an.<br>Im selben Fenster schaltest du auch <b>„In der Seitenleiste anzeigen“</b> an oder aus.` },
   { icon: "upload", color: "#546e7a", title: "CSV einlesen und sichern", text: `In ⚙️ → <b>„Daten (CSV)“</b> (nur Admins): Datei wählen oder Text einfügen → „Einlesen“. Spalten: <b>Typ;Name;Betrag;Gruppe/Datum;Zahlart;Notiz</b>. „Als CSV sichern“ lädt alles als Datei herunter.` },
   { icon: "storefront-outline", color: "#1e88e5", title: "Installieren und Updates (HACS / Marketplace)", text: `Fixkosten kommt über <b>HACS</b>. Ab <b>Home Assistant 2026.11</b> steckt HACS direkt in Home Assistant und heißt <b>Einstellungen → Marketplace</b>. Dort findest du Fixkosten, Updates und die Beta-Versionen – alles andere bleibt gleich.<br>Die kleinen <b>ⓘ</b> in ⚙️ klappen die Erklärung zu einem Schalter auf.` },
@@ -39,6 +39,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.3-beta.1", "🔄 <b>Offline-App schickt im Hintergrund nach</b> – wie bei der Einkaufsliste: Hast du ohne Netz etwas eingetragen und machst die App zu, schickt das Handy den <b>Postausgang</b> von selbst los, sobald das Netz wieder da ist (Android/Chrome; iPhone beim nächsten Öffnen). Beim nächsten Öffnen siehst du kurz „✅ … im Hintergrund nachgeschickt“. · ✅ Im Dashboard und in der App meldet die Karte <b>„Wieder online – N Änderungen nachgeschickt“</b>, wenn Gemerktes angekommen ist. Nichts zählt doppelt."],
   ["1.0.2", "🎉 <b>Offizielle Version 1.0.2:</b> Alles aus 4 Betas ist jetzt fest drin – danke fürs Testen! · 💚 <b>Offene Stände in beide Richtungen</b> („Ich muss zahlen“ rot, „Ich bekomme“ grün) – direkt in der Übersicht eintragen, ändern und erledigen, zum Zuklappen, neuestes Datum oben, Datum änderbar · 📊 <b>Statistik zum Verstehen:</b> ganze Sätze statt Zahlenkacheln, Ausgegeben/Eingenommen/Übrig, Vergleich als Satz, ⓘ an jedem Kasten · 🖱️ Schnellknöpfe am PC mit der Maus ziehen · ⌨️ Taschenrechner per Tastatur · 🔢 „Was ist neu“ wie bei der Einkaufsliste, richtig sortiert"],
   ["1.0.2-beta.4", "🧾 <b>Offene Stände direkt in der Übersicht eintragen:</b> aufklappen, oben <b>„Ich muss zahlen“</b> oder <b>„Ich bekomme“</b> wählen, Name und Betrag rein, <b>＋</b> – wie bei den Ausgaben. Zugeklappt ist auch die Eingabe weg. · 📅 <b>Sortiert wie die Ausgaben:</b> das neueste Datum steht oben. · ✏️ Ändern, löschen und erledigen geht alles in der Übersicht, darum sind die offenen Stände unter <b>„Bearbeiten“</b> raus (nur wenn du sie in ⚙️ → Ansicht ausblendest, stehen sie dort noch). · 📅 Beim Bearbeiten lässt sich das <b>Datum</b> ändern (Ändern von Name oder Betrag lässt das Datum jetzt in Ruhe). · Das 🧾 bei „ich muss zahlen“ ist weg. · 🖱️ Die <b>Schnellknöpfe</b> bei den Ausgaben lassen sich am PC jetzt mit der <b>Maus ziehen</b> (oder mit dem Mausrad schieben). · ⌨️ Der <b>Taschenrechner</b> geht am PC auch mit der Tastatur (Ziffern, + − * /, Enter = Ergebnis, ⌫, Esc = C). · 📊 <b>Statistik zum Verstehen:</b> ganze Sätze statt Zahlenkacheln („Du gibst im Monat … aus und nimmst … ein“), überall dieselben Wörter (<b>Ausgegeben</b> = Fixkosten + Ausgaben, <b>Eingenommen</b>, <b>Übrig</b>), der Vergleich als Satz („9 % weniger als im August 👍“), die Tabelle mit nur 4 Spalten und an jedem Kasten ein <b>ⓘ</b>, das erklärt, was die Zahl bedeutet."],
   ["1.0.2-beta.3", "🧾 <b>Offene Stände aufgeräumt:</b> zum <b>Zuklappen</b> wie Töpfe und Einnahmen (beim Öffnen zu), die roten und grünen Summen stehen in der Überschrift. · ✏️ <b>Antippen = Bearbeiten</b> klappt direkt darunter auf, wie bei den Ausgaben (Name, Betrag, ich bekomme / ich muss zahlen, Notiz, ✓ Speichern) – der grüne Haken zum Erledigen bleibt. · 📅 Unter dem Namen zuerst das <b>Datum</b>, dann „ich bekomme“ / „ich muss zahlen“, dann die Notiz. · Das 💚 Herz bei „ich bekomme“ ist weg, Grün bleibt."],
@@ -1041,9 +1042,25 @@ class FixkostenCard extends HTMLElement {
   _send(op) {
     op = { op_id: uid(), ts: Date.now(), ...op };
     this._queue.push(op);
-    store.put(this._qk, this._queue);
+    if (this._hass?.connected === false) this._wasOff = true; // 📴 ohne Netz eingetragen – später „Wieder online“ melden
+    this._saveQueue();
     this._render();
     this._flush();
+  }
+  // 💾 Postausgang im Handy speichern – und der Offline-App Bescheid sagen (die kann im Hintergrund nachschicken, wie bei der Einkaufsliste)
+  _saveQueue() {
+    store.put(this._qk, this._queue);
+    try { window.dispatchEvent(new CustomEvent("fixkosten-queue", { detail: { key: this._qk, book: this._book || "", ops: this._queue.slice() } })); } catch (_) { /* egal */ }
+  }
+  // 🔄 Offline-App: Diese Änderungen hat der Hintergrund-Helfer schon nach Home Assistant gebracht – aus dem Postausgang nehmen
+  _dropSent(ids) {
+    const done = new Set(ids || []);
+    const before = this._queue.length;
+    this._queue = this._queue.filter((o) => !done.has(o.op_id));
+    if (this._queue.length === before) return 0;
+    this._saveQueue();
+    this._render();
+    return before - this._queue.length;
   }
   async _flush() {
     if (this._flushing || !this._queue.length || !this._hass) return;
@@ -1054,12 +1071,19 @@ class FixkostenCard extends HTMLElement {
       const done = new Set(batch.map((o) => o.op_id));
       const failed = (res?.results || []).filter((r) => !r.ok);
       this._queue = this._queue.filter((o) => !done.has(o.op_id));
-      store.put(this._qk, this._queue);
+      this._saveQueue();
+      this._sentOff = (this._sentOff || 0) + (this._wasOff ? batch.length - failed.length : 0);
       if (failed.length) this._toast("⚠️ " + failed.map((f) => f.error).join(", "));
       this._render();
       if (this._queue.length) setTimeout(() => this._flush(), 50);
+      else if (this._wasOff) { // ✅ Netz wieder da und alles angekommen – kurz Bescheid sagen (wie bei der Einkaufsliste)
+        const n = this._sentOff;
+        this._wasOff = false; this._sentOff = 0;
+        if (n > 0 && !failed.length) this._toast(n === 1 ? "✅ Wieder online – 1 Änderung nachgeschickt" : `✅ Wieder online – ${n} Änderungen nachgeschickt`);
+      }
     } catch (_) {
       // 📴 kein Netz – bleibt im Postausgang, nächster Versuch beim nächsten Kontakt
+      this._wasOff = true;
       clearTimeout(this._retry);
       this._retry = setTimeout(() => this._flush(), 15000);
     } finally { this._flushing = false; }
@@ -1898,7 +1922,7 @@ class FixkostenCard extends HTMLElement {
     else if (a === "factory") {
       if (!fkConfirm("Wirklich ALLES zurücksetzen?\n\nFixkosten, Gruppen, Einnahmen, Ausgaben, Töpfe, offene Stände, Konten, Kontostand, Rückblick und alle Schalter werden gelöscht. Nur die PIN bleibt.\n\nDas geht nicht rückgängig.")) return;
       if (!fkConfirm("Letzte Frage: Wirklich ALLES auf Werkseinstellungen setzen?")) return;
-      this._queue = []; store.put(this._qk, this._queue);
+      this._queue = []; this._saveQueue();
       this._hass.callWS({ type: "fixkosten/factory_reset", ...this._bk() }).then(() => { this._toast("💣 Alles zurückgesetzt"); this._sheet = null; this._view = "home"; this._force = true; this._render(); }, (err) => this._toast("⚠️ " + (err?.message || "Das hat nicht geklappt")));
     }
     else if (a === "setgrp") { this._setOpen = this._setOpen === el.dataset.v ? null : el.dataset.v; redraw(); }

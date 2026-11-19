@@ -538,5 +538,19 @@
 "(seit {} Tagen)": "(for {0} days)",
 "⚠️ seit {} Tagen offen": "⚠️ open for {0} days",
 "Seit {} Tagen nicht abgebucht – vergessen zu haken oder hat die Bank nicht abgebucht?": "Not debited for {0} days – forgot to tick or didn’t the bank debit it?",
-"Antippen = zeigen": "Tap = show"
+"Antippen = zeigen": "Tap = show",
+"Töpfe direkt ändern, aufs Konto umbuchen, Bearbeiten": "Change pots directly, transfer to account, edit",
+"<b>🐷 Topf-Zahl direkt ändern:</b> In der Übersicht bei einem Topf auf die <b>Zahl</b> tippen – sie wird zum Eingabefeld, neue Zahl rein, ✓ oder Enter. Daneben tippen = abbrechen.<br><b>🏦 Aufs Konto umbuchen:</b> Topf-Namen antippen → „Umbuchen nach“ → <b>🏦 Konto</b>. Der Topf wird kleiner, der Kontostand und „Verfügbar“ steigen – endgültig (anders als ➖, das ist „geliehen“ mit oranger Erinnerung).<br><b>📂 Bearbeiten aufgeräumt:</b> Alle Abschnitte sind zugeklappt, Antippen klappt auf. Die <b>Gruppen</b> stehen jetzt bei den Fixkosten (＋ Gruppe). <b>↩️ Haken zurücksetzen</b> gibt es dort je bei Fixkosten und bei Einnahmen (nicht mehr in ⚙️).": "<b>🐷 Change a pot directly:</b> In the overview tap a pot’s <b>amount</b> – it turns into an input, type the new number, ✓ or Enter. Tap elsewhere = cancel.<br><b>🏦 Transfer to the account:</b> Tap the pot name → “Transfer to” → <b>🏦 Account</b>. The pot shrinks, the balance and “Available” go up – for good (unlike ➖, which is “borrowed” with an orange reminder).<br><b>📂 Edit tidied up:</b> All sections start collapsed, tap to open. The <b>groups</b> now live with the fixed costs (＋ Group). <b>↩️ Reset ticks</b> is there for fixed costs and for income separately (no longer in ⚙️).",
+"Antippen = neuen Stand eintippen": "Tap = type a new amount",
+"Antippen = rausnehmen, zurücklegen, umbuchen": "Tap = take out, put back, transfer",
+"Neuer Stand": "New amount",
+"Konto": "Account",
+"Auf die <b>Zahl</b> tippen = neuen Stand direkt eintippen, ✓ oder Enter speichert. Auf den <b>Namen</b> tippen = ➖ rausnehmen (geliehen, orange Erinnerung), ➕ zurücklegen, Stand korrigieren oder <b>umbuchen</b>: in einen anderen Topf oder aufs <b>🏦 Konto</b> (dann steigt der Kontostand, endgültig).": "Tap the <b>amount</b> = type the new amount right there, ✓ or Enter saves. Tap the <b>name</b> = ➖ take out (borrowed, orange reminder), ➕ put back, correct the amount or <b>transfer</b>: into another pot or to the <b>🏦 account</b> (then the balance goes up, for good).",
+"⠿ Am Griff ziehen = Reihenfolge ändern, auch in eine andere Gruppe. <b>＋ Gruppe</b> legt eine Gruppe an (z. B. „ab dem 15.“), Gruppe antippen = Name, Starttag oder löschen. <b>↩️ Haken zurücksetzen</b> nimmt alle Fixkosten-Haken dieses Monats weg (das passiert sonst automatisch am Monatsanfang).": "⠿ Drag the handle = change the order, also into another group. <b>＋ Group</b> adds a group (e.g. “from the 15th”), tap a group = name, start day or delete. <b>↩️ Reset ticks</b> removes all fixed-cost ticks of this month (otherwise this happens automatically at the start of a month).",
+"<b>↩️ Haken zurücksetzen</b> nimmt alle Einnahmen-Haken („ist auf dem Konto“) dieses Monats weg – die Fixkosten bleiben, wie sie sind.": "<b>↩️ Reset ticks</b> removes all income ticks (“is on the account”) of this month – the fixed costs stay as they are.",
+"🗂️ Gruppen": "🗂️ Groups",
+"Fixkosten-Haken zurücksetzen": "Reset fixed-cost ticks",
+"Einnahmen-Haken zurücksetzen": "Reset income ticks",
+"Alle Fixkosten-Haken dieses Monats entfernen?": "Remove all fixed-cost ticks of this month?",
+"Alle Einnahmen-Haken dieses Monats entfernen?": "Remove all income ticks of this month?"
 }

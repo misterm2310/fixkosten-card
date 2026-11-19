@@ -67,7 +67,7 @@ const hass = () => ({
         if (o.type === "log_clear") fake.data.log = [];
         else fake.data.log.push({ ts: o.ts || Date.now(), by: "Test", text: "✏️ " + o.type });
         if (o.type === "booking_add") fake.data.bookings.push({ id: o.op_id, name: o.name, amount: o.amount, ts: o.ts, month: mk, cleared: false });
-        if (o.type === "topf_move") { const a = fake.data.toepfe.find((x) => x.id === o.id), z = fake.data.toepfe.find((x) => x.id === o.to); a.amount -= o.amount; z.amount += o.amount; }
+        if (o.type === "topf_move") { const a = fake.data.toepfe.find((x) => x.id === o.id), z = fake.data.toepfe.find((x) => x.id === o.to); a.amount -= o.amount; if (o.to === "konto") fake.data.konto.balance += o.amount; else z.amount += o.amount; }
         if (o.type === "paid") fake.data.paid[o.id] = { paid: o.value, ts: o.ts };
         if (o.type === "received") { fake.data.received = fake.data.received || {}; fake.data.received[o.id] = { paid: o.value, ts: o.ts }; }
         if (o.type === "booking_edit") { const b = fake.data.bookings.find((x) => x.id === o.id); if (b) Object.assign(b, { name: o.name, amount: o.amount }); }

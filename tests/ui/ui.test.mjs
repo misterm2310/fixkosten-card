@@ -189,10 +189,14 @@ await sr(`const f = h.querySelector('form[data-a="save"]'); f.name.value = "Fitn
 await p.waitForTimeout(80);
 const saved = await p.evaluate(() => fake.applied.find((o) => o.type === "posten_save"));
 check("Posten anlegen schickt alle Felder", saved && saved.item.name === "Fitnessstudio" && saved.item.amount === 29.9 && saved.item.group === "g15" && saved.item.months.join() === "1", JSON.stringify(saved));
+// 📂 1.0.3-beta.4: Bearbeiten ist zuklappbar – ＋ Neu hat „Fixkosten“ aufgeklappt, der Rest ist zu
+check("Bearbeiten: ＋ Neu klappt Fixkosten auf, Töpfe sind zu, kein eigener Abschnitt „Gruppen“ mehr", await sr(`return !!h.querySelector('[data-grip="posten"]') && !h.querySelector('[data-grip="topf"]') && !!h.querySelector('[data-a="new"][data-k="gruppe"]') && ![...h.querySelectorAll('.ghead')].some((x) => /^\\s*Gruppen/.test(x.children[1]?.textContent || ''));`));
+await p.evaluate(() => { const c = document.querySelector('#c1'); ["e:posten", "e:einnahme", "e:topf", "e:konto"].forEach((k) => c._openSec.add(k)); c._force = true; c._render(); });
 check("Keine ▲▼-Pfeile mehr, nur der Griff", await sr(`return !h.querySelector('[data-a="mv"]') && h.querySelectorAll('[data-grip="gruppe"]').length === 2;`));
 check("Griff ⠿ zum Ziehen da", await sr(`return h.querySelectorAll('[data-grip="posten"]').length >= 7 && h.querySelectorAll('[data-grip="topf"]').length === 3;`));
 // ⠿ echtes Ziehen mit der Maus: PayPal-Topf ganz nach oben
 const box = async (sel) => p.evaluate((q) => { const r = document.querySelector('#c1').shadowRoot.querySelector(q).getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, top: r.y }; }, sel);
+await sr(`h.querySelector('[data-row="t1"]').scrollIntoView({ block: "center" });`); // Bearbeiten ist jetzt länger (Gruppen + Knopf bei den Fixkosten)
 const g = await box('[data-row="t3"] [data-grip]'), t1 = await box('[data-row="t1"]');
 await p.mouse.move(g.x, g.y); await p.mouse.down(); await p.mouse.move(g.x, t1.top + 3, { steps: 8 }); await p.mouse.up();
 await p.waitForTimeout(80);
@@ -707,12 +711,57 @@ if (new Date().getDate() >= 6) {
   await sr(`h.querySelector('[data-a="sec"][data-v="toepfe"]').click();`);
   await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
   await p.waitForTimeout(60);
-  check("Umbuchen: Zeile mit anderen Töpfen (ohne sich selbst)", await sr(`const o = [...h.querySelectorAll('form[data-a="potxfer"] select option')].map((x) => x.value); return o.join() === "t1,t3" && !h.querySelector('.potpaid');`));
+  check("Umbuchen: Zeile mit anderen Töpfen (ohne sich selbst)", await sr(`const o = [...h.querySelectorAll('form[data-a="potxfer"] select option')].map((x) => x.value); return o.join() === "konto,t1,t3" && !h.querySelector('.potpaid');`));
   await shot("24-topf-umbuchen.png");
   await sr(`const f = h.querySelector('form[data-a="potxfer"]'); f.to.value = "t3"; f.amount.value = "20"; f.requestSubmit();`);
   await p.waitForTimeout(200);
   check("Umbuchen: 20 von Bargeld nach PayPal, Summe gleich", await p.evaluate(([a, z]) => { const t = fake.data.toepfe; return t.find((x) => x.id === "t2").amount === a - 20 && t.find((x) => x.id === "t3").amount === z + 20 && fake.applied.some((o) => o.type === "topf_move"); }, [t2, t3]) && await p.evaluate(() => toasts.some((t) => /umgebucht/.test(t))));
   await p.evaluate(() => { const c = document.querySelector('#c1'); c._undo = null; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
+}
+
+// 🐷 1.0.3-beta.4: Topf-Zahl direkt in der Zeile ändern · 🏦 Umbuchen aufs Konto · ↩️ Haken zurücksetzen unter Bearbeiten
+{
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._open = null; c._openSec.clear(); c._openSec.add("toepfe"); c._force = true; c._render(); });
+  check("Töpfe: ⓘ an der Überschrift", await sr(`return !!h.querySelector('[data-v="toepfe"] .finfo');`));
+  await sr(`h.querySelector('.amt[data-a="potamt"][data-id="t1"]').click();`);
+  await p.waitForTimeout(80);
+  check("Topf-Zahl antippen: Eingabefeld direkt in der Zeile, markiert, kein Fenster", await sr(`const f = h.querySelector('form.potinline[data-id="t1"]'), i = f?.querySelector('input'); return !!f && h.activeElement === i && i.selectionStart === 0 && i.selectionEnd === i.value.length && !h.querySelector('.potbox') && !h.querySelector('.pagehost');`));
+  await shot("27-topf-zahl-direkt.png");
+  await sr(`const f = h.querySelector('form.potinline'); f.stand.value = "1234,50"; f.requestSubmit();`);
+  await p.waitForTimeout(150);
+  check("Topf-Zahl: ✓ speichert, Zeile wieder normal", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_save" && o.item.id === "t1" && o.item.amount === 1234.5)) && await sr(`return !h.querySelector('form.potinline') && /1\\.234,50/.test(h.querySelector('.amt[data-id="t1"]')?.textContent || '');`));
+  await sr(`h.querySelector('.amt[data-a="potamt"][data-id="t1"]').click();`);
+  await p.waitForTimeout(80);
+  await sr(`h.querySelector('form.potinline input').blur();`);
+  await p.waitForTimeout(300);
+  check("Topf-Zahl: daneben tippen = abbrechen", await sr(`return !h.querySelector('form.potinline');`));
+  // 🏦 aufs Konto umbuchen
+  const bal = await p.evaluate(() => fake.data.konto.balance), t1 = await p.evaluate(() => fake.data.toepfe.find((x) => x.id === "t1").amount);
+  await sr(`h.querySelector('.item[data-k="pot"][data-id="t1"] .n').click();`);
+  await p.waitForTimeout(80);
+  await sr(`const f = h.querySelector('form[data-a="potxfer"]'); f.to.value = "konto"; f.amount.value = "100"; f.requestSubmit();`);
+  await p.waitForTimeout(200);
+  check("Umbuchen aufs Konto: Topf −100, Kontostand +100", await p.evaluate(([b, t]) => fake.data.konto.balance === b + 100 && fake.data.toepfe.find((x) => x.id === "t1").amount === t - 100 && fake.applied.some((o) => o.type === "topf_move" && o.to === "konto"), [bal, t1]) && await p.evaluate(() => toasts.some((t) => /nach „Konto“ umgebucht/.test(t))));
+  // ↩️ Haken zurücksetzen unter Bearbeiten, nicht mehr in ⚙️
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "set"; c._sheet = "rechnen"; c._force = true; c._render(); });
+  check("⚙️: Knopf „Alle Haken jetzt zurücksetzen“ ist raus, Schalter bleibt", await sr(`return !h.querySelector('[data-a="resetnow"]') && !!h.querySelector('[data-a="setreset"]');`));
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._sheet = null; c._view = "edit"; c._openSec.clear(); c._force = true; c._render(); });
+  check("Bearbeiten: alles zu, ⓘ an Fixkosten und Einnahmen", await sr(`return !h.querySelector('.olist') && !!h.querySelector('[data-v="e:posten"] .finfo') && !!h.querySelector('[data-v="e:einnahme"] .finfo');`));
+  await shot("28-bearbeiten-zu.png");
+  await sr(`h.querySelector('[data-v="e:posten"]').click();`);
+  await p.waitForTimeout(60);
+  check("Bearbeiten: Fixkosten aufgeklappt mit Gruppen-Liste und Haken-Knopf", await sr(`return h.querySelectorAll('[data-grip="gruppe"]').length === 2 && !!h.querySelector('[data-a="resetpart"][data-v="paid"]');`));
+  await shot("29-bearbeiten-fixkosten.png");
+  const dlg = (dl) => dl.accept(); p.on("dialog", dlg);
+  await sr(`h.querySelector('[data-a="resetpart"][data-v="paid"]').click();`);
+  await p.waitForTimeout(150);
+  await sr(`h.querySelector('[data-v="e:einnahme"]').click();`);
+  await p.waitForTimeout(60);
+  await sr(`h.querySelector('[data-a="resetpart"][data-v="received"]').click();`);
+  await p.waitForTimeout(150);
+  p.off("dialog", dlg);
+  check("Haken zurücksetzen: Fixkosten und Einnahmen getrennt", await p.evaluate(() => { const r = fake.applied.filter((o) => o.type === "reset_checks").map((o) => o.scope); return r.includes("paid") && r.includes("received"); }));
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._openSec.clear(); c._open = null; c._force = true; c._render(); });
 }
 
 // 📈 1.0.3-beta.2: Kontostand-Kurve im Monat (Statistik)

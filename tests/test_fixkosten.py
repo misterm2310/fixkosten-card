@@ -604,3 +604,21 @@ async def test_ausgabe_seit_5_tagen_offen(hass, setup, freezer):
     assert m.summary()["late_bookings"] == []
     m.apply([{"type": "booking_clear", "id": "alt", "value": False}, {"type": "settings", "settings": {"late_on": False}}])
     assert m.summary()["late_bookings"] == []
+
+
+async def test_umbuchen_aufs_konto_und_haken_getrennt(hass, setup):
+    """🏦 Umbuchen aufs Konto erhöht den Kontostand · ↩️ Haken nur für Fixkosten oder nur für Einnahmen zurücksetzen."""
+    m = mgr(hass)
+    m.apply([{"type": "konto", "balance": 1000}, {"type": "topf_save", "item": {"id": "a", "name": "Sparkonto", "amount": 500}}])
+    avail = m.summary()["available"]
+    assert m.apply([{"type": "topf_move", "id": "a", "to": "konto", "amount": 200}])[0]["ok"]
+    assert m.find("topf", "a")["amount"] == 300 and m.data["konto"]["balance"] == 1200
+    assert m.summary()["available"] == avail + 200 and m.summary()["pots_lent"] == 0
+    assert "nach „Konto“" in m.data["log"][-1]["text"]
+    m.apply([{"type": "posten_save", "item": {"id": "p", "name": "Miete", "amount": 800}},
+             {"type": "einnahme_save", "item": {"id": "e", "name": "Lohn", "amount": 2000}},
+             {"type": "paid", "id": "p", "value": True}, {"type": "received", "id": "e", "value": True}])
+    m.apply([{"type": "reset_checks", "scope": "paid"}])
+    assert not m.data["paid"] and m.data["received"]["e"]["paid"]
+    m.apply([{"type": "paid", "id": "p", "value": True}, {"type": "reset_checks", "scope": "received"}])
+    assert m.data["paid"]["p"]["paid"] and not m.data["received"]

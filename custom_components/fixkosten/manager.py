@@ -505,7 +505,8 @@ class FixkostenManager:
                 return f"💶 „{name}“ diesen Monat wieder zum normalen Preis"
             return f"💶 „{name}“ nur diesen Monat: {self._eur(abs(parse_money(raw)))}"
         if t == "reset_checks":
-            return "↩️ Alle Haken zurückgesetzt"
+            scope = op.get("scope")
+            return "↩️ Fixkosten-Haken zurückgesetzt" if scope == "paid" else "↩️ Einnahmen-Haken zurückgesetzt" if scope == "received" else "↩️ Alle Haken zurückgesetzt"
         if t == "konto" and "balance" in op:
             return f"🏦 Kontostand {self._eur(parse_money(op['balance']))}"
         if t == "booking_add":
@@ -521,7 +522,8 @@ class FixkostenManager:
             pot = self._name("topf", op.get("id"))
             return f"🐷 {amount} aus „{pot}“ genommen" if t == "topf_take" else f"🐷 {amount} in „{pot}“ zurückgelegt"
         if t == "topf_move":
-            return f"🔀 {self._eur(abs(parse_money(op.get('amount', 0))))} von „{self._name('topf', op.get('id'))}“ nach „{self._name('topf', op.get('to'))}“ umgebucht"
+            to = "Konto" if op.get("to") == "konto" else self._name("topf", op.get("to"))
+            return f"🔀 {self._eur(abs(parse_money(op.get('amount', 0))))} von „{self._name('topf', op.get('id'))}“ nach „{to}“ umgebucht"
         if t == "topf_keep":
             return f"🐷 „{self._name('topf', op.get('id'))}“: Geliehenes bleibt weg"
         if t == "restore":
@@ -612,9 +614,12 @@ class FixkostenManager:
                 d["month_price"].pop(item["id"], None)
             else:
                 d["month_price"][item["id"]] = abs(parse_money(raw))
-        elif t == "reset_checks":
-            d["paid"] = {}
-            d["received"] = {}
+        elif t == "reset_checks":  # ↩️ scope „paid“ = nur Fixkosten, „received“ = nur Einnahmen, ohne = beides
+            scope = op.get("scope")
+            if scope != "received":
+                d["paid"] = {}
+            if scope != "paid":
+                d["received"] = {}
         elif t == "konto":
             if "balance" in op:
                 d["konto"]["balance"] = parse_money(op["balance"])
@@ -660,8 +665,16 @@ class FixkostenManager:
             amount = abs(parse_money(op.get("amount", 0)))
             if amount == 0:
                 raise HomeAssistantError("Betrag fehlt")
-            src, dst = self._pot(op.get("id")), self._pot(op.get("to"))
-            if src is None or dst is None:
+            src = self._pot(op.get("id"))
+            if src is None:
+                raise HomeAssistantError("Topf nicht gefunden")
+            if op.get("to") == "konto":  # 🏦 aufs Konto: Topf kleiner, Kontostand (und damit „Verfügbar“) größer – endgültig, nicht „geliehen“
+                src["amount"] = round(float(src["amount"]) - amount, 2)
+                src["updated"] = ts
+                d["konto"]["balance"] = round(float(d["konto"].get("balance", 0) or 0) + amount, 2)
+                return
+            dst = self._pot(op.get("to"))
+            if dst is None:
                 raise HomeAssistantError("Topf nicht gefunden")
             if src is dst:
                 raise HomeAssistantError("Bitte einen anderen Topf wählen")

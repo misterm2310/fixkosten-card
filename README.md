@@ -32,20 +32,21 @@ Ein Klick öffnet es direkt in deinem Home Assistant: [![In HACS öffnen](https:
 | | |
 | --- | --- |
 | 💰 **Verfügbar** | Kontostand − offene Fixkosten − Ausgaben, die noch nicht abgebucht sind = was du wirklich ausgeben kannst. Grün im Plus, rot im Minus |
-| 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“, standardmäßig zugeklappt (Summe und „2 / 4“ stehen im Kopf). Freiwillig ein **fester Tag** (z. B. am 5.) – dann gibt es oben einen Hinweis auf die nächste Abbuchung. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder **pausiert** (steht grau und abgehakt drin, zählt nicht mit) |
+| 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“, standardmäßig zugeklappt (Summe und „2 / 4“ stehen im Kopf). Freiwillig ein **fester Tag** (z. B. am 5.) – er steht am Posten. ⚠️ **Abbuchung fehlt?** Ist der Posten 5 Tage nach seinem Tag noch nicht abgehakt, wird er **orange** und oben steht ein Hinweis (antippen klappt die Gruppe auf) – vergessen zu haken oder hat die Bank nicht abgebucht? Abschaltbar in ⚙️ → Rechnen & Warnung. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder **pausiert** (steht grau und abgehakt drin, zählt nicht mit) |
 | ⠿ **Verschieben** | Gruppen, Posten, Töpfe, Einnahmen und Konten am Griff ⠿ ziehen. Posten auch in eine andere Gruppe |
 | ↩️ **Rückgängig** | Nach Löschen, „beglichen“ oder „abgebucht“ steht 8 Sekunden lang „Rückgängig“ unten in der Karte |
 | 💳 **Ausgaben** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: grüner Haken ✓. Eintrag antippen = ändern. Lange drücken auf einen Symbol-Knopf zeigt, was er macht |
 | 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Ausgabe, Kontostand oder kopieren. Am PC auch per Tastatur (Ziffern, + − * /, Enter, ⌫, Esc). Rechnet selbst, ohne `eval` |
 | 💡 **Bildschirm an** | Glühbirne oben zwischen 👁️ und 🔒: einmal antippen, dann geht das Handy nicht aus (z. B. beim Abarbeiten der Rechnungen). Noch mal antippen = wieder normal. In der HA-App hilft nur deren Einstellung „Keep screen On“ |
 | 💵 **Einnahmen** | Nur zur Info (Lohn, Nebenjob …), mit Kreis zum Abhaken, sobald sie auf dem Konto sind. Zeigt, was nach den Fixkosten übrig bleibt |
-| 🐷 **Töpfe** | Was wo liegt: Sparkonto, Bargeld zu Hause, PayPal … plus „Komplett“ = Verfügbar + alle Töpfe. ➖ Rausnehmen und ➕ Zurücklegen, Geliehenes steht in Orange dabei (im geöffneten Topf antippen = nicht mehr zurücklegen) |
+| 🐷 **Töpfe** | Was wo liegt: Sparkonto, Bargeld zu Hause, PayPal … plus „Komplett“ = Verfügbar + alle Töpfe. ➖ Rausnehmen und ➕ Zurücklegen, Geliehenes steht in Orange dabei (im geöffneten Topf antippen = nicht mehr zurücklegen). 🔀 **Umbuchen** von Topf zu Topf (Konto und „Verfügbar“ bleiben gleich). |
 | 🧾 **Offene Stände** | Was du noch begleichen musst (rot) oder bekommst (grün). Direkt in der Übersicht eintragen wie die Ausgaben (aufklappen, „Ich muss zahlen“ oder „Ich bekomme“ wählen, Name, Betrag, ＋). Zum Zuklappen (dann ist auch die Eingabe weg), beide Summen in der Überschrift, neuestes Datum oben, Antippen = Bearbeiten klappt darunter auf (auch das Datum ist änderbar), grüner Haken = erledigt. Auf Wunsch bei „Verfügbar“ mitrechnen |
 | 🏦 **Meine Konten** | IBAN-Liste zum schnellen Kopieren (📋) |
 | 👁️ **Verstecken** | Ein Tipp verschwimmt alle Beträge, z. B. wenn jemand mitschaut |
 | 🙈 **Verschleiert** | Die Summen von Einnahmen und Töpfen (in der Überschrift) und „Komplett“ sind verschwommen, die einzelnen Einträge nicht. Am PC Maus drüber, am Handy auf den Betrag drücken = 4 Sekunden sichtbar. Abschaltbar in ⚙️ → Ansicht |
 | 🔒 **PIN-Sperre** | ⚙️ und „Bearbeiten“ nur mit PIN. Abhaken und Zahlungen gehen ohne. Auf Wunsch die **ganze Karte** sperren (⚙️ → Schutz): dann sieht man ohne PIN gar nichts |
 | 📊 **Rückblick** | Jeder Monat wird am Monatsende automatisch gemerkt (⚙️ → Daten → Rückblick) |
+| 📈 **Konto im Monat** | Ganz oben im Reiter 📊 Statistik: der Kontostand Tag für Tag – durchgezogen = so war's (die Karte merkt sich jeden Tag den Kontostand), gestrichelt = was noch kommt (offene Ausgaben heute, offene Fixkosten an ihrem Tag), Punkt = engster Tag. Endet bei „Verfügbar“ |
 | 🩺 **Gesundheit** | „Alles ok?“ findet Posten ohne Gruppe, alten Kontostand, vergessene Ausgaben …, dazu Fehler-Protokoll und Ressourcen |
 | 📱 **Offline-App** | Eigene Handy-App mit Anmeldung, Fingerabdruck/Face-ID-Sperre und Postausgang |
 | 📜 **Verlauf** | Wer hat wann was geändert: abgehakt, Kontostand, Ausgaben, Töpfe, Bearbeiten … Die letzten 300 Einträge, ausschaltbar, Admins können ihn leeren (⚙️ → Daten → Verlauf) |
@@ -197,7 +198,7 @@ language: en       # optional: de oder en (ohne = wie Home Assistant), auch im K
 | Entität | Inhalt |
 | --- | --- |
 | `sensor.fixkosten_verfuegbar` | Was wirklich noch da ist (Attribute: Kontostand, offene Fixkosten, Ausgaben offen, Monat) |
-| `sensor.fixkosten_offene_fixkosten` | Summe der offenen Posten (Attribute: Anzahl, Namen, Gruppen) |
+| `sensor.fixkosten_offene_fixkosten` | Summe der offenen Posten (Attribute: Anzahl, Namen, Gruppen, `abbuchung_fehlt` = Posten, die 5 Tage nach ihrem festen Tag noch keinen Haken haben) |
 | `sensor.fixkosten_fixkosten_monat` | Alle Fixkosten dieses Monats |
 | `sensor.fixkosten_einnahmen_monat` | Einnahmen (Info) |
 | `sensor.fixkosten_ueberschuss` | Einnahmen − Fixkosten |

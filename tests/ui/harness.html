@@ -33,6 +33,7 @@ window.fake = {
     staende: [{ id: "s1", name: "Kumpel Tim", amount: 40, note: "Pizza" }],
     konten: [{ id: "k1", name: "Girokonto", iban: "DE00 1234 5678 9012 3456 78", note: "Beispiel" }],
     konto: { balance: 1500, updated: Date.now() - 86400000 },
+    days: Object.fromEntries([1, 3, 8, 12].filter((n) => n < now.getDate()).map((n, i) => [`${mk}-${String(n).padStart(2, "0")}`, [2900, 2050, 1800, 1650][i]])),
     paid: { p1: { paid: true, ts: Date.now() - 2 * 86400000 }, p2: { paid: true, ts: Date.now() - 86400000 } },
     bookings: [{ id: "b1", name: "Supermarkt", amount: 23.4, ts: Date.now() - 3600000, month: mk, cleared: false }],
     history: [
@@ -66,6 +67,7 @@ const hass = () => ({
         if (o.type === "log_clear") fake.data.log = [];
         else fake.data.log.push({ ts: o.ts || Date.now(), by: "Test", text: "✏️ " + o.type });
         if (o.type === "booking_add") fake.data.bookings.push({ id: o.op_id, name: o.name, amount: o.amount, ts: o.ts, month: mk, cleared: false });
+        if (o.type === "topf_move") { const a = fake.data.toepfe.find((x) => x.id === o.id), z = fake.data.toepfe.find((x) => x.id === o.to); a.amount -= o.amount; z.amount += o.amount; }
         if (o.type === "paid") fake.data.paid[o.id] = { paid: o.value, ts: o.ts };
         if (o.type === "received") { fake.data.received = fake.data.received || {}; fake.data.received[o.id] = { paid: o.value, ts: o.ts }; }
         if (o.type === "booking_edit") { const b = fake.data.bookings.find((x) => x.id === o.id); if (b) Object.assign(b, { name: o.name, amount: o.amount }); }

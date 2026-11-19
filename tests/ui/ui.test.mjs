@@ -251,7 +251,7 @@ check("Topf: Zurücklegen (Vorschlag = geliehen)", await p.evaluate(() => fake.a
 await p.waitForTimeout(150);
 await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
 await p.waitForTimeout(50);
-check("Topf: schlank – nur Symbol-Knöpfe ohne Text, mit Namen für langes Drücken", await sr(`const b = [...h.querySelectorAll('.potbox button')]; return b.length === 4 && b.every((x) => !x.textContent.trim() && x.title);`));
+check("Topf: schlank – nur Symbol-Knöpfe ohne Text, mit Namen für langes Drücken", await sr(`const b = [...h.querySelectorAll('.potbox form:not(.xfer) button')], x = [...h.querySelectorAll('.potbox form.xfer button')]; return b.length === 4 && x.length === 1 && [...b, ...x].every((y) => !y.textContent.trim() && y.title);`));
 check("Topf: kein „Als neuen Stand setzen“ mehr am Betragsfeld", await sr(`return !h.querySelector('form[data-a="potmove"] button[value="set"]') && !!h.querySelector('form[data-a="potset"] input[name="stand"]').value;`));
 await sr(`const f = h.querySelector('form[data-a="potset"]'); f.stand.value = "777"; f.requestSubmit();`);
 await p.waitForTimeout(80);
@@ -659,6 +659,56 @@ if (shots) await a.screenshot({ path: path.join(shots, "6-app-anmeldung.png") })
   if (shots) { await a.waitForTimeout(400); await a.screenshot({ path: path.join(shots, "6b-app-hintergrund.png") }); }
   await a.evaluate(() => { localStorage.clear(); indexedDB.deleteDatabase("fixkosten-app"); });
 }
+
+// ⚠️ 1.0.3-beta.2: „Abbuchung fehlt?“ – fester Tag + 5 Tage ohne Haken = orange (nur testbar ab dem 6. des Monats)
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
+if (new Date().getDate() >= 6) {
+  await p.evaluate(() => { const x = fake.data.posten.find((q) => q.id === "p6"); x.day = new Date().getDate() - 5; delete fake.data.paid.p6; cb(JSON.parse(JSON.stringify(fake.data))); });
+  await p.waitForTimeout(80);
+  check("Abbuchung fehlt: oranger Hinweis oben, auch wenn die Gruppe zu ist", await sr(`const b = h.querySelector('.latehint'); return !!b && /Abbuchung fehlt\?/.test(b.textContent) && /Autoversicherung/.test(b.textContent) && !!h.querySelector('[data-v="g:g15"] .latecnt');`), await sr(`return h.querySelector('.latehint')?.textContent || '-';`));
+  await sr(`h.querySelector('.latehint').click();`);
+  await p.waitForTimeout(80);
+  check("Abbuchung fehlt: Antippen klappt die Gruppe auf, Posten orange mit Hinweis", await sr(`const r = h.querySelector('[data-a="paid"][data-id="p6"]')?.closest('.item'); return !!r && r.classList.contains('late') && /Abbuchung fehlt\?/.test(r.querySelector('.tag.late')?.textContent || '') && !h.querySelector('[data-a="paid"][data-id="p5"]').closest('.item').classList.contains('late');`));
+  await shot("22-abbuchung-fehlt.png");
+  await sr(`h.querySelector('[data-a="paid"][data-id="p6"]').click();`);
+  await p.waitForTimeout(150);
+  check("Abbuchung fehlt: abhaken = nicht mehr orange", await sr(`return !h.querySelector('.latehint') && !h.querySelector('.item.late');`));
+  await sr(`h.querySelector('[data-a="paid"][data-id="p6"]').click();`);
+  await p.waitForTimeout(150);
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "set"; c._sheet = "rechnen"; c._force = true; c._render(); });
+  check("Abbuchung fehlt: Schalter in ⚙️ → Rechnen & Warnung", await sr(`return !!h.querySelector('input[data-a="setlate"]')?.checked;`));
+  await sr(`const i = h.querySelector('input[data-a="setlate"]'); i.checked = false; i.dispatchEvent(new Event("change"));`);
+  await p.waitForTimeout(150);
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+  check("Abbuchung fehlt: ausgeschaltet = kein Hinweis", await sr(`return !h.querySelector('.latehint');`));
+  await p.evaluate(() => { fake.data.settings.late_on = true; const x = fake.data.posten.find((q) => q.id === "p6"); delete x.day; cb(JSON.parse(JSON.stringify(fake.data))); });
+  await p.waitForTimeout(80);
+}
+
+// 🔀 1.0.3-beta.2: Umbuchen von Topf zu Topf · Ausgaben gehen immer vom Konto (kein „Bezahlt von“, Marco 19.11.)
+{
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
+  check("Ausgaben: kein „Bezahlt von“ (immer vom Konto)", await sr(`return !h.querySelector('[data-a="paysrc"]') && !/Bezahlt von/.test(h.innerHTML);`));
+  const t2 = await p.evaluate(() => fake.data.toepfe.find((x) => x.id === "t2").amount), t3 = await p.evaluate(() => fake.data.toepfe.find((x) => x.id === "t3").amount);
+  await sr(`h.querySelector('[data-a="sec"][data-v="toepfe"]').click();`);
+  await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
+  await p.waitForTimeout(60);
+  check("Umbuchen: Zeile mit anderen Töpfen (ohne sich selbst)", await sr(`const o = [...h.querySelectorAll('form[data-a="potxfer"] select option')].map((x) => x.value); return o.join() === "t1,t3" && !h.querySelector('.potpaid');`));
+  await shot("24-topf-umbuchen.png");
+  await sr(`const f = h.querySelector('form[data-a="potxfer"]'); f.to.value = "t3"; f.amount.value = "20"; f.requestSubmit();`);
+  await p.waitForTimeout(200);
+  check("Umbuchen: 20 von Bargeld nach PayPal, Summe gleich", await p.evaluate(([a, z]) => { const t = fake.data.toepfe; return t.find((x) => x.id === "t2").amount === a - 20 && t.find((x) => x.id === "t3").amount === z + 20 && fake.applied.some((o) => o.type === "topf_move"); }, [t2, t3]) && await p.evaluate(() => toasts.some((t) => /umgebucht/.test(t))));
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._undo = null; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
+}
+
+// 📈 1.0.3-beta.2: Kontostand-Kurve im Monat (Statistik)
+await sr(`h.querySelector('[data-a="tab"][data-v="stat"]').click();`);
+await p.waitForTimeout(60);
+check("Kurve: steht oben in der Statistik, mit Satz, Linie und Vorschau", await sr(`const s = h.querySelector('.sec'); return /Dein Konto im/.test(s?.textContent || '') && /Am engsten|wird's eng|Minus/.test(s.textContent) && !!s.querySelector('svg.curve path.fut') && s.querySelectorAll('svg.curve rect.hit').length >= 28 && !!s.querySelector('.finfo');`), await sr(`return h.querySelector('.sec')?.textContent.slice(0, 200);`));
+check("Kurve: Monatsende = „Verfügbar“", await p.evaluate(() => { const c = document.querySelector('#c1'); const k = c._curve(c._data); return Math.abs(k.fut[k.fut.length - 1][1] - c._data.summary.available) < 0.01; }));
+check("Kurve: Vergangenheit aus den gemerkten Tagen", await p.evaluate(() => { const c = document.querySelector('#c1'); const k = c._curve(c._data); return new Date().getDate() < 2 || k.past.length === new Date().getDate(); }));
+await shot("25-kontostand-kurve.png");
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._force = true; c._render(); });
 
 // 📚 Zweites Buch: Karte mit „buch“ fragt nach genau diesem Buch, eigener Postausgang, Editor zeigt alle Bücher
 const rb = await p.evaluate(async () => {

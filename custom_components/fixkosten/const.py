@@ -43,6 +43,7 @@ DEFAULT_SETTINGS = {
     "labels": False,        # 🔤 Beschriftungen unter den Symbol-Knöpfen (für alle)
     "mascot": False,
     "veil": True,
+    "late_on": True,        # ⚠️ „Abbuchung fehlt?“ anzeigen (Schalter in ⚙️ → Rechnen & Warnung)
     "show_by": False,       # 👤 bei Ausgaben zeigen, wer sie eingetragen hat (Schalter in ⚙️ → Ansicht)
     "lock_all": False,      # 🔒 ganze Karte mit PIN sperren (nicht nur ⚙️ und Bearbeiten)           # 🙈 Einnahmen, Töpfe und „Komplett“ verschleiern (Schalter, für alle)        # 🐷 Maskottchen Sparschwein oben links (für alle)
     "view": {},             # 👁️ Ansicht für alle: Abschnitt → False = ausgeblendet
@@ -51,6 +52,8 @@ DEFAULT_SETTINGS = {
 
 MAX_BOOKINGS_DAYS = 400   # 🧾 Tagesbuchungen so lange aufheben
 MAX_LOG = 300            # 📜 Verlauf: so viele Einträge merken
+MAX_DAYS = 70            # 📈 Kontostand-Kurve: so viele Tage merken
+LATE_DAYS = 5            # ⚠️ „Abbuchung fehlt?“: so viele Tage nach dem festen Tag ohne Haken → orange
 MAX_HISTORY = 36          # 📊 Monatsrückblick: so viele Monate merken
 MAX_SEEN_OPS = 2000       # 🔁 schon verarbeitete Änderungen (gegen doppeltes Nachschicken aus der Offline-App)
 

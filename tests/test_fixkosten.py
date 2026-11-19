@@ -544,3 +544,49 @@ async def test_stand_datum_aenderbar(hass, setup):
     assert neu["updated"] == 4242
     with pytest.raises(HomeAssistantError):
         m._save_item("stand", {"id": st["id"], "date": "kaputt"}, 1)
+
+
+async def test_abbuchung_fehlt(hass, setup, freezer):
+    """⚠️ Fester Tag + 5 Tage ohne Haken → „Abbuchung fehlt?“ (heute ist der 10.11.)."""
+    m = mgr(hass)
+    m.apply([
+        {"type": "posten_save", "item": {"id": "a", "name": "Strom", "amount": 65, "day": 5}},
+        {"type": "posten_save", "item": {"id": "b", "name": "Handy", "amount": 20, "day": 6}},
+        {"type": "posten_save", "item": {"id": "c", "name": "Miete", "amount": 800}},
+    ])
+    assert [x["name"] for x in m.summary()["late"]] == ["Strom"]  # 5. + 5 = 10. ✔ · 6. + 5 = 11. noch nicht · ohne Tag nie
+    m.apply([{"type": "paid", "id": "a", "value": True}])
+    assert m.summary()["late"] == []
+    freezer.move_to(datetime(2026, 11, 30, 12, 0, tzinfo=dt_util.get_time_zone(TZ)))
+    m.apply([{"type": "posten_save", "item": {"id": "d", "name": "Bausparer", "amount": 50, "day": 31}}])
+    assert [x["name"] for x in m.summary()["late"]] == ["Handy"]  # der 31. gibt's im November nicht → 30., erst ab 35. „orange“
+    m.apply([{"type": "settings", "settings": {"late_on": False}}])
+    assert m.summary()["late"] == []
+
+
+async def test_topf_umbuchen(hass, setup):
+    """🔀 Von Topf zu Topf: Summe der Töpfe und „Verfügbar“ bleiben gleich."""
+    m = mgr(hass)
+    m.apply([{"type": "topf_save", "item": {"id": "a", "name": "Sparkonto", "amount": 500}},
+             {"type": "topf_save", "item": {"id": "b", "name": "Urlaub", "amount": 0}}])
+    s0 = m.summary()
+    res = m.apply([{"type": "topf_move", "id": "a", "to": "b", "amount": "120,50"}])
+    assert res[0]["ok"]
+    assert m.find("topf", "a")["amount"] == 379.5 and m.find("topf", "b")["amount"] == 120.5
+    s1 = m.summary()
+    assert s1["pots_total"] == s0["pots_total"] and s1["available"] == s0["available"]
+    assert "umgebucht" in m.data["log"][-1]["text"]
+    assert not m.apply([{"type": "topf_move", "id": "a", "to": "a", "amount": 1}])[0]["ok"]
+    assert not m.apply([{"type": "topf_move", "id": "a", "to": "b", "amount": 0}])[0]["ok"]
+
+
+async def test_kontostand_je_tag(hass, setup, freezer):
+    """📈 Für die Kontostand-Kurve merkt sich die Karte pro Tag den Kontostand."""
+    m = mgr(hass)
+    m.apply([{"type": "konto", "balance": 1200}])
+    m.apply([{"type": "konto", "balance": 1100}])
+    assert m.data["days"]["2026-11-10"] == 1100
+    freezer.move_to(datetime(2026, 11, 11, 9, 0, tzinfo=dt_util.get_time_zone(TZ)))
+    m.apply([{"type": "konto", "balance": 900}])
+    assert m.data["days"] == {"2026-11-10": 1100, "2026-11-11": 900}
+    assert "days" in m.snapshot()

@@ -32,10 +32,10 @@ Ein Klick öffnet es direkt in deinem Home Assistant: [![In HACS öffnen](https:
 | | |
 | --- | --- |
 | 💰 **Verfügbar** | Kontostand − offene Fixkosten − Ausgaben, die noch nicht abgebucht sind = was du wirklich ausgeben kannst. Grün im Plus, rot im Minus |
-| 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“, standardmäßig zugeklappt (Summe und „2 / 4“ stehen im Kopf). Freiwillig ein **fester Tag** (z. B. am 5.) – er steht am Posten. ⚠️ **Abbuchung fehlt?** Ist der Posten 5 Tage nach seinem Tag noch nicht abgehakt, wird er **orange** und oben steht ein Hinweis (antippen klappt die Gruppe auf) – vergessen zu haken oder hat die Bank nicht abgebucht? Abschaltbar in ⚙️ → Rechnen & Warnung. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder **pausiert** (steht grau und abgehakt drin, zählt nicht mit) |
+| 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“, standardmäßig zugeklappt (Summe und „2 / 4“ stehen im Kopf). Freiwillig ein **fester Tag** (z. B. am 5.) – er steht am Posten. ⚠️ **Abbuchung fehlt?** Ist der Posten 5 Tage nach seinem Tag noch nicht abgehakt, bekommt er einen **roten Rahmen** und oben steht ein rot umrandeter Hinweis (antippen klappt die Gruppe auf) – vergessen zu haken oder hat die Bank nicht abgebucht? Schalter: ⚙️ → Rechnen & Warnung → „Nach 5 Tagen noch offen? Warnen“. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder **pausiert** (steht grau und abgehakt drin, zählt nicht mit) |
 | ⠿ **Verschieben** | Gruppen, Posten, Töpfe, Einnahmen und Konten am Griff ⠿ ziehen. Posten auch in eine andere Gruppe |
 | ↩️ **Rückgängig** | Nach Löschen, „beglichen“ oder „abgebucht“ steht 8 Sekunden lang „Rückgängig“ unten in der Karte |
-| 💳 **Ausgaben** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: grüner Haken ✓. Eintrag antippen = ändern. Lange drücken auf einen Symbol-Knopf zeigt, was er macht |
+| 💳 **Ausgaben** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: grüner Haken ✓. Eintrag antippen = ändern. ⚠️ Steht eine Ausgabe seit **5 Tagen** bei „noch nicht abgebucht“, bekommt sie einen **roten Rahmen** („seit X Tagen offen“) und steht oben im Hinweis (gleicher Schalter). Lange drücken auf einen Symbol-Knopf zeigt, was er macht |
 | 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Ausgabe, Kontostand oder kopieren. Am PC auch per Tastatur (Ziffern, + − * /, Enter, ⌫, Esc). Rechnet selbst, ohne `eval` |
 | 💡 **Bildschirm an** | Glühbirne oben zwischen 👁️ und 🔒: einmal antippen, dann geht das Handy nicht aus (z. B. beim Abarbeiten der Rechnungen). Noch mal antippen = wieder normal. In der HA-App hilft nur deren Einstellung „Keep screen On“ |
 | 💵 **Einnahmen** | Nur zur Info (Lohn, Nebenjob …), mit Kreis zum Abhaken, sobald sie auf dem Konto sind. Zeigt, was nach den Fixkosten übrig bleibt |
@@ -198,7 +198,7 @@ language: en       # optional: de oder en (ohne = wie Home Assistant), auch im K
 | Entität | Inhalt |
 | --- | --- |
 | `sensor.fixkosten_verfuegbar` | Was wirklich noch da ist (Attribute: Kontostand, offene Fixkosten, Ausgaben offen, Monat) |
-| `sensor.fixkosten_offene_fixkosten` | Summe der offenen Posten (Attribute: Anzahl, Namen, Gruppen, `abbuchung_fehlt` = Posten, die 5 Tage nach ihrem festen Tag noch keinen Haken haben) |
+| `sensor.fixkosten_offene_fixkosten` | Summe der offenen Posten (Attribute: Anzahl, Namen, Gruppen, `abbuchung_fehlt` = Posten, die 5 Tage nach ihrem festen Tag noch keinen Haken haben, `ausgaben_seit_5_tagen_offen` = Ausgaben, die seit 5 Tagen nicht abgebucht sind) |
 | `sensor.fixkosten_fixkosten_monat` | Alle Fixkosten dieses Monats |
 | `sensor.fixkosten_einnahmen_monat` | Einnahmen (Info) |
 | `sensor.fixkosten_ueberschuss` | Einnahmen − Fixkosten |

@@ -318,7 +318,16 @@ class FixkostenManager:
             "next": next_item,
             "groups": group_info,
             "late": late,  # ⚠️ „Abbuchung fehlt?“: fester Tag + LATE_DAYS vorbei, aber noch nicht abgehakt
+            "late_bookings": self.late_bookings(),  # ⚠️ Ausgaben, die seit LATE_DAYS Tagen „noch nicht abgebucht“ sind
         }
+
+    def late_bookings(self) -> list[dict[str, Any]]:
+        """⚠️ Ausgaben, die vor LATE_DAYS (oder mehr) Tagen eingetragen wurden und immer noch nicht abgebucht sind."""
+        if self.data["settings"].get("late_on", True) is False:
+            return []
+        limit = (dt_util.utcnow().timestamp() - LATE_DAYS * 86400) * 1000
+        return [{"id": b["id"], "name": b.get("name", ""), "amount": b["amount"], "days": int((dt_util.utcnow().timestamp() * 1000 - b.get("ts", 0)) // 86400000)}
+                for b in self.data["bookings"] if not b.get("cleared") and b.get("ts", 0) <= limit]
 
     def late_items(self, today: int | None = None) -> list[dict[str, Any]]:
         """⚠️ Posten mit festem Tag, die seit LATE_DAYS Tagen fällig sind und noch keinen Haken haben.

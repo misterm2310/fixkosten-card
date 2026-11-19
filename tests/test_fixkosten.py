@@ -590,3 +590,17 @@ async def test_kontostand_je_tag(hass, setup, freezer):
     m.apply([{"type": "konto", "balance": 900}])
     assert m.data["days"] == {"2026-11-10": 1100, "2026-11-11": 900}
     assert "days" in m.snapshot()
+
+
+async def test_ausgabe_seit_5_tagen_offen(hass, setup, freezer):
+    """⚠️ Ausgaben, die seit 5 Tagen nicht abgebucht sind, kommen in „late_bookings“."""
+    m = mgr(hass)
+    m.apply([{"op_id": "alt", "type": "booking_add", "name": "Tanken", "amount": 50},
+             {"op_id": "neu", "type": "booking_add", "name": "Bäckerei", "amount": 3, "ts": int(dt_util.utcnow().timestamp() * 1000) + 2 * 86400000}])
+    assert m.summary()["late_bookings"] == []
+    freezer.move_to(datetime(2026, 11, 15, 12, 0, tzinfo=dt_util.get_time_zone(TZ)))
+    assert [(x["name"], x["days"]) for x in m.summary()["late_bookings"]] == [("Tanken", 5)]
+    m.apply([{"type": "booking_clear", "id": "alt", "value": True}])
+    assert m.summary()["late_bookings"] == []
+    m.apply([{"type": "booking_clear", "id": "alt", "value": False}, {"type": "settings", "settings": {"late_on": False}}])
+    assert m.summary()["late_bookings"] == []

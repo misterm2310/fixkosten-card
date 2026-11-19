@@ -43,7 +43,7 @@ DEFAULT_SETTINGS = {
     "labels": False,        # 🔤 Beschriftungen unter den Symbol-Knöpfen (für alle)
     "mascot": False,
     "veil": True,
-    "late_on": True,        # ⚠️ „Abbuchung fehlt?“ anzeigen (Schalter in ⚙️ → Rechnen & Warnung)
+    "late_on": True,        # ⚠️ „Nach 5 Tagen noch offen? Warnen“ – Fixkosten mit festem Tag und Ausgaben (Schalter in ⚙️ → Rechnen & Warnung)
     "show_by": False,       # 👤 bei Ausgaben zeigen, wer sie eingetragen hat (Schalter in ⚙️ → Ansicht)
     "lock_all": False,      # 🔒 ganze Karte mit PIN sperren (nicht nur ⚙️ und Bearbeiten)           # 🙈 Einnahmen, Töpfe und „Komplett“ verschleiern (Schalter, für alle)        # 🐷 Maskottchen Sparschwein oben links (für alle)
     "view": {},             # 👁️ Ansicht für alle: Abschnitt → False = ausgeblendet

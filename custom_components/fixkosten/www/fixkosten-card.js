@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.3-beta.2";
+const FK_VERSION = "1.0.3-beta.3";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -25,7 +25,7 @@ const FK_GUIDE = [
   { icon: "credit-card-outline", color: "#ff9800", title: "Ausgaben", text: `Etwas bezahlt (Karte, PayPal, bar …), das noch nicht vom Konto abgebucht ist? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: den <b>Kreis vorne</b> antippen (wie bei den Fixkosten) (lange drücken zeigt, was ein Knopf macht). Dann steckt er im Kontostand und fliegt aus der Rechnung. Vertippt? <b>Eintrag antippen</b> = Name und Betrag ändern. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein – wie die Kategorien der Einkaufsliste: ＋ Neu, ⠿ ziehen = Reihenfolge, antippen = Name, Farbe und Symbol ändern. Jeder bekommt von selbst eine <b>eigene, feste Farbe</b> (bleibt gleich, auch wenn du die Reihenfolge änderst) – dort kannst du sie auch selbst wählen. Ausgaben, die genauso heißen oder so anfangen (z. B. „PayPal - Claude“), tragen unten die gleiche Farbe. Orange = passt zu keinem Knopf.` },
   { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein. Am PC geht auch die <b>Tastatur</b>: Ziffern, + − * /, Komma oder Punkt, Enter = Ergebnis, ⌫ löscht, Esc = C.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Ausgabe</b>, als <b>Kontostand</b> oder kopierst es.` },
   { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter: <b>Stand korrigieren</b> mit grünem Haken ✓ (z. B. nach dem Nachzählen; leeres Feld = 0). Unter jedem Topf steht, <b>wann</b> er zuletzt geändert wurde. Auf den Namen tippen klappt wieder zu. Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). Kommt es nicht mehr zurück: Topf öffnen und den <b>orangen Zettel antippen</b> → weg. „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst – oder mit <b>„Ich bekomme“</b> (grün) Geld, das dir jemand schuldet (z. B. Kumpel, Rückerstattung). Die Liste ist zugeklappt, oben stehen beide Summen (rot und grün) – Tipp auf die Überschrift klappt sie auf. <b>Neu eintragen</b> wie bei den Ausgaben: oben „Ich muss zahlen“ oder „Ich bekomme“ wählen, Name und Betrag rein, <b>＋</b>. Das neueste Datum steht oben. Unter dem Namen stehen Datum, „ich bekomme“ / „ich muss zahlen“ und die Notiz. <b>Eintrag antippen</b> = Name, Betrag, Datum, Richtung und Notiz ändern (wie bei den Ausgaben). Erledigt oder bekommen? Grünen Haken ✓ antippen. Mit dem Schalter in ⚙️ → „Rechnen &amp; Warnung“ rechnet „Verfügbar“ sie mit: rote gehen ab, grüne kommen dazu. Ohne Schalter sind sie nur Erinnerung.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
-  { icon: "alert-outline", color: "#fb8c00", title: "Abbuchung fehlt, umbuchen, Kurve", text: `<b>⚠️ Abbuchung fehlt?</b> Hat ein Posten einen <b>festen Tag</b> und ist <b>5 Tage</b> danach noch nicht abgehakt, wird er <b>orange</b> und oben erscheint ein Hinweis (antippen klappt die Gruppe auf). Entweder vergessen zu haken – oder die Bank hat nicht abgebucht. Abschaltbar in ⚙️ → „Rechnen & Warnung“.<br><b>🔀 Umbuchen:</b> Topf antippen → <b>„Umbuchen nach“</b> → Topf wählen, Betrag rein, ⇄. Das Geld wandert von Topf zu Topf, Konto und „Verfügbar“ bleiben gleich.<br><b>📈 Dein Konto im Monat:</b> Ganz oben im Reiter 📊 Statistik siehst du den Kontostand Tag für Tag: durchgezogen = so war's, gestrichelt = was noch kommt (offene Fixkosten an ihrem Tag). Der Punkt zeigt den engsten Tag.` },
+  { icon: "alert-outline", color: "#fb8c00", title: "Abbuchung fehlt, umbuchen, Kurve", text: `<b>⚠️ Nach 5 Tagen noch offen?</b> Hat ein Posten einen <b>festen Tag</b> und ist <b>5 Tage</b> danach noch nicht abgehakt – oder steht eine <b>Ausgabe</b> seit 5 Tagen bei „noch nicht abgebucht“ –, bekommt die Zeile einen <b>roten Rahmen</b> und oben erscheint ein rot umrandeter Hinweis (antippen zeigt die Zeilen). Entweder vergessen zu haken – oder die Bank hat nicht abgebucht. Abschaltbar in ⚙️ → „Rechnen & Warnung“ → „Nach 5 Tagen noch offen? Warnen“.<br><b>🔀 Umbuchen:</b> Topf antippen → <b>„Umbuchen nach“</b> → Topf wählen, Betrag rein, ⇄. Das Geld wandert von Topf zu Topf, Konto und „Verfügbar“ bleiben gleich.<br><b>📈 Dein Konto im Monat:</b> Ganz oben im Reiter 📊 Statistik siehst du den Kontostand Tag für Tag: durchgezogen = so war's, gestrichelt = was noch kommt (offene Fixkosten an ihrem Tag). Der Punkt zeigt den engsten Tag.` },
   { icon: "pencil-outline", color: "#00897b", title: "Bearbeiten", text: `Unter <b>„Bearbeiten“</b> legst du alles an (＋ Neu) oder tippst einen Eintrag zum Ändern an. Posten können auf <b>bestimmte Monate</b> beschränkt werden (z. B. Kfz-Steuer nur im März) oder <b>pausiert</b> werden. Neue Gruppen bekommen einen Starttag (1–28).<br><b>Reihenfolge ändern:</b> am Griff ⠿ vorne ziehen. Fixkosten kannst du so auch in eine andere Gruppe schieben. Das klappt auch bei Gruppen, Töpfen, Einnahmen, offenen Ständen und Konten.` },
   { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Ausgaben, Einnahmen und was am Ende übrig war (bis zu 3 Jahre). Du findest ihn im Reiter <b>📊 Statistik</b> (und in ⚙️ → Daten → Rückblick). Dort stehen auch Durchschnitt, bester und schlechtester Monat, Vergleich zum Vormonat und Vorjahr, die Jahressumme und wie viel Prozent deines Einkommens für Fixkosten weggehen.` },
   { icon: "stethoscope", color: "#00897b", title: "Gesundheit, Fehler und Werkseinstellungen", text: `In ⚙️ → <b>🩺 Gesundheit</b>: <b>„Alles ok?“</b> sucht nach Dingen, die nicht zusammenpassen (Posten ohne Gruppe, alter Kontostand, vergessene Ausgaben …) und sagt, wie man es repariert. <b>Fehler-Protokoll</b> zeigt, was beim Speichern nicht geklappt hat. <b>Ressourcen</b> zeigt, wie viel Platz alles braucht.<br><b>💣 Werkseinstellungen</b> (⚙️ → Daten, nur Admins): alles zurück auf Anfang, nur die PIN bleibt. Zwei Sicherheitsfragen – vorher lieber „Als CSV sichern“.` },
@@ -40,6 +40,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.3-beta.3", "⚠️ <b>Nach 5 Tagen noch offen? Warnen</b> – jetzt auch für <b>Ausgaben</b>: Steht eine Ausgabe seit 5 Tagen bei „noch nicht abgebucht“, steht sie oben im Hinweis und bekommt „⚠️ seit X Tagen offen“. · 🟥 <b>Roter Rahmen</b> beim Hinweis oben und bei allen betroffenen Zeilen (Fixkosten und Ausgaben). · Der Schalter in ⚙️ → Rechnen & Warnung heißt jetzt <b>„Nach 5 Tagen noch offen? Warnen“</b> und gilt für beides."],
   ["1.0.3-beta.2", "⚠️ <b>Abbuchung fehlt?</b> Hat ein Posten einen festen Tag und ist 5 Tage danach noch nicht abgehakt, wird er <b>orange</b> – oben steht ein Hinweis, antippen klappt die Gruppe auf (vergessen zu haken oder hat die Bank nicht abgebucht?). Abschaltbar in ⚙️ → „Rechnen & Warnung“. · 🔀 <b>Umbuchen:</b> Topf antippen → „Umbuchen nach“ → Geld wandert von Topf zu Topf, Konto und „Verfügbar“ bleiben gleich. · 📈 <b>Dein Konto im Monat:</b> neue Kurve ganz oben in der Statistik – Tag für Tag sehen, wann es eng wird (durchgezogen = so war's, gestrichelt = was noch kommt, Punkt = engster Tag)."],
   ["1.0.3-beta.1", "🔄 <b>Offline-App schickt im Hintergrund nach</b> – wie bei der Einkaufsliste: Hast du ohne Netz etwas eingetragen und machst die App zu, schickt das Handy den <b>Postausgang</b> von selbst los, sobald das Netz wieder da ist (Android/Chrome; iPhone beim nächsten Öffnen). Beim nächsten Öffnen siehst du kurz „✅ … im Hintergrund nachgeschickt“. · ✅ Im Dashboard und in der App meldet die Karte <b>„Wieder online – N Änderungen nachgeschickt“</b>, wenn Gemerktes angekommen ist. Nichts zählt doppelt."],
   ["1.0.2", "🎉 <b>Offizielle Version 1.0.2:</b> Alles aus 4 Betas ist jetzt fest drin – danke fürs Testen! · 💚 <b>Offene Stände in beide Richtungen</b> („Ich muss zahlen“ rot, „Ich bekomme“ grün) – direkt in der Übersicht eintragen, ändern und erledigen, zum Zuklappen, neuestes Datum oben, Datum änderbar · 📊 <b>Statistik zum Verstehen:</b> ganze Sätze statt Zahlenkacheln, Ausgegeben/Eingenommen/Übrig, Vergleich als Satz, ⓘ an jedem Kasten · 🖱️ Schnellknöpfe am PC mit der Maus ziehen · ⌨️ Taschenrechner per Tastatur · 🔢 „Was ist neu“ wie bei der Einkaufsliste, richtig sortiert"],
@@ -475,6 +476,12 @@ function pamt(d, p) { const v = d.month_price?.[p.id]; return v == null ? p.amou
 // Am 31. im 30-Tage-Monat zählt der letzte Tag des Monats.
 const FK_LATE_DAYS = 5;
 const fkLastDay = (now = new Date()) => new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+// ⚠️ Ausgaben, die seit 5 Tagen (oder länger) „noch nicht abgebucht“ sind (genau wie late_bookings in manager.py)
+function lateBookings(d, now = Date.now()) {
+  if (d.settings?.late_on === false) return [];
+  return (d.bookings || []).filter((b) => !b.cleared && b.ts && now - b.ts >= FK_LATE_DAYS * 86400000)
+    .map((b) => ({ id: b.id, name: b.name, amount: b.amount, days: Math.floor((now - b.ts) / 86400000) }));
+}
 function lateItems(d, now = new Date()) {
   if (d.settings?.late_on === false) return [];
   const today = now.getDate(), last = fkLastDay(now);
@@ -510,7 +517,7 @@ function summary(d) {
     fix_total: fixTotal, fix_open: fixOpen, fix_paid: fixTotal - fixOpen, income_total: incomeTotal, surplus: incomeTotal - fixTotal,
     bookings_open: bookingsOpen, bookings_month: bookingsMonth, pots_total: pots, debts, claims, total: pots + available,
     warn: d.settings?.warn_enabled !== false && available < (d.settings?.warn_below || 0), pots_lent: d.toepfe.reduce((x, t) => x + (Number(t.lent) || 0), 0), next, groups: gi,
-    late: lateItems(d),
+    late: lateItems(d), late_bookings: lateBookings(d),
   };
 }
 const fkR2 = (v) => Math.round(v * 100) / 100;
@@ -742,10 +749,10 @@ form.add.pinf { grid-template-columns:1fr 48px; }
 .lentbtn ha-icon { --mdc-icon-size:14px; }
 .potlbl { font-size:.85em; color:var(--secondary-text-color); }
 .potrow.xfer { grid-template-columns:auto 1fr 1fr auto; margin:6px 0 0; } .potrow.xfer select { min-width:0; }
-.item.late { background:color-mix(in srgb, #fb8c00 12%, transparent); }
+.item.late { background:color-mix(in srgb, var(--fk-red) 8%, transparent); box-shadow:inset 0 0 0 1.5px var(--fk-red); }
 .tag.late { color:#e65100; border-color:#fb8c00; background:color-mix(in srgb, #fb8c00 18%, transparent); font-weight:600; }
-.latehint { display:flex; gap:8px; align-items:flex-start; width:100%; text-align:left; font:inherit; font-size:.9em; border:1.5px solid #fb8c00; color:var(--primary-text-color); background:color-mix(in srgb, #fb8c00 12%, transparent); border-radius:12px; padding:8px 10px; margin:0 0 10px; cursor:pointer; }
-.latehint ha-icon { color:#ef6c00; --mdc-icon-size:20px; flex:none; } .latehint b { color:#e65100; }
+.latehint { display:flex; gap:8px; align-items:flex-start; width:100%; text-align:left; font:inherit; font-size:.9em; border:1.5px solid var(--fk-red); color:var(--primary-text-color); background:color-mix(in srgb, var(--fk-red) 8%, transparent); border-radius:12px; padding:8px 10px; margin:0 0 10px; cursor:pointer; }
+.latehint .lines { display:flex; flex-direction:column; gap:2px; } .latehint ha-icon { color:var(--fk-red); --mdc-icon-size:20px; flex:none; } .latehint b { color:var(--fk-red); }
 .latecnt { color:#ef6c00; font-weight:700; display:inline-flex; align-items:center; gap:1px; } .latecnt ha-icon { --mdc-icon-size:15px; }
 svg.curve { width:100%; height:auto; display:block; margin:4px 0; overflow:visible; }
 svg.curve .past { fill:none; stroke:var(--pc); stroke-width:2; stroke-linejoin:round; }
@@ -1279,8 +1286,14 @@ class FixkostenCard extends HTMLElement {
         <div class="tile"><span>${ic("credit-card-outline")}Ausgaben offen</span><b>${this._m(-s.bookings_open, "neg")}</b></div>
       </div>`;
     // ⚠️ „Abbuchung fehlt?“ – oben ein kleiner oranger Hinweis, weil die Gruppen zugeklappt sind. Antippen klappt die Gruppe auf.
-    const late = s.late || [];
-    if (late.length && (d.settings.view || {}).fixkosten !== false) h += `<button class="latehint click" data-a="lateopen" data-v="${esc(late[0].group || "-")}" title="Antippen = Posten zeigen">${ic("alert-outline")}<span><b>${late.length === 1 ? "Abbuchung fehlt?" : `${late.length} Abbuchungen fehlen?`}</b> ${late.map((x) => `${esc(x.name)} (am ${x.day}.)`).join(" · ")}</span></button>`;
+    // ⚠️ Nach 5 Tagen noch offen? Fixkosten mit festem Tag + Ausgaben, die noch nicht abgebucht sind – roter Rahmen (Marco)
+    const vw = d.settings.view || {}, late = vw.fixkosten !== false ? s.late || [] : [], lateB = vw.ausgaben !== false ? s.late_bookings || [] : [];
+    if (late.length || lateB.length) {
+      const lines = [];
+      if (late.length) lines.push(`<span><b>${late.length === 1 ? "Abbuchung fehlt?" : `${late.length} Abbuchungen fehlen?`}</b> ${late.map((x) => `${esc(x.name)} (am ${x.day}.)`).join(" · ")}</span>`);
+      if (lateB.length) lines.push(`<span><b>${lateB.length === 1 ? "Ausgabe noch nicht abgebucht?" : `${lateB.length} Ausgaben noch nicht abgebucht?`}</b> ${lateB.map((x) => `${esc(x.name)} (seit ${x.days} Tagen)`).join(" · ")}</span>`);
+      h += `<button class="latehint click" data-a="lateopen" data-v="${late.length ? esc(late[0].group || "-") : ""}" title="Antippen = zeigen">${ic("alert-outline")}<span class="lines">${lines.join("")}</span></button>`;
+    }
     const v = d.settings.view || {}, show = (k) => v[k] !== false; // 👁️ Ansicht für alle (der Hinweis „Nächste Abbuchung“ oben ist weg – Marco: der Tag steht am Posten)
 
     // 💳 Ausgaben
@@ -1290,9 +1303,9 @@ class FixkostenCard extends HTMLElement {
     h += `<div class="quick">${quick.map((q) => `<button class="chip ${this._quickName === q ? "on" : ""}" style="--qc:${qcolOf(d, q)}" data-a="quick" data-v="${esc(q)}">${qiconOf(d, q) ? `<ha-icon icon="${esc(qiconOf(d, q))}"></ha-icon>` : ""}${esc(q)}</button>`).join("")}</div>
       <form class="add" data-a="booking"><input name="name" placeholder="Wofür? z. B. Bäckerei" value="${esc(this._quickName || "")}" autocomplete="off">
       <input name="amount" class="amount" placeholder="${money(0)}" inputmode="decimal" autocomplete="off" value="${esc(this._prefAmount || "")}"><button class="addbtn" type="submit" title="Eintragen">${ic("plus")}</button></form>`;
-    if (bOpen) h += openBookings.length ? openBookings.map((b) => (`<div class="item click" style="--cc:${qcol(d, b.name) || "#ff9800"}" data-a="open" data-k="booking" data-id="${esc(b.id)}" title="Antippen = ändern"><button class="chk" data-a="clear" data-id="${esc(b.id)}" title="Antippen, wenn es auf dem Konto abgebucht ist" aria-label="abgebucht"></button><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString(fkLoc(), { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${b.by && multiBy ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
+    if (bOpen) h += openBookings.length ? openBookings.map((b) => { const lb = lateB.find((x) => x.id === b.id); return (`<div class="item click ${lb ? "late" : ""}" style="--cc:${qcol(d, b.name) || "#ff9800"}" data-a="open" data-k="booking" data-id="${esc(b.id)}" title="Antippen = ändern"><button class="chk" data-a="clear" data-id="${esc(b.id)}" title="Antippen, wenn es auf dem Konto abgebucht ist" aria-label="abgebucht"></button><div class="n"><b>${esc(b.name)}</b><div class="meta"><span class="tag">${new Date(b.ts).toLocaleDateString(fkLoc(), { weekday: "short", day: "2-digit", month: "2-digit" })}</span>${lb ? `<span class="tag late" title="Seit ${lb.days} Tagen nicht abgebucht – vergessen zu haken oder hat die Bank nicht abgebucht?">⚠️ seit ${lb.days} Tagen offen</span>` : ""}${b.by && multiBy ? `<span class="tag">${esc(b.by)}</span>` : ""}${this._queue.some((o) => o.op_id === b.id) ? `<span class="tag wait">⏳ wartet</span>` : ""}</div></div>
       <div class="amt">${this._m(-b.amount, "neg")}</div>
-      <button class="iconbtn" data-a="bdel" data-id="${esc(b.id)}" title="Löschen">${ic("close")}${this._lb("löschen")}</button></div>` + (this._open?.kind === "booking" && this._open.id === b.id ? this._bookingForm(b) : ""))).join("") : `<div class="empty">Nichts offen 🎉</div>`;
+      <button class="iconbtn" data-a="bdel" data-id="${esc(b.id)}" title="Löschen">${ic("close")}${this._lb("löschen")}</button></div>` + (this._open?.kind === "booking" && this._open.id === b.id ? this._bookingForm(b) : "")); }).join("") : `<div class="empty">Nichts offen 🎉</div>`;
     }
 
     // 📋 Fixkosten nach Gruppen
@@ -1770,8 +1783,8 @@ class FixkostenCard extends HTMLElement {
         <label class="switch"><span>${ic("undo-variant")}Haken am Monatsanfang automatisch zurücksetzen</span><input type="checkbox" class="swchk" data-a="setreset" ${st.reset_checks !== false ? "checked" : ""}></label>
         <label class="switch"><span>${ic("file-document-alert-outline")}Offene Stände bei „Verfügbar“ mitrechnen</span><input type="checkbox" class="swchk" data-a="setdebts" ${st.debts_subtract ? "checked" : ""}></label>
         <p class="small help">An = die roten <b>🧾 „Ich muss zahlen“</b> gehen von „Verfügbar“ ab, die grünen <b>„Ich bekomme“</b> kommen dazu. Aus = beide sind nur Erinnerung und zählen nicht mit.</p>
-        <label class="switch"><span>${ic("alert-outline")}„Abbuchung fehlt?“ anzeigen</span><input type="checkbox" class="swchk" data-a="setlate" ${st.late_on !== false ? "checked" : ""}></label>
-        <p class="small help">Hat ein Posten einen <b>festen Tag</b> und ist <b>5 Tage</b> danach noch nicht abgehakt, wird er <b>orange</b>. Dann hast du entweder vergessen zu haken – oder die Bank hat nicht abgebucht.</p>
+        <label class="switch"><span>${ic("alert-outline")}Nach 5 Tagen noch offen? Warnen</span><input type="checkbox" class="swchk" data-a="setlate" ${st.late_on !== false ? "checked" : ""}></label>
+        <p class="small help">Rot umrandet wird, was <b>5 Tage</b> lang offen ist: Fixkosten mit <b>festem Tag</b>, die 5 Tage danach noch keinen Haken haben, und <b>Ausgaben</b>, die seit 5 Tagen „noch nicht abgebucht“ sind. Vergessen zu haken – oder hat die Bank nicht abgebucht?</p>
         <label class="switch"><span>${ic("bell-outline")}Warnung an (Warn-Sensor)</span><input type="checkbox" class="swchk" data-a="setwarnon" ${st.warn_enabled !== false ? "checked" : ""}></label>
         ${st.warn_enabled === false ? "" : `<div class="switch"><span>${ic("alert-circle-outline")}Warnen, wenn „Verfügbar“ unter</span><span><input data-a="setwarn" inputmode="decimal" value="${numDe(st.warn_below ?? 0)}" style="width:90px;text-align:right"> ${FK_MONEY.sym}</span></div>`}
         <div class="switch"><span>${ic("cash-multiple")}Währung</span><select data-a="setcur" style="width:auto;max-width:60%">${Object.entries(FK_CUR).map(([c, n]) => `<option value="${c}" ${(st.currency || "EUR") === c ? "selected" : ""}>${n}</option>`).join("")}</select></div>
@@ -2017,7 +2030,7 @@ class FixkostenCard extends HTMLElement {
       setTimeout(() => location.reload(), 300);
     }
     else if (a === "sdir") { this._standDir = el.dataset.v === "get" ? "get" : "pay"; redraw(); setTimeout(() => this.shadowRoot.querySelector('form[data-a="standadd"] input[name="name"]')?.focus(), 30); }
-    else if (a === "lateopen") { this._openSec.add("g:" + el.dataset.v); redraw(); setTimeout(() => this.shadowRoot.querySelector(".item.late")?.scrollIntoView({ block: "center", behavior: "smooth" }), 40); } // ⚠️ Gruppe aufklappen
+    else if (a === "lateopen") { if (el.dataset.v) this._openSec.add("g:" + el.dataset.v); else this._openSec.delete("ausgaben_zu"); redraw(); setTimeout(() => this.shadowRoot.querySelector(".item.late")?.scrollIntoView({ block: "center", behavior: "smooth" }), 40); } // ⚠️ Gruppe aufklappen
     else if (a === "setlate") this._send({ type: "settings", settings: { late_on: el.checked } });
     else if (a === "sec") { const k = el.dataset.v; this._openSec.has(k) ? this._openSec.delete(k) : this._openSec.add(k); redraw(); }
     else if (a === "sheet") { this._sheet = el.dataset.v; this._qSel = null; redraw(); if (["errors", "stats"].includes(this._sheet)) this._loadHealth(); }

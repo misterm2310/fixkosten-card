@@ -685,6 +685,20 @@ if (new Date().getDate() >= 6) {
   await p.waitForTimeout(80);
 }
 
+// ⚠️ 1.0.3-beta.3: Ausgaben, die seit 5 Tagen nicht abgebucht sind – roter Rahmen, Hinweis oben, „seit X Tagen offen“
+{
+  await p.evaluate(() => { fake.data.bookings.push({ id: "bOld", name: "Tankstelle", amount: 40, ts: Date.now() - 6 * 86400000, month: fake.data.month, cleared: false }); cb(JSON.parse(JSON.stringify(fake.data))); const c = document.querySelector('#c1'); c._view = "home"; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
+  await p.waitForTimeout(80);
+  check("Ausgabe 6 Tage offen: Hinweis oben mit rotem Rahmen", await sr(`const b = h.querySelector('.latehint'); return !!b && /Ausgabe noch nicht abgebucht\\?/.test(b.textContent) && /Tankstelle \\(seit 6 Tagen\\)/.test(b.textContent) && /rgb\\(219, 68, 55\\)|219, 68, 55/.test(getComputedStyle(b).borderColor);`), await sr(`const b = h.querySelector('.latehint'); return (b?.textContent || '-') + ' | ' + (b ? getComputedStyle(b).borderColor : '');`));
+  check("Ausgabe 6 Tage offen: Zeile rot umrandet mit „seit 6 Tagen offen“, neue Ausgabe nicht", await sr(`const r = [...h.querySelectorAll('.item[data-k="booking"]')]; const old = r.find((x) => x.dataset.id === "bOld"), neu = r.find((x) => x.dataset.id === "b1"); return old?.classList.contains('late') && /seit 6 Tagen offen/.test(old.textContent) && !neu?.classList.contains('late') && /219, 68, 55/.test(getComputedStyle(old).boxShadow);`));
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "set"; c._sheet = "rechnen"; c._force = true; c._render(); });
+  check("Schalter heißt „Nach 5 Tagen noch offen? Warnen“", await sr(`return /Nach 5 Tagen noch offen\\? Warnen/.test(h.querySelector('input[data-a="setlate"]')?.closest('label')?.textContent || '');`));
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+  await shot("26-ausgabe-5-tage-offen.png");
+  await p.evaluate(() => { fake.data.bookings = fake.data.bookings.filter((x) => x.id !== "bOld"); cb(JSON.parse(JSON.stringify(fake.data))); });
+  await p.waitForTimeout(80);
+}
+
 // 🔀 1.0.3-beta.2: Umbuchen von Topf zu Topf · Ausgaben gehen immer vom Konto (kein „Bezahlt von“, Marco 19.11.)
 {
   await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._open = null; c._openSec.clear(); c._force = true; c._render(); });

@@ -722,7 +722,7 @@ if (new Date().getDate() >= 6) {
 // 🐷 1.0.3-beta.4: Topf-Zahl direkt in der Zeile ändern · 🏦 Umbuchen aufs Konto · ↩️ Haken zurücksetzen unter Bearbeiten
 {
   await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._open = null; c._openSec.clear(); c._openSec.add("toepfe"); c._force = true; c._render(); });
-  check("Töpfe: ⓘ an der Überschrift", await sr(`return !!h.querySelector('[data-v="toepfe"] .finfo');`));
+  check("Töpfe: kein ⓘ mehr in der Übersicht", await sr(`return !h.querySelector('[data-v="toepfe"] .finfo') && !h.querySelector('p.help');`));
   await sr(`h.querySelector('.amt[data-a="potamt"][data-id="t1"]').click();`);
   await p.waitForTimeout(80);
   check("Topf-Zahl antippen: Eingabefeld direkt in der Zeile, markiert, kein Fenster", await sr(`const f = h.querySelector('form.potinline[data-id="t1"]'), i = f?.querySelector('input'); return !!f && h.activeElement === i && i.selectionStart === 0 && i.selectionEnd === i.value.length && !h.querySelector('.potbox') && !h.querySelector('.pagehost');`));
@@ -746,7 +746,7 @@ if (new Date().getDate() >= 6) {
   await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "set"; c._sheet = "rechnen"; c._force = true; c._render(); });
   check("⚙️: Knopf „Alle Haken jetzt zurücksetzen“ ist raus, Schalter bleibt", await sr(`return !h.querySelector('[data-a="resetnow"]') && !!h.querySelector('[data-a="setreset"]');`));
   await p.evaluate(() => { const c = document.querySelector('#c1'); c._sheet = null; c._view = "edit"; c._openSec.clear(); c._force = true; c._render(); });
-  check("Bearbeiten: alles zu, ⓘ an Fixkosten und Einnahmen", await sr(`return !h.querySelector('.olist') && !!h.querySelector('[data-v="e:posten"] .finfo') && !!h.querySelector('[data-v="e:einnahme"] .finfo');`));
+  check("Bearbeiten: alles zu, keine ⓘ", await sr(`return !h.querySelector('.olist') && !h.querySelector('.finfo') && !h.querySelector('p.help');`));
   await shot("28-bearbeiten-zu.png");
   await sr(`h.querySelector('[data-v="e:posten"]').click();`);
   await p.waitForTimeout(60);

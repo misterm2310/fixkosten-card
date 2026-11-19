@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.3-beta.4";
+const FK_VERSION = "1.0.3-beta.5";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -41,6 +41,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.3-beta.5", "🧹 <b>Weniger ⓘ:</b> In der Übersicht und unter „Bearbeiten“ sind die ⓘ wieder weg – zu aufdringlich. Erklärungen gibt's nur noch in ⚙️ Einstellungen (und in der Statistik)."],
   ["1.0.3-beta.4", "🐷 <b>Topf-Zahl direkt ändern:</b> In der Übersicht auf die Zahl eines Topfs tippen – sie wird gleich zum Eingabefeld (keine extra Seite), ✓ oder Enter speichert, daneben tippen bricht ab. · 🏦 <b>Umbuchen aufs Konto:</b> bei „Umbuchen nach“ steht jetzt auch das Konto – Topf kleiner, Kontostand und „Verfügbar“ größer. · 📂 <b>„Bearbeiten“ zum Zuklappen</b> wie die Übersicht (beim Öffnen alles zu, ＋ Neu klappt auf). · 🗂️ <b>Gruppen stehen bei den Fixkosten</b> (＋ Gruppe), der eigene Abschnitt unten ist weg. · ↩️ <b>Haken zurücksetzen</b> jetzt unter „Bearbeiten“ – je ein Knopf für Fixkosten und für Einnahmen; der Knopf in ⚙️ ist raus (der Schalter für den Monatsanfang bleibt). · ⓘ an allen neuen Sachen."],
   ["1.0.3-beta.3", "⚠️ <b>Nach 5 Tagen noch offen? Warnen</b> – jetzt auch für <b>Ausgaben</b>: Steht eine Ausgabe seit 5 Tagen bei „noch nicht abgebucht“, steht sie oben im Hinweis und bekommt „⚠️ seit X Tagen offen“. · 🟥 <b>Roter Rahmen</b> beim Hinweis oben und bei allen betroffenen Zeilen (Fixkosten und Ausgaben). · Der Schalter in ⚙️ → Rechnen & Warnung heißt jetzt <b>„Nach 5 Tagen noch offen? Warnen“</b> und gilt für beides."],
   ["1.0.3-beta.2", "⚠️ <b>Abbuchung fehlt?</b> Hat ein Posten einen festen Tag und ist 5 Tage danach noch nicht abgehakt, wird er <b>orange</b> – oben steht ein Hinweis, antippen klappt die Gruppe auf (vergessen zu haken oder hat die Bank nicht abgebucht?). Abschaltbar in ⚙️ → „Rechnen & Warnung“. · 🔀 <b>Umbuchen:</b> Topf antippen → „Umbuchen nach“ → Geld wandert von Topf zu Topf, Konto und „Verfügbar“ bleiben gleich. · 📈 <b>Dein Konto im Monat:</b> neue Kurve ganz oben in der Statistik – Tag für Tag sehen, wann es eng wird (durchgezogen = so war's, gestrichelt = was noch kommt, Punkt = engster Tag)."],
@@ -1357,7 +1358,6 @@ class FixkostenCard extends HTMLElement {
     // 🐷 Töpfe
     if (d.toepfe.length && show("toepfe")) {
       h += this._ghc("toepfe", "piggy-bank-outline", "#e91e63", "Töpfe", this._mv(s.pots_total, "pots"));
-      h += `<p class="small help">Auf die <b>Zahl</b> tippen = neuen Stand direkt eintippen, ✓ oder Enter speichert. Auf den <b>Namen</b> tippen = ➖ rausnehmen (geliehen, orange Erinnerung), ➕ zurücklegen, Stand korrigieren oder <b>umbuchen</b>: in einen anderen Topf oder aufs <b>🏦 Konto</b> (dann steigt der Kontostand, endgültig).</p>`;
       // ✏️ Zahl antippen = direkt in der Zeile ändern (wie der Kontostand, aber ohne eigene Seite) · Name antippen = ➖ ➕ · Stand · Umbuchen
       if (this._openSec.has("toepfe")) h += d.toepfe.map((t) => ((this._potEdit === t.id ? `<form class="item potinline" style="--cc:#e91e63" data-a="potset" data-id="${esc(t.id)}"><div class="n"><b>${esc(t.name)}</b></div><input name="stand" class="amount" inputmode="decimal" autocomplete="off" aria-label="Neuer Stand" value="${numDe(Number(t.amount) || 0)}"><button class="iconbtn potbtn okbtn" type="submit" title="Speichern" aria-label="speichern">${ic("check-bold")}</button></form>` : `<div class="item click" style="--cc:#e91e63" data-a="open" data-k="pot" data-id="${esc(t.id)}" title="Antippen = rausnehmen, zurücklegen, umbuchen"><div class="n"><b>${esc(t.name)}</b>${t.lent > 0 || t.updated ? `<div class="meta">${t.updated ? `<span class="tag" title="zuletzt geändert">${new Date(t.updated).toLocaleDateString(fkLoc(), { weekday: "short", day: "2-digit", month: "2-digit" })}</span>` : ""}${t.lent > 0 ? `<span class="tag lent">${this._m(t.lent)} geliehen</span>` : ""}</div>` : ""}</div><div class="amt click" data-a="potamt" data-id="${esc(t.id)}" title="Antippen = neuen Stand eintippen">${this._m(t.amount)}</div></div>`) + (this._open?.kind === "pot" && this._open.id === t.id ? this._potForm(t) : ""))).join("");
       h += `<div class="sum"><span>Komplett (Verfügbar + Töpfe)</span>${this._mv(s.total, "total")}</div>`;
@@ -1418,7 +1418,7 @@ class FixkostenCard extends HTMLElement {
     // 📂 Alles zuklappbar wie in der Übersicht (beim Öffnen zu, Name + Anzahl im Kopf). ＋ Neu klappt den Abschnitt auf.
     const isOpen = (kind) => this._openSec.has("e:" + kind) || (this._open && (this._open.kind === kind || (kind === "posten" && this._open.kind === "gruppe")));
     const newBtn = (kind, label = "Neu") => `<button class="btn small" data-a="new" data-k="${kind}">${ic("plus")}${label}</button>`;
-    const head = (kind, icon, color, title, n, help = "", btns = newBtn(kind)) => `<div class="ghead click" data-a="sec" data-v="e:${kind}"><span class="gdot" style="--gc:${color}">${ic(icon)}</span><span>${title}</span><span class="n">${n}</span>${btns}<span class="chev">${ic(isOpen(kind) ? "chevron-up" : "chevron-down")}</span></div>${help ? `<p class="small help">${help}</p>` : ""}`;
+    const head = (kind, icon, color, title, n, help = "", btns = newBtn(kind)) => `<div class="ghead click" data-a="sec" data-v="e:${kind}"><span class="gdot" style="--gc:${color}">${ic(icon)}</span><span>${title}</span><span class="n">${n}</span>${btns}<span class="chev">${ic(isOpen(kind) ? "chevron-up" : "chevron-down")}</span></div>`; // ⓘ nur noch in ⚙️ – hier zu aufdringlich (Marco)
     const form = (kind) => (this._open?.kind === kind && this._open.id === "new" ? this._form(d, kind, {}) : "");
     const list = (kind, items, rowText, sortable = true) => (items.length ? `<div class="olist" data-list="${kind}">${items.map((it) => row(kind, it, rowText, sortable)).join("")}</div>` : `<div class="empty">Noch leer.</div>`);
     const resetBtn = (scope, label) => `<div class="btnrow"><button class="btn" data-a="resetpart" data-v="${scope}">${ic("undo-variant")}${label}</button></div>`;

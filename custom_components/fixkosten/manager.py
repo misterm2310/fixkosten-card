@@ -115,6 +115,7 @@ def _empty() -> dict[str, Any]:
         "paid": {},
         "received": {},
         "month_price": {},  # 💶 Preis nur für diesen Monat (Posten-id → Betrag), am Monatsanfang wieder weg
+        "skip": {},  # ⏭️ diesen Monat ausgesetzt (Posten-id → Zeitstempel), am Monatsanfang wieder weg
         "bookings": [],
         "days": {},  # 📈 Kontostand je Tag (JJJJ-MM-TT → Betrag) für die Kontostand-Kurve, die letzten MAX_DAYS Tage
         "history": [],
@@ -201,6 +202,7 @@ class FixkostenManager:
             self.data["paid"] = {}
             self.data["received"] = {}
         self.data["month_price"] = {}  # 💶 Sonderpreise gelten nur einen Monat – danach wieder der gespeicherte Preis
+        self.data["skip"] = {}  # ⏭️ „Diesen Monat aussetzen“ gilt auch nur einen Monat
         self.data["month"] = now_key
         cutoff = (dt_util.utcnow() - timedelta(days=MAX_BOOKINGS_DAYS)).timestamp() * 1000
         self.data["bookings"] = [b for b in self.data["bookings"] if b.get("ts", 0) >= cutoff or not b.get("cleared")]
@@ -234,6 +236,8 @@ class FixkostenManager:
     def _counts_this_month(self, item: dict[str, Any]) -> bool:
         if not item.get("active", True):
             return False
+        if item.get("id") in (self.data.get("skip") or {}):
+            return False  # ⏭️ diesen Monat ausgesetzt – zählt nirgends mit, keine Warnung
         until = item.get("until")  # 💳 Ratenzahlung: nach dem letzten Monat zählt der Posten nicht mehr
         if until and str(self.data["month"]) > str(until):
             return False
@@ -504,6 +508,8 @@ class FixkostenManager:
             if raw is None or str(raw).strip() == "":
                 return f"💶 „{name}“ diesen Monat wieder zum normalen Preis"
             return f"💶 „{name}“ nur diesen Monat: {self._eur(abs(parse_money(raw)))}"
+        if t == "posten_skip":
+            return f"{'⏭️' if op.get('value', True) else '▶️'} „{self._name('posten', op.get('id'))}“ {'diesen Monat ausgesetzt' if op.get('value', True) else 'wird diesen Monat doch abgebucht'}"
         if t == "reset_checks":
             scope = op.get("scope")
             return "↩️ Fixkosten-Haken zurückgesetzt" if scope == "paid" else "↩️ Einnahmen-Haken zurückgesetzt" if scope == "received" else "↩️ Alle Haken zurückgesetzt"
@@ -591,6 +597,7 @@ class FixkostenManager:
             d["paid"].pop(item["id"], None)
             d["received"].pop(item["id"], None)
             d["month_price"].pop(item["id"], None)
+            d["skip"].pop(item["id"], None)
         elif t in ("paid", "received"):
             kind = "posten" if t == "paid" else "einnahme"
             item = self.find(kind, op["id"])
@@ -614,6 +621,16 @@ class FixkostenManager:
                 d["month_price"].pop(item["id"], None)
             else:
                 d["month_price"][item["id"]] = abs(parse_money(raw))
+        elif t == "posten_skip":  # ⏭️ Diesen Monat aussetzen (value False = doch abbuchen)
+            item = self.find("posten", op.get("id"))
+            if item is None:
+                raise HomeAssistantError(f"„{op.get('id')}“ gibt es nicht")
+            if op.get("month") and op["month"] != d["month"]:
+                return  # offline im alten Monat geändert – gilt im neuen Monat nicht mehr
+            if op.get("value", True):
+                d["skip"][item["id"]] = ts
+            else:
+                d["skip"].pop(item["id"], None)
         elif t == "reset_checks":  # ↩️ scope „paid“ = nur Fixkosten, „received“ = nur Einnahmen, ohne = beides
             scope = op.get("scope")
             if scope != "received":
@@ -861,7 +878,7 @@ class FixkostenManager:
         counts = {"ausgaben": 0, "einnahmen": 0, "toepfe": 0, "staende": 0, "konten": 0, "kontostand": 0, "uebersprungen": 0}
         if replace:
             self.data["posten"], self.data["einnahmen"], self.data["toepfe"], self.data["staende"] = [], [], [], []
-            self.data["paid"], self.data["received"], self.data["month_price"] = {}, {}, {}
+            self.data["paid"], self.data["received"], self.data["month_price"], self.data["skip"] = {}, {}, {}, {}
         ts = int(dt_util.utcnow().timestamp() * 1000)
         kinds = {"ausgabe": "posten", "ausgaben": "posten", "posten": "posten", "fix": "posten",
                  "einnahme": "einnahme", "einnahmen": "einnahme", "topf": "topf", "toepfe": "topf", "töpfe": "topf", "iban": "konto", "bankkonto": "konto",

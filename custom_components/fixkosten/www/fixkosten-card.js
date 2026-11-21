@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.3-beta.5";
+const FK_VERSION = "1.0.3-beta.6";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -25,7 +25,7 @@ const FK_GUIDE = [
   { icon: "credit-card-outline", color: "#ff9800", title: "Ausgaben", text: `Etwas bezahlt (Karte, PayPal, bar …), das noch nicht vom Konto abgebucht ist? Schnellknopf antippen (z. B. „Bäckerei“) oder selbst etwas eintippen, Betrag rein, <b>＋</b>. Der Betrag ist <b>sofort</b> von „Verfügbar“ abgezogen.<br>Taucht er auf dem Konto auf: den <b>Kreis vorne</b> antippen (wie bei den Fixkosten) (lange drücken zeigt, was ein Knopf macht). Dann steckt er im Kontostand und fliegt aus der Rechnung. Vertippt? <b>Eintrag antippen</b> = Name und Betrag ändern. Die Schnellknöpfe stellst du in ⚙️ → „Schnellknöpfe“ ein – wie die Kategorien der Einkaufsliste: ＋ Neu, ⠿ ziehen = Reihenfolge, antippen = Name, Farbe und Symbol ändern. Jeder bekommt von selbst eine <b>eigene, feste Farbe</b> (bleibt gleich, auch wenn du die Reihenfolge änderst) – dort kannst du sie auch selbst wählen. Ausgaben, die genauso heißen oder so anfangen (z. B. „PayPal - Claude“), tragen unten die gleiche Farbe. Orange = passt zu keinem Knopf.` },
   { icon: "calculator-variant-outline", color: "#7b1fa2", title: "Taschenrechner", text: `Oben auf 🧮 tippen. Rechnet mit + − × ÷ und %. <b>V</b> setzt „Verfügbar“ ein. Am PC geht auch die <b>Tastatur</b>: Ziffern, + − * /, Komma oder Punkt, Enter = Ergebnis, ⌫ löscht, Esc = C.<br>Das Ergebnis übernimmst du mit einem Tipp als <b>Ausgabe</b>, als <b>Kontostand</b> oder kopierst es.` },
   { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe, offene Stände, Konten", text: `<b>🐷 Töpfe:</b> Was wo liegt (Sparkonto, Bargeld zu Hause, PayPal …). Antippen = <b>➖ Rausnehmen</b> oder <b>➕ Zurücklegen</b>. Darunter: <b>Stand korrigieren</b> mit grünem Haken ✓ (z. B. nach dem Nachzählen; leeres Feld = 0). Unter jedem Topf steht, <b>wann</b> er zuletzt geändert wurde. Auf den Namen tippen klappt wieder zu. Was du rausnimmst, steht in Orange als „geliehen“ dabei, bis du es zurücklegst (auch in Teilbeträgen). Kommt es nicht mehr zurück: Topf öffnen und den <b>orangen Zettel antippen</b> → weg. „Komplett“ = Verfügbar + alle Töpfe (also schon ohne offene Fixkosten und Ausgaben).<br><b>🧾 Offene Stände:</b> Was du noch begleichen musst – oder mit <b>„Ich bekomme“</b> (grün) Geld, das dir jemand schuldet (z. B. Kumpel, Rückerstattung). Die Liste ist zugeklappt, oben stehen beide Summen (rot und grün) – Tipp auf die Überschrift klappt sie auf. <b>Neu eintragen</b> wie bei den Ausgaben: oben „Ich muss zahlen“ oder „Ich bekomme“ wählen, Name und Betrag rein, <b>＋</b>. Das neueste Datum steht oben. Unter dem Namen stehen Datum, „ich bekomme“ / „ich muss zahlen“ und die Notiz. <b>Eintrag antippen</b> = Name, Betrag, Datum, Richtung und Notiz ändern (wie bei den Ausgaben). Erledigt oder bekommen? Grünen Haken ✓ antippen. Mit dem Schalter in ⚙️ → „Rechnen &amp; Warnung“ rechnet „Verfügbar“ sie mit: rote gehen ab, grüne kommen dazu. Ohne Schalter sind sie nur Erinnerung.<br><b>🏦 Meine Konten:</b> Deine IBANs. 📋 kopiert sie für Überweisungen.<br><b>💵 Einnahmen</b> sind nur Info und ändern „Verfügbar“ nicht. Mit dem Kreis hakst du ab, ob sie schon auf dem Konto gebucht sind (geht am Monatsanfang wieder auf).` },
-  { icon: "alert-outline", color: "#fb8c00", title: "Abbuchung fehlt, umbuchen, Kurve", text: `<b>⚠️ Nach 5 Tagen noch offen?</b> Hat ein Posten einen <b>festen Tag</b> und ist <b>5 Tage</b> danach noch nicht abgehakt – oder steht eine <b>Ausgabe</b> seit 5 Tagen bei „noch nicht abgebucht“ –, bekommt die Zeile einen <b>roten Rahmen</b> und oben erscheint ein rot umrandeter Hinweis (antippen zeigt die Zeilen). Entweder vergessen zu haken – oder die Bank hat nicht abgebucht. Abschaltbar in ⚙️ → „Rechnen & Warnung“ → „Nach 5 Tagen noch offen? Warnen“.<br><b>🔀 Umbuchen:</b> Topf antippen → <b>„Umbuchen nach“</b> → Topf wählen, Betrag rein, ⇄. Das Geld wandert von Topf zu Topf, Konto und „Verfügbar“ bleiben gleich.<br><b>📈 Dein Konto im Monat:</b> Ganz oben im Reiter 📊 Statistik siehst du den Kontostand Tag für Tag: durchgezogen = so war's, gestrichelt = was noch kommt (offene Fixkosten an ihrem Tag). Der Punkt zeigt den engsten Tag.` },
+  { icon: "alert-outline", color: "#fb8c00", title: "Abbuchung fehlt, umbuchen, Kurve", text: `<b>⚠️ Nach 5 Tagen noch offen?</b> Hat ein Posten einen <b>festen Tag</b> und ist <b>5 Tage</b> danach noch nicht abgehakt – oder steht eine <b>Ausgabe</b> seit 5 Tagen bei „noch nicht abgebucht“ –, bekommt die Zeile einen <b>roten Rahmen</b> und oben erscheint ein rot umrandeter Hinweis (antippen zeigt die Zeilen). Entweder vergessen zu haken – oder die Bank hat nicht abgebucht. Abschaltbar in ⚙️ → „Rechnen & Warnung“ → „Nach 5 Tagen noch offen? Warnen“.<br><b>⏭️ Wird diesen Monat gar nicht abgebucht?</b> Hinten auf den Betrag tippen → <b>„Diesen Monat aussetzen“</b>. Dann zählt der Posten diesen Monat nicht mit und es gibt keine Warnung. Nächsten Monat ist er von selbst wieder da.<br><b>🔀 Umbuchen:</b> Topf antippen → <b>„Umbuchen nach“</b> → Topf wählen, Betrag rein, ⇄. Das Geld wandert von Topf zu Topf, Konto und „Verfügbar“ bleiben gleich.<br><b>📈 Dein Konto im Monat:</b> Ganz oben im Reiter 📊 Statistik siehst du den Kontostand Tag für Tag: durchgezogen = so war's, gestrichelt = was noch kommt (offene Fixkosten an ihrem Tag). Der Punkt zeigt den engsten Tag.` },
   { icon: "piggy-bank-outline", color: "#e91e63", title: "Töpfe direkt ändern, aufs Konto umbuchen, Bearbeiten", text: `<b>🐷 Topf-Zahl direkt ändern:</b> In der Übersicht bei einem Topf auf die <b>Zahl</b> tippen – sie wird zum Eingabefeld, neue Zahl rein, ✓ oder Enter. Daneben tippen = abbrechen.<br><b>🏦 Aufs Konto umbuchen:</b> Topf-Namen antippen → „Umbuchen nach“ → <b>🏦 Konto</b>. Der Topf wird kleiner, der Kontostand und „Verfügbar“ steigen – endgültig (anders als ➖, das ist „geliehen“ mit oranger Erinnerung).<br><b>📂 Bearbeiten aufgeräumt:</b> Alle Abschnitte sind zugeklappt, Antippen klappt auf. Die <b>Gruppen</b> stehen jetzt bei den Fixkosten (＋ Gruppe). <b>↩️ Haken zurücksetzen</b> gibt es dort je bei Fixkosten und bei Einnahmen (nicht mehr in ⚙️).` },
   { icon: "pencil-outline", color: "#00897b", title: "Bearbeiten", text: `Unter <b>„Bearbeiten“</b> legst du alles an (＋ Neu) oder tippst einen Eintrag zum Ändern an. Posten können auf <b>bestimmte Monate</b> beschränkt werden (z. B. Kfz-Steuer nur im März) oder <b>pausiert</b> werden. Neue Gruppen bekommen einen Starttag (1–28).<br><b>Reihenfolge ändern:</b> am Griff ⠿ vorne ziehen. Fixkosten kannst du so auch in eine andere Gruppe schieben. Das klappt auch bei Gruppen, Töpfen, Einnahmen, offenen Ständen und Konten.` },
   { icon: "chart-bar", color: "#5e35b1", title: "Rückblick", text: `Am Monatsende merkt sich die Karte den Monat von selbst: Fixkosten, Ausgaben, Einnahmen und was am Ende übrig war (bis zu 3 Jahre). Du findest ihn im Reiter <b>📊 Statistik</b> (und in ⚙️ → Daten → Rückblick). Dort stehen auch Durchschnitt, bester und schlechtester Monat, Vergleich zum Vormonat und Vorjahr, die Jahressumme und wie viel Prozent deines Einkommens für Fixkosten weggehen.` },
@@ -41,6 +41,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.3-beta.6", "⏭️ <b>Diesen Monat aussetzen:</b> Wird ein Posten diesen Monat nicht abgebucht? Hinten auf den Betrag tippen → <b>„Diesen Monat aussetzen“</b>. Er zählt dann nirgends mit, auch keine „Abbuchung fehlt?“-Warnung. Nächsten Monat ist er von selbst wieder da. Versehen? Gleiche Stelle → „Doch abbuchen“."],
   ["1.0.3-beta.5", "🧹 <b>Weniger ⓘ:</b> In der Übersicht und unter „Bearbeiten“ sind die ⓘ wieder weg – zu aufdringlich. Erklärungen gibt's nur noch in ⚙️ Einstellungen (und in der Statistik)."],
   ["1.0.3-beta.4", "🐷 <b>Topf-Zahl direkt ändern:</b> In der Übersicht auf die Zahl eines Topfs tippen – sie wird gleich zum Eingabefeld (keine extra Seite), ✓ oder Enter speichert, daneben tippen bricht ab. · 🏦 <b>Umbuchen aufs Konto:</b> bei „Umbuchen nach“ steht jetzt auch das Konto – Topf kleiner, Kontostand und „Verfügbar“ größer. · 📂 <b>„Bearbeiten“ zum Zuklappen</b> wie die Übersicht (beim Öffnen alles zu, ＋ Neu klappt auf). · 🗂️ <b>Gruppen stehen bei den Fixkosten</b> (＋ Gruppe), der eigene Abschnitt unten ist weg. · ↩️ <b>Haken zurücksetzen</b> jetzt unter „Bearbeiten“ – je ein Knopf für Fixkosten und für Einnahmen; der Knopf in ⚙️ ist raus (der Schalter für den Monatsanfang bleibt). · ⓘ an allen neuen Sachen."],
   ["1.0.3-beta.3", "⚠️ <b>Nach 5 Tagen noch offen? Warnen</b> – jetzt auch für <b>Ausgaben</b>: Steht eine Ausgabe seit 5 Tagen bei „noch nicht abgebucht“, steht sie oben im Hinweis und bekommt „⚠️ seit X Tagen offen“. · 🟥 <b>Roter Rahmen</b> beim Hinweis oben und bei allen betroffenen Zeilen (Fixkosten und Ausgaben). · Der Schalter in ⚙️ → Rechnen & Warnung heißt jetzt <b>„Nach 5 Tagen noch offen? Warnen“</b> und gilt für beides."],
@@ -469,6 +470,7 @@ function fkCopy(text, inp) {
 const ratesLeft = (d, it) => { if (!it.until) return null; const [y, m] = String(d.month || monthKey()).split("-").map(Number), [uy, um] = it.until.split("-").map(Number); return (uy - y) * 12 + (um - m) + 1; };
 function countsThisMonth(d, it) {
   if (it.active === false) return false;
+  if (d.skip?.[it.id]) return false; // ⏭️ diesen Monat ausgesetzt – zählt nirgends mit, keine Warnung
   if (it.until && ratesLeft(d, it) < 1) return false;
   const m = it.months || [];
   return !m.length || m.includes(Number(String(d.month || monthKey()).slice(5, 7)));
@@ -538,6 +540,11 @@ function applyLocal(d, op) {
   } else if (KIND[kind] && verb === "delete") {
     d[KIND[kind]] = d[KIND[kind]].filter((x) => x.id !== op.id);
     if (d.month_price) delete d.month_price[op.id];
+    if (d.skip) delete d.skip[op.id];
+  } else if (t === "posten_skip") { // ⏭️ Diesen Monat aussetzen (value false = doch abbuchen)
+    if (op.month && op.month !== d.month) return;
+    d.skip = d.skip || {};
+    if (op.value === false) delete d.skip[op.id]; else d.skip[op.id] = op.ts || Date.now();
   } else if (t === "posten_month") { // 💶 Preis nur für diesen Monat
     if (op.month && op.month !== d.month) return;
     d.month_price = d.month_price || {};
@@ -1316,7 +1323,7 @@ class FixkostenCard extends HTMLElement {
 
     // 📋 Fixkosten nach Gruppen
     // ⏸️ Pausierte stehen mit drin, gelten aber als abgehakt (zählen nicht mit)
-    const shown = (p) => p.active === false || countsThisMonth(d, p);
+    const shown = (p) => p.active === false || !!d.skip?.[p.id] || countsThisMonth(d, p); // ⏭️ ausgesetzte auch
     if (show("fixkosten")) {
     for (const g of s.groups) {
       const items = d.posten.filter((p) => p.group === g.id && shown(p));
@@ -1394,18 +1401,19 @@ class FixkostenCard extends HTMLElement {
       <div class="btnrow end"><button type="button" class="btn" data-a="bdel" data-id="${esc(b.id)}">${ic("delete-outline")}Löschen</button><button type="button" class="btn" data-a="cancel">${ic("close")}Abbrechen</button><button class="btn main" type="submit">${ic("check")}Speichern</button></div></form>`;
   }
   _postenRow(d, p) {
-    const paused = p.active === false;
-    const on = paused || !!d.paid[p.id]?.paid;
+    const paused = p.active === false, skipped = !paused && !!d.skip?.[p.id]; // ⏭️ diesen Monat ausgesetzt
+    const on = paused || skipped || !!d.paid[p.id]?.paid;
     const special = d.month_price?.[p.id], mon = this._monthName(d.month).split(" ")[0];
     const mpOpen = this._open?.kind === "mprice" && this._open.id === p.id;
     const late = !on && (d.summary?.late || []).some((x) => x.id === p.id); // ⚠️ Abbuchung fehlt?
     const mpForm = () => { // 💶 Preis nur für diesen Monat – klappt UNTER der Zeile auf, die Zeile bleibt stehen (wie in der Einkaufsliste)
       return `<form class="edit potbox" data-a="mpsave" data-id="${esc(p.id)}" style="--cc:${gcol(d, p.group)}"><div class="pothead" data-a="cancel" title="Zuklappen">Normal ${this._m(p.amount)}</div>
         <div class="potrow set${special != null ? " mp3" : ""}"><span class="potlbl">Nur im ${esc(mon)}</span><input name="amount" class="amount" inputmode="decimal" autocomplete="off" aria-label="Preis nur diesen Monat" value="${numDe(pamt(d, p))}"><button class="iconbtn potbtn okbtn" type="submit" title="Preis nur für diesen Monat speichern" aria-label="speichern">${ic("check-bold")}${this._lb("speichern")}</button>${special != null ? `<button type="button" class="iconbtn potbtn" data-a="mpreset" data-id="${esc(p.id)}" title="Wieder normaler Preis" aria-label="normaler Preis">${ic("restore")}${this._lb("normal")}</button>` : ""}<button type="button" class="iconbtn potbtn" data-a="cancel" title="Abbrechen" aria-label="Abbrechen">${ic("close")}${this._lb("abbrechen")}</button></div>
-        <p class="small">Gilt nur diesen Monat. Nächsten Monat ist wieder ${this._m(p.amount)} da.</p></form>`;
+        <p class="small">Gilt nur diesen Monat. Nächsten Monat ist wieder ${this._m(p.amount)} da.</p>
+        <div class="btnrow">${skipped ? `<button type="button" class="btn" data-a="skip" data-id="${esc(p.id)}" data-v="0">${ic("restore")}Doch abbuchen</button>` : `<button type="button" class="btn" data-a="skip" data-id="${esc(p.id)}" data-v="1">${ic("skip-next")}Diesen Monat aussetzen</button>`}</div></form>`;
     };
-    return `<div class="item ${on ? "done" : ""} ${mpOpen ? "opened" : ""} ${paused ? "paused" : ""} ${late ? "late" : ""}" style="--cc:${late ? "#fb8c00" : gcol(d, p.group)}">${paused ? `<span class="chk on" title="pausiert – zählt nicht mit">${ic("pause")}</span>` : `<button class="chk ${on ? "on" : ""}" data-a="paid" data-id="${esc(p.id)}" aria-label="abhaken">${on ? ic("check") : ""}</button>`}
-      <div class="n"><b>${esc(p.name)}</b><div class="meta">${paused ? `<span class="tag">⏸️ pausiert</span>` : ""}${p.day ? `<span class="tag">am ${p.day}.</span>` : ""}${late ? `<span class="tag late" title="Seit dem ${p.day}. fällig und noch kein Haken: vergessen zu haken – oder hat die Bank nicht abgebucht?">⚠️ Abbuchung fehlt?</span>` : ""}${p.until ? `<span class="tag" title="Ratenzahlung bis ${esc(fkUntil(p.until))}">${this._rates(d, p)}</span>` : ""}<span class="tag">${esc((PAY[p.pay] || PAY.keine)[0])}</span>${!paused && on && d.paid[p.id]?.ts ? `<span class="tag" title="abgehakt am">✓ ${fkDay(d.paid[p.id].ts)}</span>` : ""}${special != null ? `<span class="tag mp" title="normal ${esc(money(p.amount))}">✏️ nur ${esc(mon)}</span>` : ""}${p.note ? `<span class="tag">${esc(p.note)}</span>` : ""}</div></div>
+    return `<div class="item ${on ? "done" : ""} ${mpOpen ? "opened" : ""} ${paused ? "paused" : ""} ${late ? "late" : ""}" style="--cc:${late ? "#fb8c00" : gcol(d, p.group)}">${paused ? `<span class="chk on" title="pausiert – zählt nicht mit">${ic("pause")}</span>` : skipped ? `<span class="chk on" title="diesen Monat ausgesetzt – zählt nicht mit">${ic("skip-next")}</span>` : `<button class="chk ${on ? "on" : ""}" data-a="paid" data-id="${esc(p.id)}" aria-label="abhaken">${on ? ic("check") : ""}</button>`}
+      <div class="n"><b>${esc(p.name)}</b><div class="meta">${paused ? `<span class="tag">⏸️ pausiert</span>` : ""}${skipped ? `<span class="tag" title="Nächsten Monat wird wieder normal abgebucht">⏭️ im ${esc(mon)} ausgesetzt</span>` : ""}${p.day ? `<span class="tag">am ${p.day}.</span>` : ""}${late ? `<span class="tag late" title="Seit dem ${p.day}. fällig und noch kein Haken: vergessen zu haken – oder hat die Bank nicht abgebucht?">⚠️ Abbuchung fehlt?</span>` : ""}${p.until ? `<span class="tag" title="Ratenzahlung bis ${esc(fkUntil(p.until))}">${this._rates(d, p)}</span>` : ""}<span class="tag">${esc((PAY[p.pay] || PAY.keine)[0])}</span>${!paused && on && d.paid[p.id]?.ts ? `<span class="tag" title="abgehakt am">✓ ${fkDay(d.paid[p.id].ts)}</span>` : ""}${special != null ? `<span class="tag mp" title="normal ${esc(money(p.amount))}">✏️ nur ${esc(mon)}</span>` : ""}${p.note ? `<span class="tag">${esc(p.note)}</span>` : ""}</div></div>
       <div class="amt ${paused ? "" : "click"}" ${paused ? "" : `data-a="mprice" data-id="${esc(p.id)}" title="Antippen = Preis nur für diesen Monat ändern"`}>${this._m(-pamt(d, p), "neg")}</div></div>${mpOpen ? mpForm() : ""}`;
   }
   // 💳 „noch 3 Raten“ / „letzte Rate“ / „abbezahlt 🎉“
@@ -2106,6 +2114,11 @@ class FixkostenCard extends HTMLElement {
     else if (a === "mprice" && this._open?.kind === "mprice" && this._open.id === id) { this._open = null; redraw(); } // nochmal antippen = zuklappen
     else if (a === "mprice") { this._open = { kind: "mprice", id }; redraw(); setTimeout(() => { const i = this.shadowRoot.querySelector('form[data-a="mpsave"] input'); i?.focus(); i?.select?.(); }, 30); }
     else if (a === "mpreset") { this._open = null; this._force = true; this._send({ type: "posten_month", id, amount: "", month: d.month }); this._toast("↺ Wieder der normale Preis"); }
+    else if (a === "skip") { // ⏭️ Diesen Monat aussetzen / doch abbuchen
+      const on = el.dataset.v === "1";
+      this._open = null; this._force = true; this._send({ type: "posten_skip", id, value: on, month: d.month });
+      this._toast(on ? "⏭️ Diesen Monat ausgesetzt – nächsten Monat wieder normal" : "▶️ Wird diesen Monat doch abgebucht");
+    }
     else if (a === "paid") this._send({ type: "paid", id, value: !d.paid[id]?.paid, month: d.month });
     else if (a === "quick") { this._quickName = this._quickName === el.dataset.v ? null : el.dataset.v; redraw(); setTimeout(() => this.shadowRoot.querySelector('input[name="amount"]')?.focus(), 30); }
     else if (a === "settle") this._removeWithUndo("stand", id, { type: "stand_delete", id }, d.staende.find((x) => x.id === id)?.dir === "get" ? "✓ Bekommen" : "✓ Beglichen");

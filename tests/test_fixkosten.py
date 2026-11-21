@@ -622,3 +622,37 @@ async def test_umbuchen_aufs_konto_und_haken_getrennt(hass, setup):
     assert not m.data["paid"] and m.data["received"]["e"]["paid"]
     m.apply([{"type": "paid", "id": "p", "value": True}, {"type": "reset_checks", "scope": "received"}])
     assert m.data["paid"]["p"]["paid"] and not m.data["received"]
+
+
+async def test_diesen_monat_aussetzen(hass, setup, freezer):
+    """⏭️ 1.0.3-beta.6: Posten diesen Monat aussetzen = zählt nicht, keine Warnung, nächsten Monat wieder da."""
+    m = mgr(hass)
+    m.apply([
+        {"type": "posten_save", "item": {"id": "a", "name": "Strom", "amount": 65, "day": 5}},
+        {"type": "posten_save", "item": {"id": "b", "name": "Miete", "amount": 800}},
+    ])
+    assert [x["name"] for x in m.summary()["late"]] == ["Strom"]
+    before = m.summary()
+    res = m.apply([{"type": "posten_skip", "id": "a", "value": True, "month": m.data["month"]}])
+    assert res[0]["ok"]
+    s = m.summary()
+    assert s["late"] == []  # ⚠️ keine Warnung mehr
+    assert s["fix_total"] == round(before["fix_total"] - 65, 2)
+    assert s["fix_open"] == round(before["fix_open"] - 65, 2)
+    assert "ausgesetzt" in m.data["log"][-1]["text"]
+    # Offline im alten Monat → zählt nicht
+    m.apply([{"type": "posten_skip", "id": "a", "value": False, "month": "2026-10"}])
+    assert "a" in m.data["skip"]
+    # Doch abbuchen
+    m.apply([{"type": "posten_skip", "id": "a", "value": False}])
+    assert m.data["skip"] == {} and m.summary()["fix_total"] == before["fix_total"]
+    # Neuer Monat → wieder normal
+    m.apply([{"type": "posten_skip", "id": "a", "value": True}])
+    freezer.move_to(datetime(2026, 12, 1, 0, 0, 10, tzinfo=dt_util.get_time_zone(TZ)))
+    m._on_midnight(dt_util.now())
+    assert m.data["skip"] == {}
+    assert m.data["history"][-1]["fix_total"] == 800  # im Rückblick nicht mitgezählt
+    assert m.summary()["fix_total"] == 865
+    # Löschen räumt mit auf
+    m.apply([{"type": "posten_skip", "id": "b", "value": True}, {"type": "posten_delete", "id": "b"}])
+    assert m.data["skip"] == {}

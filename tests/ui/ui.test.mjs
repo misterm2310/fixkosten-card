@@ -66,6 +66,19 @@ await p.waitForTimeout(60);
 await sr(`h.querySelector('[data-a="mpreset"][data-id="p4"]').click();`);
 await p.waitForTimeout(100);
 check("↺ zurück auf normal", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_month" && o.id === "p4" && o.amount === "")) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail));
+// ⏭️ 1.0.3-beta.6: Diesen Monat aussetzen
+await sr(`h.querySelector('.amt[data-a="mprice"][data-id="p4"]').click();`);
+await p.waitForTimeout(60);
+await sr(`h.querySelector('[data-a="skip"][data-id="p4"][data-v="1"]').click();`);
+await p.waitForTimeout(100);
+check("⏭️ Aussetzen geschickt, zählt nicht mehr", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_skip" && o.id === "p4" && o.value === true && o.month)) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail + 50), await sr(`return h.querySelector('.big').textContent.trim();`));
+check("⏭️ Zeile bleibt sichtbar, abgehakt-grau mit „ausgesetzt“", await sr(`const r = h.querySelector('.amt[data-id="p4"]').closest('.item'); return r.classList.contains('done') && /ausgesetzt/.test(r.querySelector('.meta').textContent) && !h.querySelector('[data-a="paid"][data-id="p4"]');`), await sr(`return h.querySelector('.amt[data-id="p4"]').closest('.item').textContent;`));
+await sr(`h.querySelector('.amt[data-a="mprice"][data-id="p4"]').click();`);
+await p.waitForTimeout(60);
+await shot("16-diesen-monat-aussetzen.png");
+await sr(`h.querySelector('[data-a="skip"][data-id="p4"][data-v="0"]').click();`);
+await p.waitForTimeout(100);
+check("▶️ Doch abbuchen: wieder normal", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_skip" && o.id === "p4" && o.value === false)) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail) && !!(await sr(`return !!h.querySelector('[data-a="paid"][data-id="p4"]');`)));
 check("Schnellknöpfe haben verschiedene Farben", await sr(`const c = [...h.querySelectorAll('.quick .chip')].map((x) => getComputedStyle(x).borderTopColor); return c.length >= 3 && new Set(c).size === c.length;`));
 // 🎨 beta.3: Farbe hängt am Namen – umsortieren ändert nichts; eigene Farbe gewinnt
 const colBefore = await sr(`return h.querySelector('.quick .chip[data-v="Amazon"]').style.getPropertyValue('--qc');`);

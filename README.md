@@ -32,7 +32,7 @@ Ein Klick öffnet es direkt in deinem Home Assistant: [![In HACS öffnen](https:
 | | |
 | --- | --- |
 | 💰 **Verfügbar** | Kontostand − offene Fixkosten − Ausgaben, die noch nicht abgebucht sind = was du wirklich ausgeben kannst. Grün im Plus, rot im Minus |
-| 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“, standardmäßig zugeklappt (Summe und „2 / 4“ stehen im Kopf). Freiwillig ein **fester Tag** (z. B. am 5.) – er steht am Posten. ⚠️ **Abbuchung fehlt?** Ist der Posten 5 Tage nach seinem Tag noch nicht abgehakt, bekommt er einen **roten Rahmen** und oben steht ein rot umrandeter Hinweis (antippen klappt die Gruppe auf) – vergessen zu haken oder hat die Bank nicht abgebucht? Schalter: ⚙️ → Rechnen & Warnung → „Nach 5 Tagen noch offen? Warnen“. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder **pausiert** (steht grau und abgehakt drin, zählt nicht mit) |
+| 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“, standardmäßig zugeklappt (Summe und „2 / 4“ stehen im Kopf). Freiwillig ein **fester Tag** (z. B. am 5.) – er steht am Posten. ⚠️ **Abbuchung fehlt?** Ist der Posten 5 Tage nach seinem Tag noch nicht abgehakt, bekommt er einen **roten Rahmen** und oben steht ein rot umrandeter Hinweis (antippen klappt die Gruppe auf) – vergessen zu haken oder hat die Bank nicht abgebucht? Schalter: ⚙️ → Rechnen & Warnung → „Nach 5 Tagen noch offen? Warnen“. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder **pausiert** (steht grau und abgehakt drin, zählt nicht mit). Nur **diesen Monat** nicht? Betrag antippen → ⏭️ „Diesen Monat aussetzen“ |
 | ⠿ **Verschieben** | Gruppen, Posten, Töpfe, Einnahmen und Konten am Griff ⠿ ziehen. Posten auch in eine andere Gruppe |
 | 📂 **Bearbeiten** | Alle Abschnitte zum Zuklappen (beim Öffnen zu, ＋ Neu klappt auf). Die **Gruppen** stehen bei den Fixkosten (＋ Gruppe). **↩️ Haken zurücksetzen** je bei Fixkosten und bei Einnahmen |
 | ↩️ **Rückgängig** | Nach Löschen, „beglichen“ oder „abgebucht“ steht 8 Sekunden lang „Rückgängig“ unten in der Karte |
@@ -91,6 +91,7 @@ Den Ordner `custom_components/fixkosten` nach `/config/custom_components/fixkost
 1. **Kontostand eintragen:** Kachel „Konto“ antippen, Stand aus der Bank-App eingeben.
 2. **Abhaken:** Gruppe aufklappen (Tipp auf die Überschrift). Ist ein Posten abgebucht, den Kreis antippen ✅. Am Monatsanfang gehen die Haken von selbst wieder auf (Schalter in ⚙️).
    **Preis nur diesen Monat anders?** Hinten auf den Betrag tippen – nächsten Monat gilt wieder der gespeicherte Preis.
+   **Wird diesen Monat gar nicht abgebucht?** Gleiche Stelle → **„Diesen Monat aussetzen“** ⏭️. Zählt dann nicht mit, keine Warnung, nächsten Monat ist er wieder da.
 3. **Etwas bezahlt (Karte, PayPal, bar …)?** Schnellknopf (z. B. „Bäckerei“), Betrag, **＋**. Sofort abgezogen. Später den grünen Haken ✓ tippen.
 4. **Rechnen:** Oben auf 🧮. Ergebnis per Tipp als Ausgabe, Kontostand oder kopieren.
 5. **Anlegen und ändern:** Reiter **„Bearbeiten“** → ＋ Neu oder Eintrag antippen. Reihenfolge am Griff ⠿ vorne. Ausgabe antippen = Name und Betrag ändern.

@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.3-beta.6";
+const FK_VERSION = "1.0.3";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -41,6 +41,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.3", "🎉 <b>Offizielle Version 1.0.3:</b> Alles aus 6 Betas ist jetzt fest drin – danke fürs Testen! · ⏭️ <b>Diesen Monat aussetzen:</b> Betrag antippen → Posten zählt diesen Monat nirgends mit, nächsten Monat von selbst wieder da · ⚠️ <b>Nach 5 Tagen noch offen? Warnen</b> – für Fixkosten mit festem Tag und für Ausgaben, mit rotem Rahmen und Hinweis oben (abschaltbar in ⚙️) · 🔀 <b>Umbuchen</b> von Topf zu Topf oder aufs Konto · 🐷 Topf-Zahl antippen = direkt in der Zeile ändern · 📈 <b>Dein Konto im Monat:</b> Kontostand-Kurve Tag für Tag in der Statistik · 📂 „Bearbeiten“ zum Zuklappen, Gruppen bei den Fixkosten, ↩️ Haken zurücksetzen getrennt für Fixkosten und Einnahmen · 🧹 Weniger ⓘ (Erklärungen in ⚙️) · 🔄 Offline-App schickt den Postausgang im Hintergrund nach"],
   ["1.0.3-beta.6", "⏭️ <b>Diesen Monat aussetzen:</b> Wird ein Posten diesen Monat nicht abgebucht? Hinten auf den Betrag tippen → <b>„Diesen Monat aussetzen“</b>. Er zählt dann nirgends mit, auch keine „Abbuchung fehlt?“-Warnung. Nächsten Monat ist er von selbst wieder da. Versehen? Gleiche Stelle → „Doch abbuchen“."],
   ["1.0.3-beta.5", "🧹 <b>Weniger ⓘ:</b> In der Übersicht und unter „Bearbeiten“ sind die ⓘ wieder weg – zu aufdringlich. Erklärungen gibt's nur noch in ⚙️ Einstellungen (und in der Statistik)."],
   ["1.0.3-beta.4", "🐷 <b>Topf-Zahl direkt ändern:</b> In der Übersicht auf die Zahl eines Topfs tippen – sie wird gleich zum Eingabefeld (keine extra Seite), ✓ oder Enter speichert, daneben tippen bricht ab. · 🏦 <b>Umbuchen aufs Konto:</b> bei „Umbuchen nach“ steht jetzt auch das Konto – Topf kleiner, Kontostand und „Verfügbar“ größer. · 📂 <b>„Bearbeiten“ zum Zuklappen</b> wie die Übersicht (beim Öffnen alles zu, ＋ Neu klappt auf). · 🗂️ <b>Gruppen stehen bei den Fixkosten</b> (＋ Gruppe), der eigene Abschnitt unten ist weg. · ↩️ <b>Haken zurücksetzen</b> jetzt unter „Bearbeiten“ – je ein Knopf für Fixkosten und für Einnahmen; der Knopf in ⚙️ ist raus (der Schalter für den Monatsanfang bleibt). · ⓘ an allen neuen Sachen."],

@@ -38,6 +38,8 @@ def _open_attrs(s: dict[str, Any], d: dict[str, Any]) -> dict[str, Any]:
     paid = d["paid"]
     open_items = [p["name"] for p in d["posten"] if p.get("active", True) and not paid.get(p["id"], {}).get("paid")]
     return {"anzahl": len(open_items), "posten": open_items,
+            "abbuchung_fehlt": [x["name"] for x in s.get("late") or []],  # ⚠️ 5 Tage nach dem festen Tag noch kein Haken
+            "ausgaben_seit_5_tagen_offen": [x["name"] for x in s.get("late_bookings") or []],  # ⚠️ Ausgaben, 5 Tage nicht abgebucht
             "gruppen": {g["name"]: {"offen": g["open"], "faellig": g["due"]} for g in s["groups"]}}
 
 

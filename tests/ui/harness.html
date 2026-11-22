@@ -33,6 +33,7 @@ window.fake = {
     staende: [{ id: "s1", name: "Kumpel Tim", amount: 40, note: "Pizza" }],
     konten: [{ id: "k1", name: "Girokonto", iban: "DE00 1234 5678 9012 3456 78", note: "Beispiel" }],
     konto: { balance: 1500, updated: Date.now() - 86400000 },
+    days: Object.fromEntries([1, 3, 8, 12].filter((n) => n < now.getDate()).map((n, i) => [`${mk}-${String(n).padStart(2, "0")}`, [2900, 2050, 1800, 1650][i]])),
     paid: { p1: { paid: true, ts: Date.now() - 2 * 86400000 }, p2: { paid: true, ts: Date.now() - 86400000 } },
     bookings: [{ id: "b1", name: "Supermarkt", amount: 23.4, ts: Date.now() - 3600000, month: mk, cleared: false }],
     history: [
@@ -66,12 +67,14 @@ const hass = () => ({
         if (o.type === "log_clear") fake.data.log = [];
         else fake.data.log.push({ ts: o.ts || Date.now(), by: "Test", text: "✏️ " + o.type });
         if (o.type === "booking_add") fake.data.bookings.push({ id: o.op_id, name: o.name, amount: o.amount, ts: o.ts, month: mk, cleared: false });
+        if (o.type === "topf_move") { const a = fake.data.toepfe.find((x) => x.id === o.id), z = fake.data.toepfe.find((x) => x.id === o.to); a.amount -= o.amount; if (o.to === "konto") fake.data.konto.balance += o.amount; else z.amount += o.amount; }
         if (o.type === "paid") fake.data.paid[o.id] = { paid: o.value, ts: o.ts };
         if (o.type === "received") { fake.data.received = fake.data.received || {}; fake.data.received[o.id] = { paid: o.value, ts: o.ts }; }
         if (o.type === "booking_edit") { const b = fake.data.bookings.find((x) => x.id === o.id); if (b) Object.assign(b, { name: o.name, amount: o.amount }); }
         if (o.type === "topf_keep") { const t = fake.data.toepfe.find((x) => x.id === o.id); t.lent = 0; }
         if (o.type === "topf_take" || o.type === "topf_return") { const t = fake.data.toepfe.find((x) => x.id === o.id); const v = o.type === "topf_take" ? o.amount : -o.amount; t.amount -= v; t.lent = Math.max(0, (t.lent || 0) + v); t.updated = Date.now(); }
         if (o.type === "posten_month") { fake.data.month_price = fake.data.month_price || {}; if (o.amount === "") delete fake.data.month_price[o.id]; else fake.data.month_price[o.id] = o.amount; }
+        if (o.type === "posten_skip") { fake.data.skip = fake.data.skip || {}; if (o.value === false) delete fake.data.skip[o.id]; else fake.data.skip[o.id] = Date.now(); }
         if (o.type === "topf_save") { const t = fake.data.toepfe.find((x) => x.id === o.item.id); if (t) { t.amount = o.item.amount; t.updated = Date.now(); } }
         if (o.type === "settings") Object.assign(fake.data.settings, { ...o.settings, view: { ...(fake.data.settings.view || {}), ...(o.settings.view || {}) } });
         if (o.type === "booking_delete") fake.data.bookings = fake.data.bookings.filter((b) => b.id !== o.id);

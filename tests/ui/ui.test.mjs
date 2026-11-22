@@ -66,6 +66,19 @@ await p.waitForTimeout(60);
 await sr(`h.querySelector('[data-a="mpreset"][data-id="p4"]').click();`);
 await p.waitForTimeout(100);
 check("↺ zurück auf normal", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_month" && o.id === "p4" && o.amount === "")) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail));
+// ⏭️ 1.0.3-beta.6: Diesen Monat aussetzen
+await sr(`h.querySelector('.amt[data-a="mprice"][data-id="p4"]').click();`);
+await p.waitForTimeout(60);
+await sr(`h.querySelector('[data-a="skip"][data-id="p4"][data-v="1"]').click();`);
+await p.waitForTimeout(100);
+check("⏭️ Aussetzen geschickt, zählt nicht mehr", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_skip" && o.id === "p4" && o.value === true && o.month)) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail + 50), await sr(`return h.querySelector('.big').textContent.trim();`));
+check("⏭️ Zeile bleibt sichtbar, abgehakt-grau mit „ausgesetzt“", await sr(`const r = h.querySelector('.amt[data-id="p4"]').closest('.item'); return r.classList.contains('done') && /ausgesetzt/.test(r.querySelector('.meta').textContent) && !h.querySelector('[data-a="paid"][data-id="p4"]');`), await sr(`return h.querySelector('.amt[data-id="p4"]').closest('.item').textContent;`));
+await sr(`h.querySelector('.amt[data-a="mprice"][data-id="p4"]').click();`);
+await p.waitForTimeout(60);
+await shot("16-diesen-monat-aussetzen.png");
+await sr(`h.querySelector('[data-a="skip"][data-id="p4"][data-v="0"]').click();`);
+await p.waitForTimeout(100);
+check("▶️ Doch abbuchen: wieder normal", await p.evaluate(() => fake.applied.some((o) => o.type === "posten_skip" && o.id === "p4" && o.value === false)) && (await sr(`return h.querySelector('.big').textContent.trim();`)) === fmt(exp.avail) && !!(await sr(`return !!h.querySelector('[data-a="paid"][data-id="p4"]');`)));
 check("Schnellknöpfe haben verschiedene Farben", await sr(`const c = [...h.querySelectorAll('.quick .chip')].map((x) => getComputedStyle(x).borderTopColor); return c.length >= 3 && new Set(c).size === c.length;`));
 // 🎨 beta.3: Farbe hängt am Namen – umsortieren ändert nichts; eigene Farbe gewinnt
 const colBefore = await sr(`return h.querySelector('.quick .chip[data-v="Amazon"]').style.getPropertyValue('--qc');`);
@@ -141,10 +154,13 @@ const off = await sr(`return { banner: h.querySelector('.pill.wait')?.textConten
 check("Offline: Postausgang wird angezeigt", /1 wartet/.test(off.banner), off.banner);
 check("Offline: Haken zählt sofort", off.big === fmt(exp.avail - 5.75 + 45), off.big);
 check("Offline: Postausgang im Speicher", await p.evaluate(() => JSON.parse(localStorage.getItem("fixkosten_queue")).length === 1));
+check("Offline: Karte meldet den Postausgang für den Hintergrund-Helfer", await p.evaluate(() => { let got = null; const f = (e) => { got = e.detail; }; window.addEventListener("fixkosten-queue", f); document.querySelector("#c1")._saveQueue(); window.removeEventListener("fixkosten-queue", f); return got?.key === "fixkosten_queue" && got.ops.length === 1 && got.book === ""; }));
 await shot("2-offline.png");
 await p.evaluate(() => setOnline(true));
 await p.waitForTimeout(150);
 check("Wieder online: nachgeschickt", await p.evaluate(() => fake.applied.some((o) => o.type === "paid" && o.id === "p5") && JSON.parse(localStorage.getItem("fixkosten_queue")).length === 0));
+check("Wieder online: Meldung „1 Änderung nachgeschickt“ (wie Einkaufsliste)", await p.evaluate(() => toasts.some((t) => /Wieder online – 1 Änderung nachgeschickt/.test(t))), await p.evaluate(() => toasts.slice(-3).join(" | ")));
+check("Online: normale Änderung meldet KEIN „Wieder online“", await (async () => { const n = await p.evaluate(() => toasts.filter((t) => /Wieder online/.test(t)).length); await sr(`h.querySelector('[data-a="paid"][data-id="p5"]').click();`); await p.waitForTimeout(120); await sr(`h.querySelector('[data-a="paid"][data-id="p5"]').click();`); await p.waitForTimeout(120); return n === await p.evaluate(() => toasts.filter((t) => /Wieder online/.test(t)).length); })());
 
 // 🖱️ Schnellknopf-Leiste mit der Maus ziehen: schiebt die Leiste, löst aber keinen Knopf aus
 {
@@ -186,10 +202,14 @@ await sr(`const f = h.querySelector('form[data-a="save"]'); f.name.value = "Fitn
 await p.waitForTimeout(80);
 const saved = await p.evaluate(() => fake.applied.find((o) => o.type === "posten_save"));
 check("Posten anlegen schickt alle Felder", saved && saved.item.name === "Fitnessstudio" && saved.item.amount === 29.9 && saved.item.group === "g15" && saved.item.months.join() === "1", JSON.stringify(saved));
+// 📂 1.0.3-beta.4: Bearbeiten ist zuklappbar – ＋ Neu hat „Fixkosten“ aufgeklappt, der Rest ist zu
+check("Bearbeiten: ＋ Neu klappt Fixkosten auf, Töpfe sind zu, kein eigener Abschnitt „Gruppen“ mehr", await sr(`return !!h.querySelector('[data-grip="posten"]') && !h.querySelector('[data-grip="topf"]') && !!h.querySelector('[data-a="new"][data-k="gruppe"]') && ![...h.querySelectorAll('.ghead')].some((x) => /^\\s*Gruppen/.test(x.children[1]?.textContent || ''));`));
+await p.evaluate(() => { const c = document.querySelector('#c1'); ["e:posten", "e:einnahme", "e:topf", "e:konto"].forEach((k) => c._openSec.add(k)); c._force = true; c._render(); });
 check("Keine ▲▼-Pfeile mehr, nur der Griff", await sr(`return !h.querySelector('[data-a="mv"]') && h.querySelectorAll('[data-grip="gruppe"]').length === 2;`));
 check("Griff ⠿ zum Ziehen da", await sr(`return h.querySelectorAll('[data-grip="posten"]').length >= 7 && h.querySelectorAll('[data-grip="topf"]').length === 3;`));
 // ⠿ echtes Ziehen mit der Maus: PayPal-Topf ganz nach oben
 const box = async (sel) => p.evaluate((q) => { const r = document.querySelector('#c1').shadowRoot.querySelector(q).getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, top: r.y }; }, sel);
+await sr(`h.querySelector('[data-row="t1"]').scrollIntoView({ block: "center" });`); // Bearbeiten ist jetzt länger (Gruppen + Knopf bei den Fixkosten)
 const g = await box('[data-row="t3"] [data-grip]'), t1 = await box('[data-row="t1"]');
 await p.mouse.move(g.x, g.y); await p.mouse.down(); await p.mouse.move(g.x, t1.top + 3, { steps: 8 }); await p.mouse.up();
 await p.waitForTimeout(80);
@@ -248,7 +268,7 @@ check("Topf: Zurücklegen (Vorschlag = geliehen)", await p.evaluate(() => fake.a
 await p.waitForTimeout(150);
 await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
 await p.waitForTimeout(50);
-check("Topf: schlank – nur Symbol-Knöpfe ohne Text, mit Namen für langes Drücken", await sr(`const b = [...h.querySelectorAll('.potbox button')]; return b.length === 4 && b.every((x) => !x.textContent.trim() && x.title);`));
+check("Topf: schlank – nur Symbol-Knöpfe ohne Text, mit Namen für langes Drücken", await sr(`const b = [...h.querySelectorAll('.potbox form:not(.xfer) button')], x = [...h.querySelectorAll('.potbox form.xfer button')]; return b.length === 4 && x.length === 1 && [...b, ...x].every((y) => !y.textContent.trim() && y.title);`));
 check("Topf: kein „Als neuen Stand setzen“ mehr am Betragsfeld", await sr(`return !h.querySelector('form[data-a="potmove"] button[value="set"]') && !!h.querySelector('form[data-a="potset"] input[name="stand"]').value;`));
 await sr(`const f = h.querySelector('form[data-a="potset"]'); f.stand.value = "777"; f.requestSubmit();`);
 await p.waitForTimeout(80);
@@ -546,7 +566,7 @@ check("Versionen: offiziell vor Beta, höchste zuerst", await p.evaluate(() => {
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "guide"; c._force = true; c._render(); });
 // offizielle Version: kein Kasten, nur „Die letzten Neuerungen bis Version …“ (max. 15), die neue Version zuerst
 if (!/-beta/.test(fkVer)) check("Was ist neu: offiziell ohne Beta-Kasten, max. 15, neueste Version oben", await sr(`const e = h.querySelector('.elg'); const n = e?.querySelectorAll('ul > li').length || 0; return !e.querySelector('.betabox') && e.textContent.includes('bis Version ${fkVer}') && n > 0 && n <= 15;`));
-else check("Was ist neu: Beta-Kasten wie Einkaufsliste (höchste Beta oben), darunter max. 15", await sr(`const box = h.querySelector('.elg .betabox'); const b = [...(box?.querySelectorAll('li > b') || [])].map((x) => x.textContent); const rest = box?.parentElement.querySelectorAll(':scope > ul > li').length; return b[0] === "beta.4" && b.includes("beta.3") && b.includes("beta.2") && b.includes("beta.1") && /Die letzten Neuerungen bis Version/.test(h.querySelector('.elg').textContent) && rest > 0 && rest <= 15;`), await sr(`const box = h.querySelector('.elg .betabox'); return (box ? box.outerHTML.slice(0, 200) : "kein Kasten") + " | " + [...h.querySelectorAll('.elg ul')].length;`));
+else check("Was ist neu: Beta-Kasten wie Einkaufsliste (höchste Beta oben), darunter max. 15", await sr(`const box = h.querySelector('.elg .betabox'); const b = [...(box?.querySelectorAll('li > b') || [])].map((x) => x.textContent); const rest = box?.parentElement.querySelectorAll(':scope > ul > li').length; return b[0] === "beta.${fkVer.split("-beta.")[1]}" && b.includes("beta.1") && /Die letzten Neuerungen bis Version/.test(h.querySelector('.elg').textContent) && rest > 0 && rest <= 15;`), await sr(`const box = h.querySelector('.elg .betabox'); return (box ? box.outerHTML.slice(0, 200) : "kein Kasten") + " | " + [...h.querySelectorAll('.elg ul')].length;`));
 await p.evaluate(() => { const c = document.querySelector('#c1'); const d = c.shadowRoot.querySelector('details.elg-sec'); if (d) d.open = true; });
 await shot("19-was-ist-neu.png");
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._force = true; c._render(); });
@@ -615,6 +635,156 @@ await a.waitForSelector("#loginBtn");
 check("App: Anmeldeseite da", await a.evaluate(() => document.querySelector("h1")?.textContent === "Fixkosten"));
 check("App: Icon lädt", await a.evaluate(() => { const i = document.querySelector(".login img"); return i && i.complete && i.naturalWidth === 192; }));
 if (shots) await a.screenshot({ path: path.join(shots, "6-app-anmeldung.png") });
+
+// 🔄 Hintergrund-Helfer (sw.js): schickt den Postausgang ohne offene App nach – hier mit nachgebautem Home Assistant (WebSocket)
+{
+  const w = await b.newPage();
+  w.on("pageerror", (e) => errs.push("sw: " + String(e)));
+  await w.goto(`http://localhost:${port}/fixkosten/app/manifest.webmanifest`);
+  await w.setContent("<!doctype html><title>sw</title>");
+  await w.evaluate(() => {
+    window.sent = [];
+    window.WebSocket = class { // 🏠 nachgebautes Home Assistant
+      constructor() { setTimeout(() => this.onmessage({ data: JSON.stringify({ type: "auth_required" }) }), 5); }
+      send(t) {
+        const m = JSON.parse(t);
+        if (m.type === "auth") { setTimeout(() => this.onmessage({ data: JSON.stringify({ type: "auth_ok" }) }), 5); return; }
+        sent.push(m);
+        const results = m.ops.map((o) => ({ op_id: o.op_id, ok: o.op_id !== "o3", ...(o.op_id === "o3" ? { error: "gibt es nicht mehr" } : {}) }));
+        setTimeout(() => this.onmessage({ data: JSON.stringify({ id: m.id, type: "result", success: true, result: { results } }) }), 5);
+      }
+      close() {}
+    };
+  });
+  await w.addScriptTag({ content: fs.readFileSync(path.join(app, "sw.js"), "utf8").replaceAll("__FK_VERSION__", "test") });
+  const r = await w.evaluate(async () => {
+    await kvSet("auth", { access: "x", refresh: "r", expires: Date.now() + 600000, client_id: "c" });
+    await kvSet("queues", { fixkosten_queue: { book: "", ops: [{ op_id: "o1", type: "paid", id: "p1" }, { op_id: "o2", type: "paid", id: "p2" }] }, fixkosten_queue_partnerin: { book: "Partnerin", ops: [{ op_id: "o3", type: "paid", id: "x" }] } });
+    await flushQueue(true);
+    return { sent, queues: await kvGet("queues"), flushed: await kvGet("flushed") };
+  });
+  check("Hintergrund: beide Bücher nachgeschickt (mit Buch-Namen)", r.sent.length === 2 && r.sent[0].type === "fixkosten/apply" && !r.sent[0].book && r.sent[1].book === "Partnerin", JSON.stringify(r.sent));
+  check("Hintergrund: Postausgang danach leer, 2 angekommen gemerkt (abgelehnte nicht gezählt)", Object.keys(r.queues).length === 0 && r.flushed.n === 2 && r.flushed.ids.join() === "o1,o2,o3", JSON.stringify(r));
+  await w.close();
+  // 📱 App wieder öffnen (Stand wie eben vom Helfer gemerkt): Angekommenes fliegt aus dem Postausgang im Handy, Meldung „im Hintergrund nachgeschickt“
+  await a.evaluate(async () => { await kvSet("flushed", { n: 2, ids: ["o1", "o2", "o3"] }); localStorage.setItem("fkapp_auth", JSON.stringify({ access: "x", refresh: "r", expires: Date.now() + 600000 })); localStorage.setItem("fixkosten_queue", JSON.stringify([{ op_id: "o1", type: "paid", id: "p1" }, { op_id: "o9", type: "paid", id: "p9" }])); });
+  await a.reload();
+  await a.waitForFunction(() => /im Hintergrund nachgeschickt/.test(document.querySelector("body > .toast")?.textContent || ""), null, { timeout: 4000 }).catch(() => {});
+  const ar = await a.evaluate(() => ({ toast: document.querySelector("body > .toast")?.textContent || "", q: JSON.parse(localStorage.getItem("fixkosten_queue") || "[]").map((o) => o.op_id) }));
+  check("App: Meldung „2 Änderungen wurden im Hintergrund nachgeschickt“", /2 Änderungen wurden im Hintergrund nachgeschickt/.test(ar.toast), ar.toast);
+  check("App: Angekommenes aus dem Postausgang im Handy genommen, Rest wartet", ar.q.join() === "o9", ar.q.join());
+  if (shots) { await a.waitForTimeout(400); await a.screenshot({ path: path.join(shots, "6b-app-hintergrund.png") }); }
+  await a.evaluate(() => { localStorage.clear(); indexedDB.deleteDatabase("fixkosten-app"); });
+}
+
+// ⚠️ 1.0.3-beta.2: „Abbuchung fehlt?“ – fester Tag + 5 Tage ohne Haken = orange (nur testbar ab dem 6. des Monats)
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
+if (new Date().getDate() >= 6) {
+  await p.evaluate(() => { const x = fake.data.posten.find((q) => q.id === "p6"); x.day = new Date().getDate() - 5; delete fake.data.paid.p6; cb(JSON.parse(JSON.stringify(fake.data))); });
+  await p.waitForTimeout(80);
+  check("Abbuchung fehlt: oranger Hinweis oben, auch wenn die Gruppe zu ist", await sr(`const b = h.querySelector('.latehint'); return !!b && /Abbuchung fehlt\?/.test(b.textContent) && /Autoversicherung/.test(b.textContent) && !!h.querySelector('[data-v="g:g15"] .latecnt');`), await sr(`return h.querySelector('.latehint')?.textContent || '-';`));
+  await sr(`h.querySelector('.latehint').click();`);
+  await p.waitForTimeout(80);
+  check("Abbuchung fehlt: Antippen klappt die Gruppe auf, Posten orange mit Hinweis", await sr(`const r = h.querySelector('[data-a="paid"][data-id="p6"]')?.closest('.item'); return !!r && r.classList.contains('late') && /Abbuchung fehlt\?/.test(r.querySelector('.tag.late')?.textContent || '') && !h.querySelector('[data-a="paid"][data-id="p5"]').closest('.item').classList.contains('late');`));
+  await shot("22-abbuchung-fehlt.png");
+  await sr(`h.querySelector('[data-a="paid"][data-id="p6"]').click();`);
+  await p.waitForTimeout(150);
+  check("Abbuchung fehlt: abhaken = nicht mehr orange", await sr(`return !h.querySelector('.latehint') && !h.querySelector('.item.late');`));
+  await sr(`h.querySelector('[data-a="paid"][data-id="p6"]').click();`);
+  await p.waitForTimeout(150);
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "set"; c._sheet = "rechnen"; c._force = true; c._render(); });
+  check("Abbuchung fehlt: Schalter in ⚙️ → Rechnen & Warnung", await sr(`return !!h.querySelector('input[data-a="setlate"]')?.checked;`));
+  await sr(`const i = h.querySelector('input[data-a="setlate"]'); i.checked = false; i.dispatchEvent(new Event("change"));`);
+  await p.waitForTimeout(150);
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+  check("Abbuchung fehlt: ausgeschaltet = kein Hinweis", await sr(`return !h.querySelector('.latehint');`));
+  await p.evaluate(() => { fake.data.settings.late_on = true; const x = fake.data.posten.find((q) => q.id === "p6"); delete x.day; cb(JSON.parse(JSON.stringify(fake.data))); });
+  await p.waitForTimeout(80);
+}
+
+// ⚠️ 1.0.3-beta.3: Ausgaben, die seit 5 Tagen nicht abgebucht sind – roter Rahmen, Hinweis oben, „seit X Tagen offen“
+{
+  await p.evaluate(() => { fake.data.bookings.push({ id: "bOld", name: "Tankstelle", amount: 40, ts: Date.now() - 6 * 86400000, month: fake.data.month, cleared: false }); cb(JSON.parse(JSON.stringify(fake.data))); const c = document.querySelector('#c1'); c._view = "home"; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
+  await p.waitForTimeout(80);
+  check("Ausgabe 6 Tage offen: Hinweis oben mit rotem Rahmen", await sr(`const b = h.querySelector('.latehint'); return !!b && /Ausgabe noch nicht abgebucht\\?/.test(b.textContent) && /Tankstelle \\(seit 6 Tagen\\)/.test(b.textContent) && /rgb\\(219, 68, 55\\)|219, 68, 55/.test(getComputedStyle(b).borderColor);`), await sr(`const b = h.querySelector('.latehint'); return (b?.textContent || '-') + ' | ' + (b ? getComputedStyle(b).borderColor : '');`));
+  check("Ausgabe 6 Tage offen: Zeile rot umrandet mit „seit 6 Tagen offen“, neue Ausgabe nicht", await sr(`const r = [...h.querySelectorAll('.item[data-k="booking"]')]; const old = r.find((x) => x.dataset.id === "bOld"), neu = r.find((x) => x.dataset.id === "b1"); return old?.classList.contains('late') && /seit 6 Tagen offen/.test(old.textContent) && !neu?.classList.contains('late') && /219, 68, 55/.test(getComputedStyle(old).boxShadow);`));
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "set"; c._sheet = "rechnen"; c._force = true; c._render(); });
+  check("Schalter heißt „Nach 5 Tagen noch offen? Warnen“", await sr(`return /Nach 5 Tagen noch offen\\? Warnen/.test(h.querySelector('input[data-a="setlate"]')?.closest('label')?.textContent || '');`));
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
+  await shot("26-ausgabe-5-tage-offen.png");
+  await p.evaluate(() => { fake.data.bookings = fake.data.bookings.filter((x) => x.id !== "bOld"); cb(JSON.parse(JSON.stringify(fake.data))); });
+  await p.waitForTimeout(80);
+}
+
+// 🔀 1.0.3-beta.2: Umbuchen von Topf zu Topf · Ausgaben gehen immer vom Konto (kein „Bezahlt von“, Marco 19.11.)
+{
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
+  check("Ausgaben: kein „Bezahlt von“ (immer vom Konto)", await sr(`return !h.querySelector('[data-a="paysrc"]') && !/Bezahlt von/.test(h.innerHTML);`));
+  const t2 = await p.evaluate(() => fake.data.toepfe.find((x) => x.id === "t2").amount), t3 = await p.evaluate(() => fake.data.toepfe.find((x) => x.id === "t3").amount);
+  await sr(`h.querySelector('[data-a="sec"][data-v="toepfe"]').click();`);
+  await sr(`h.querySelector('.item[data-k="pot"][data-id="t2"]').click();`);
+  await p.waitForTimeout(60);
+  check("Umbuchen: Zeile mit anderen Töpfen (ohne sich selbst)", await sr(`const o = [...h.querySelectorAll('form[data-a="potxfer"] select option')].map((x) => x.value); return o.join() === "konto,t1,t3" && !h.querySelector('.potpaid');`));
+  await shot("24-topf-umbuchen.png");
+  await sr(`const f = h.querySelector('form[data-a="potxfer"]'); f.to.value = "t3"; f.amount.value = "20"; f.requestSubmit();`);
+  await p.waitForTimeout(200);
+  check("Umbuchen: 20 von Bargeld nach PayPal, Summe gleich", await p.evaluate(([a, z]) => { const t = fake.data.toepfe; return t.find((x) => x.id === "t2").amount === a - 20 && t.find((x) => x.id === "t3").amount === z + 20 && fake.applied.some((o) => o.type === "topf_move"); }, [t2, t3]) && await p.evaluate(() => toasts.some((t) => /umgebucht/.test(t))));
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._undo = null; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
+}
+
+// 🐷 1.0.3-beta.4: Topf-Zahl direkt in der Zeile ändern · 🏦 Umbuchen aufs Konto · ↩️ Haken zurücksetzen unter Bearbeiten
+{
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._open = null; c._openSec.clear(); c._openSec.add("toepfe"); c._force = true; c._render(); });
+  check("Töpfe: kein ⓘ mehr in der Übersicht", await sr(`return !h.querySelector('[data-v="toepfe"] .finfo') && !h.querySelector('p.help');`));
+  await sr(`h.querySelector('.amt[data-a="potamt"][data-id="t1"]').click();`);
+  await p.waitForTimeout(80);
+  check("Topf-Zahl antippen: Eingabefeld direkt in der Zeile, markiert, kein Fenster", await sr(`const f = h.querySelector('form.potinline[data-id="t1"]'), i = f?.querySelector('input'); return !!f && h.activeElement === i && i.selectionStart === 0 && i.selectionEnd === i.value.length && !h.querySelector('.potbox') && !h.querySelector('.pagehost');`));
+  await shot("27-topf-zahl-direkt.png");
+  await sr(`const f = h.querySelector('form.potinline'); f.stand.value = "1234,50"; f.requestSubmit();`);
+  await p.waitForTimeout(150);
+  check("Topf-Zahl: ✓ speichert, Zeile wieder normal", await p.evaluate(() => fake.applied.some((o) => o.type === "topf_save" && o.item.id === "t1" && o.item.amount === 1234.5)) && await sr(`return !h.querySelector('form.potinline') && /1\\.234,50/.test(h.querySelector('.amt[data-id="t1"]')?.textContent || '');`));
+  await sr(`h.querySelector('.amt[data-a="potamt"][data-id="t1"]').click();`);
+  await p.waitForTimeout(80);
+  await sr(`h.querySelector('form.potinline input').blur();`);
+  await p.waitForTimeout(300);
+  check("Topf-Zahl: daneben tippen = abbrechen", await sr(`return !h.querySelector('form.potinline');`));
+  // 🏦 aufs Konto umbuchen
+  const bal = await p.evaluate(() => fake.data.konto.balance), t1 = await p.evaluate(() => fake.data.toepfe.find((x) => x.id === "t1").amount);
+  await sr(`h.querySelector('.item[data-k="pot"][data-id="t1"] .n').click();`);
+  await p.waitForTimeout(80);
+  await sr(`const f = h.querySelector('form[data-a="potxfer"]'); f.to.value = "konto"; f.amount.value = "100"; f.requestSubmit();`);
+  await p.waitForTimeout(200);
+  check("Umbuchen aufs Konto: Topf −100, Kontostand +100", await p.evaluate(([b, t]) => fake.data.konto.balance === b + 100 && fake.data.toepfe.find((x) => x.id === "t1").amount === t - 100 && fake.applied.some((o) => o.type === "topf_move" && o.to === "konto"), [bal, t1]) && await p.evaluate(() => toasts.some((t) => /nach „Konto“ umgebucht/.test(t))));
+  // ↩️ Haken zurücksetzen unter Bearbeiten, nicht mehr in ⚙️
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "set"; c._sheet = "rechnen"; c._force = true; c._render(); });
+  check("⚙️: Knopf „Alle Haken jetzt zurücksetzen“ ist raus, Schalter bleibt", await sr(`return !h.querySelector('[data-a="resetnow"]') && !!h.querySelector('[data-a="setreset"]');`));
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._sheet = null; c._view = "edit"; c._openSec.clear(); c._force = true; c._render(); });
+  check("Bearbeiten: alles zu, keine ⓘ", await sr(`return !h.querySelector('.olist') && !h.querySelector('.finfo') && !h.querySelector('p.help');`));
+  await shot("28-bearbeiten-zu.png");
+  await sr(`h.querySelector('[data-v="e:posten"]').click();`);
+  await p.waitForTimeout(60);
+  check("Bearbeiten: Fixkosten aufgeklappt mit Gruppen-Liste und Haken-Knopf", await sr(`return h.querySelectorAll('[data-grip="gruppe"]').length === 2 && !!h.querySelector('[data-a="resetpart"][data-v="paid"]');`));
+  await shot("29-bearbeiten-fixkosten.png");
+  const dlg = (dl) => dl.accept(); p.on("dialog", dlg);
+  await sr(`h.querySelector('[data-a="resetpart"][data-v="paid"]').click();`);
+  await p.waitForTimeout(150);
+  await sr(`h.querySelector('[data-v="e:einnahme"]').click();`);
+  await p.waitForTimeout(60);
+  await sr(`h.querySelector('[data-a="resetpart"][data-v="received"]').click();`);
+  await p.waitForTimeout(150);
+  p.off("dialog", dlg);
+  check("Haken zurücksetzen: Fixkosten und Einnahmen getrennt", await p.evaluate(() => { const r = fake.applied.filter((o) => o.type === "reset_checks").map((o) => o.scope); return r.includes("paid") && r.includes("received"); }));
+  await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._openSec.clear(); c._open = null; c._force = true; c._render(); });
+}
+
+// 📈 1.0.3-beta.2: Kontostand-Kurve im Monat (Statistik)
+await sr(`h.querySelector('[data-a="tab"][data-v="stat"]').click();`);
+await p.waitForTimeout(60);
+check("Kurve: steht oben in der Statistik, mit Satz, Linie und Vorschau", await sr(`const s = h.querySelector('.sec'); return /Dein Konto im/.test(s?.textContent || '') && /Am engsten|wird's eng|Minus/.test(s.textContent) && !!s.querySelector('svg.curve path.fut') && s.querySelectorAll('svg.curve rect.hit').length >= 28 && !!s.querySelector('.finfo');`), await sr(`return h.querySelector('.sec')?.textContent.slice(0, 200);`));
+check("Kurve: Monatsende = „Verfügbar“", await p.evaluate(() => { const c = document.querySelector('#c1'); const k = c._curve(c._data); return Math.abs(k.fut[k.fut.length - 1][1] - c._data.summary.available) < 0.01; }));
+check("Kurve: Vergangenheit aus den gemerkten Tagen", await p.evaluate(() => { const c = document.querySelector('#c1'); const k = c._curve(c._data); return new Date().getDate() < 2 || k.past.length === new Date().getDate(); }));
+await shot("25-kontostand-kurve.png");
+await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._force = true; c._render(); });
 
 // 📚 Zweites Buch: Karte mit „buch“ fragt nach genau diesem Buch, eigener Postausgang, Editor zeigt alle Bücher
 const rb = await p.evaluate(async () => {

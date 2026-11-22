@@ -544,3 +544,115 @@ async def test_stand_datum_aenderbar(hass, setup):
     assert neu["updated"] == 4242
     with pytest.raises(HomeAssistantError):
         m._save_item("stand", {"id": st["id"], "date": "kaputt"}, 1)
+
+
+async def test_abbuchung_fehlt(hass, setup, freezer):
+    """⚠️ Fester Tag + 5 Tage ohne Haken → „Abbuchung fehlt?“ (heute ist der 10.11.)."""
+    m = mgr(hass)
+    m.apply([
+        {"type": "posten_save", "item": {"id": "a", "name": "Strom", "amount": 65, "day": 5}},
+        {"type": "posten_save", "item": {"id": "b", "name": "Handy", "amount": 20, "day": 6}},
+        {"type": "posten_save", "item": {"id": "c", "name": "Miete", "amount": 800}},
+    ])
+    assert [x["name"] for x in m.summary()["late"]] == ["Strom"]  # 5. + 5 = 10. ✔ · 6. + 5 = 11. noch nicht · ohne Tag nie
+    m.apply([{"type": "paid", "id": "a", "value": True}])
+    assert m.summary()["late"] == []
+    freezer.move_to(datetime(2026, 11, 30, 12, 0, tzinfo=dt_util.get_time_zone(TZ)))
+    m.apply([{"type": "posten_save", "item": {"id": "d", "name": "Bausparer", "amount": 50, "day": 31}}])
+    assert [x["name"] for x in m.summary()["late"]] == ["Handy"]  # der 31. gibt's im November nicht → 30., erst ab 35. „orange“
+    m.apply([{"type": "settings", "settings": {"late_on": False}}])
+    assert m.summary()["late"] == []
+
+
+async def test_topf_umbuchen(hass, setup):
+    """🔀 Von Topf zu Topf: Summe der Töpfe und „Verfügbar“ bleiben gleich."""
+    m = mgr(hass)
+    m.apply([{"type": "topf_save", "item": {"id": "a", "name": "Sparkonto", "amount": 500}},
+             {"type": "topf_save", "item": {"id": "b", "name": "Urlaub", "amount": 0}}])
+    s0 = m.summary()
+    res = m.apply([{"type": "topf_move", "id": "a", "to": "b", "amount": "120,50"}])
+    assert res[0]["ok"]
+    assert m.find("topf", "a")["amount"] == 379.5 and m.find("topf", "b")["amount"] == 120.5
+    s1 = m.summary()
+    assert s1["pots_total"] == s0["pots_total"] and s1["available"] == s0["available"]
+    assert "umgebucht" in m.data["log"][-1]["text"]
+    assert not m.apply([{"type": "topf_move", "id": "a", "to": "a", "amount": 1}])[0]["ok"]
+    assert not m.apply([{"type": "topf_move", "id": "a", "to": "b", "amount": 0}])[0]["ok"]
+
+
+async def test_kontostand_je_tag(hass, setup, freezer):
+    """📈 Für die Kontostand-Kurve merkt sich die Karte pro Tag den Kontostand."""
+    m = mgr(hass)
+    m.apply([{"type": "konto", "balance": 1200}])
+    m.apply([{"type": "konto", "balance": 1100}])
+    assert m.data["days"]["2026-11-10"] == 1100
+    freezer.move_to(datetime(2026, 11, 11, 9, 0, tzinfo=dt_util.get_time_zone(TZ)))
+    m.apply([{"type": "konto", "balance": 900}])
+    assert m.data["days"] == {"2026-11-10": 1100, "2026-11-11": 900}
+    assert "days" in m.snapshot()
+
+
+async def test_ausgabe_seit_5_tagen_offen(hass, setup, freezer):
+    """⚠️ Ausgaben, die seit 5 Tagen nicht abgebucht sind, kommen in „late_bookings“."""
+    m = mgr(hass)
+    m.apply([{"op_id": "alt", "type": "booking_add", "name": "Tanken", "amount": 50},
+             {"op_id": "neu", "type": "booking_add", "name": "Bäckerei", "amount": 3, "ts": int(dt_util.utcnow().timestamp() * 1000) + 2 * 86400000}])
+    assert m.summary()["late_bookings"] == []
+    freezer.move_to(datetime(2026, 11, 15, 12, 0, tzinfo=dt_util.get_time_zone(TZ)))
+    assert [(x["name"], x["days"]) for x in m.summary()["late_bookings"]] == [("Tanken", 5)]
+    m.apply([{"type": "booking_clear", "id": "alt", "value": True}])
+    assert m.summary()["late_bookings"] == []
+    m.apply([{"type": "booking_clear", "id": "alt", "value": False}, {"type": "settings", "settings": {"late_on": False}}])
+    assert m.summary()["late_bookings"] == []
+
+
+async def test_umbuchen_aufs_konto_und_haken_getrennt(hass, setup):
+    """🏦 Umbuchen aufs Konto erhöht den Kontostand · ↩️ Haken nur für Fixkosten oder nur für Einnahmen zurücksetzen."""
+    m = mgr(hass)
+    m.apply([{"type": "konto", "balance": 1000}, {"type": "topf_save", "item": {"id": "a", "name": "Sparkonto", "amount": 500}}])
+    avail = m.summary()["available"]
+    assert m.apply([{"type": "topf_move", "id": "a", "to": "konto", "amount": 200}])[0]["ok"]
+    assert m.find("topf", "a")["amount"] == 300 and m.data["konto"]["balance"] == 1200
+    assert m.summary()["available"] == avail + 200 and m.summary()["pots_lent"] == 0
+    assert "nach „Konto“" in m.data["log"][-1]["text"]
+    m.apply([{"type": "posten_save", "item": {"id": "p", "name": "Miete", "amount": 800}},
+             {"type": "einnahme_save", "item": {"id": "e", "name": "Lohn", "amount": 2000}},
+             {"type": "paid", "id": "p", "value": True}, {"type": "received", "id": "e", "value": True}])
+    m.apply([{"type": "reset_checks", "scope": "paid"}])
+    assert not m.data["paid"] and m.data["received"]["e"]["paid"]
+    m.apply([{"type": "paid", "id": "p", "value": True}, {"type": "reset_checks", "scope": "received"}])
+    assert m.data["paid"]["p"]["paid"] and not m.data["received"]
+
+
+async def test_diesen_monat_aussetzen(hass, setup, freezer):
+    """⏭️ 1.0.3-beta.6: Posten diesen Monat aussetzen = zählt nicht, keine Warnung, nächsten Monat wieder da."""
+    m = mgr(hass)
+    m.apply([
+        {"type": "posten_save", "item": {"id": "a", "name": "Strom", "amount": 65, "day": 5}},
+        {"type": "posten_save", "item": {"id": "b", "name": "Miete", "amount": 800}},
+    ])
+    assert [x["name"] for x in m.summary()["late"]] == ["Strom"]
+    before = m.summary()
+    res = m.apply([{"type": "posten_skip", "id": "a", "value": True, "month": m.data["month"]}])
+    assert res[0]["ok"]
+    s = m.summary()
+    assert s["late"] == []  # ⚠️ keine Warnung mehr
+    assert s["fix_total"] == round(before["fix_total"] - 65, 2)
+    assert s["fix_open"] == round(before["fix_open"] - 65, 2)
+    assert "ausgesetzt" in m.data["log"][-1]["text"]
+    # Offline im alten Monat → zählt nicht
+    m.apply([{"type": "posten_skip", "id": "a", "value": False, "month": "2026-10"}])
+    assert "a" in m.data["skip"]
+    # Doch abbuchen
+    m.apply([{"type": "posten_skip", "id": "a", "value": False}])
+    assert m.data["skip"] == {} and m.summary()["fix_total"] == before["fix_total"]
+    # Neuer Monat → wieder normal
+    m.apply([{"type": "posten_skip", "id": "a", "value": True}])
+    freezer.move_to(datetime(2026, 12, 1, 0, 0, 10, tzinfo=dt_util.get_time_zone(TZ)))
+    m._on_midnight(dt_util.now())
+    assert m.data["skip"] == {}
+    assert m.data["history"][-1]["fix_total"] == 800  # im Rückblick nicht mitgezählt
+    assert m.summary()["fix_total"] == 865
+    # Löschen räumt mit auf
+    m.apply([{"type": "posten_skip", "id": "b", "value": True}, {"type": "posten_delete", "id": "b"}])
+    assert m.data["skip"] == {}

@@ -17,13 +17,13 @@ One click opens it right in your Home Assistant: [![Open in HACS](https://my.hom
 ## ✨ What does it do?
 
 - 💰 **Available** = balance − open fixed costs − payments (card, PayPal, cash …) not yet debited.
-- 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day, paused items shown greyed out. Different price just this month? Tap the amount.
+- 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day – ⚠️ **debit missing?** If an item is still not ticked 5 days after its day – or an expense has been “not yet debited” for 5 days – it gets a red frame and a hint appears at the top (switch in ⚙️ → Calculation & warning → “Still open after 5 days? Warn”). Paused items shown greyed out. Different price just this month? Tap the amount. Not debited at all this month? Tap the amount → ⏭️ “Skip this month” (no warning, back next month).
 - ⠿ **Reorder everything** by dragging (items also into another group), ↩️ **undo** after deleting.
 - 💳 **Card payments** via quick buttons ("bakery 5.75") – subtracted immediately.
 - 🧮 **Calculator** at the top of the card, result straight into a payment or the balance, keyboard works on a PC. 💡 Button to keep the screen on.
-- 🐷 **Pots**, 🧾 **open balances** (I owe = red, I get = green; add them right in the overview like expenses, newest date on top, collapsible incl. the input, tap = edit below, date included), 🏦 **IBAN list** with copy button, 💵 **income** as info.
+- 🐷 **Pots** (🔀 transfer money from pot to pot or to the 🏦 account, tap the amount to change it right in the row), 🧾 **open balances** (I owe = red, I get = green; add them right in the overview like expenses, newest date on top, collapsible incl. the input, tap = edit below, date included), 🏦 **IBAN list** with copy button, 💵 **income** as info.
 - 📱 **Offline app** with fingerprint lock and 🔒 **PIN lock** for settings.
-- 📊 **Monthly review** for up to 3 years, 📥 **CSV** import and export, 📜 **history log** (who changed what and when).
+- 📊 **Monthly review** for up to 3 years, 📈 **balance curve** for the current month (day by day, dashed forecast, tightest day marked), 📥 **CSV** import and export, 📜 **history log** (who changed what and when).
 - 👁️ **View** settings like the shopping list: hide sections for everyone, labels under icon buttons, calm mode, light/dark in the offline app – plus a 🐷 **piggy bank mascot** that reacts to your money and dresses up for the season (flower, sunglasses, leaf, scarf, bunny ears, pumpkin, Santa hat, party hat).
 - 🌍 **English or German**: automatic like Home Assistant, or fixed with `language: en` in the card (also in the card editor). Your own names are never translated.
 - 💱 **Currency** (⚙️ → Calculation & warning): euro, Swiss franc, US dollar, pound, złoty, kroner, forint. Only changes the symbol and number format (CHF 1’234.50), nothing is converted; the sensors use it too.
@@ -56,7 +56,7 @@ privat: true   # optional: hide amounts until 👁️ is tapped
 3. Browser menu → **"Add to home screen"**
 4. Tap **"👆 Fingerabdruck-Sperre einschalten"** at the bottom (only shown if your phone supports fingerprint or Face ID). After 1 minute in the background the app asks again
 
-Offline, the app shows the last known state. Changes wait in an **outbox** and are sent automatically once Home Assistant is reachable again. Nothing is counted twice. **Logging out** only removes the copy on the phone; your data in Home Assistant stays.
+Offline, the app shows the last known state. Changes wait in an **outbox** and are sent automatically once Home Assistant is reachable again (the card then shows “✅ Back online – N changes sent”). **On Android (Chrome) even in the background:** close the app with a full outbox and the phone sends it as soon as the network is back, just like the shopping list. iPhones can’t do that; there it happens the next time you open the app. Nothing is counted twice. **Logging out** only removes the copy on the phone; your data in Home Assistant stays.
 Behind a reverse proxy only `/fixkosten/*`, `/auth/*` and `/api/*` are needed. Fingerprint requires **https**.
 
 </details>
@@ -67,7 +67,7 @@ Behind a reverse proxy only `/fixkosten/*`, `/auth/*` and `/api/*` are needed. F
 
 <details><summary>Card settings, sidebar, PIN lock and PIN reset – <i>expand</i></summary>
 
-**In the card (⚙️)**, tiles in categories that each open their own window: reset checks at the start of a month (default on), subtract open balances (default off), warning limit, quick buttons (one per line), offline app address with copy button, CSV import/export (admins only), 📜 history log (on/off, clear), 👁️ view (hide sections, blur the income/pots totals and "Komplett" – hover or tap for 4 seconds to show, labels, mascot – for everyone; calm mode – this device only; light/dark – offline app) and the 🔒 **PIN lock** (optionally for the whole card) (4–8 digits) for ⚙️ and "Bearbeiten". 5 wrong attempts = 1 minute pause. Unlocking also works offline: the card checks the PIN itself with a strongly hashed offline key (never the PIN itself) – enter the PIN once while online first.
+**In the card (⚙️)**, tiles in categories that each open their own window: reset checks at the start of a month (default on; reset by hand under “Edit” for fixed costs or income), subtract open balances (default off), warning limit, quick buttons (one per line), offline app address with copy button, CSV import/export (admins only), 📜 history log (on/off, clear), 👁️ view (hide sections, blur the income/pots totals and "Komplett" – hover or tap for 4 seconds to show, labels, mascot – for everyone; calm mode – this device only; light/dark – offline app) and the 🔒 **PIN lock** (optionally for the whole card) (4–8 digits) for ⚙️ and "Bearbeiten". 5 wrong attempts = 1 minute pause. Unlocking also works offline: the card checks the PIN itself with a strongly hashed offline key (never the PIN itself) – enter the PIN once while online first.
 
 **In Home Assistant** (Settings → Devices & services → Fixkosten → **Configure**):
 - **Show in sidebar** – Fixkosten as its own sidebar entry.

@@ -512,7 +512,7 @@ class FixkostenManager:
             return f"{'⏭️' if op.get('value', True) else '▶️'} „{self._name('posten', op.get('id'))}“ {'diesen Monat ausgesetzt' if op.get('value', True) else 'wird diesen Monat doch abgebucht'}"
         if t == "reset_checks":
             scope = op.get("scope")
-            return "↩️ Fixkosten-Haken zurückgesetzt" if scope == "paid" else "↩️ Einnahmen-Haken zurückgesetzt" if scope == "received" else "↩️ Alle Haken zurückgesetzt"
+            return "↩️ Fixkosten-Haken, Sonderpreise und Aussetzen zurückgesetzt" if scope == "paid" else "↩️ Einnahmen-Haken zurückgesetzt" if scope == "received" else "↩️ Alle Haken, Sonderpreise und Aussetzen zurückgesetzt"
         if t == "konto" and "balance" in op:
             return f"🏦 Kontostand {self._eur(parse_money(op['balance']))}"
         if t == "booking_add":
@@ -635,6 +635,8 @@ class FixkostenManager:
             scope = op.get("scope")
             if scope != "received":
                 d["paid"] = {}
+                d["month_price"] = {}  # 💶 wie am Monatsanfang: Sonderpreise weg, wieder der gespeicherte Preis (Marco)
+                d["skip"] = {}  # ⏭️ „Diesen Monat aussetzen“ auch weg
             if scope != "paid":
                 d["received"] = {}
         elif t == "konto":

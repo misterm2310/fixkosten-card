@@ -618,8 +618,14 @@ async def test_umbuchen_aufs_konto_und_haken_getrennt(hass, setup):
     m.apply([{"type": "posten_save", "item": {"id": "p", "name": "Miete", "amount": 800}},
              {"type": "einnahme_save", "item": {"id": "e", "name": "Lohn", "amount": 2000}},
              {"type": "paid", "id": "p", "value": True}, {"type": "received", "id": "e", "value": True}])
-    m.apply([{"type": "reset_checks", "scope": "paid"}])
+    m.apply([{"type": "posten_month", "id": "p", "amount": "900"}, {"type": "posten_skip", "id": "p"}])
+    assert m.data["month_price"] and m.data["skip"]
+    m.apply([{"type": "reset_checks", "scope": "received"}])
+    assert m.data["month_price"] and m.data["skip"]  # 💵 Einnahmen-Knopf lässt Sonderpreise in Ruhe
+    m.apply([{"type": "received", "id": "e", "value": True}, {"type": "reset_checks", "scope": "paid"}])
     assert not m.data["paid"] and m.data["received"]["e"]["paid"]
+    assert not m.data["month_price"] and not m.data["skip"]  # ↩️ 1.0.4-beta.1: wie am Monatsanfang wieder der gespeicherte Preis
+    assert "Sonderpreise" in m.data["log"][-1]["text"]
     m.apply([{"type": "paid", "id": "p", "value": True}, {"type": "reset_checks", "scope": "received"}])
     assert m.data["paid"]["p"]["paid"] and not m.data["received"]
 

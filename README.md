@@ -34,7 +34,7 @@ Ein Klick öffnet es direkt in deinem Home Assistant: [![In HACS öffnen](https:
 | 💰 **Verfügbar** | Kontostand − offene Fixkosten − Ausgaben, die noch nicht abgebucht sind = was du wirklich ausgeben kannst. Grün im Plus, rot im Minus |
 | 📋 **Fixkosten** | In Gruppen wie „ab dem 1.“ und „ab dem 15.“, standardmäßig zugeklappt (Summe und „2 / 4“ stehen im Kopf). Freiwillig ein **fester Tag** (z. B. am 5.) – er steht am Posten. ⚠️ **Abbuchung fehlt?** Ist der Posten 5 Tage nach seinem Tag noch nicht abgehakt, bekommt er einen **roten Rahmen** und oben steht ein rot umrandeter Hinweis (antippen klappt die Gruppe auf) – vergessen zu haken oder hat die Bank nicht abgebucht? Schalter: ⚙️ → Rechnen & Warnung → „Nach 5 Tagen noch offen? Warnen“. Posten nur in bestimmten Monaten (z. B. Kfz-Steuer im März) oder **pausiert** (steht grau und abgehakt drin, zählt nicht mit). Nur **diesen Monat** nicht? Betrag antippen → ⏭️ „Diesen Monat aussetzen“ |
 | ⠿ **Verschieben** | Gruppen, Posten, Töpfe, Einnahmen und Konten am Griff ⠿ ziehen. Posten auch in eine andere Gruppe |
-| 📂 **Bearbeiten** | Alle Abschnitte zum Zuklappen (beim Öffnen zu, ＋ Neu klappt auf). Die **Gruppen** stehen bei den Fixkosten (＋ Gruppe). **↩️ Haken zurücksetzen** je bei Fixkosten und bei Einnahmen |
+| 📂 **Bearbeiten** | Alle Abschnitte zum Zuklappen (beim Öffnen zu, ＋ Neu klappt auf). Die **Gruppen** stehen bei den Fixkosten (＋ Gruppe). **↩️ Haken zurücksetzen** je bei Fixkosten und bei Einnahmen (bei Fixkosten gehen auch Sonderpreise und „Aussetzen“ weg, wie am Monatsanfang) |
 | ↩️ **Rückgängig** | Nach Löschen, „beglichen“ oder „abgebucht“ steht 8 Sekunden lang „Rückgängig“ unten in der Karte |
 | 💳 **Ausgaben** | Schnellknopf antippen, Betrag rein, fertig. Taucht es auf dem Konto auf: grüner Haken ✓. Eintrag antippen = ändern. ⚠️ Steht eine Ausgabe seit **5 Tagen** bei „noch nicht abgebucht“, bekommt sie einen **roten Rahmen** („seit X Tagen offen“) und steht oben im Hinweis (gleicher Schalter). Lange drücken auf einen Symbol-Knopf zeigt, was er macht |
 | 🧮 **Taschenrechner** | + − × ÷ %, Taste **V** setzt „Verfügbar“ ein. Ergebnis als Ausgabe, Kontostand oder kopieren. Am PC auch per Tastatur (Ziffern, + − * /, Enter, ⌫, Esc). Rechnet selbst, ohne `eval` |
@@ -220,7 +220,7 @@ IBANs tauchen bewusst in keinem Sensor auf. Weitere Bücher bekommen den Namen d
 | `fixkosten.kontostand_setzen` | `kontostand` |
 | `fixkosten.buchung_hinzufuegen` | Ausgabe: `name`, `betrag` |
 | `fixkosten.topf_setzen` | `name`, `betrag` (legt den Topf an, wenn es ihn nicht gibt) |
-| `fixkosten.haken_zuruecksetzen` | Alle Haken dieses Monats weg |
+| `fixkosten.haken_zuruecksetzen` | Alle Haken dieses Monats weg, dazu Sonderpreise und „Diesen Monat aussetzen“ |
 | `fixkosten.csv_import` | `text` oder `datei`, optional `ersetzen` |
 | `fixkosten.daten_abrufen` | Gibt alle Zahlen zurück (für Skripte) |
 

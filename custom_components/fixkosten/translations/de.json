@@ -101,7 +101,7 @@
     },
     "haken_zuruecksetzen": {
       "name": "Haken zurücksetzen",
-      "description": "Alle Haken dieses Monats entfernen.",
+      "description": "Alle Haken dieses Monats entfernen, dazu Sonderpreise und „Diesen Monat aussetzen“.",
       "fields": {
         "buch": {
           "name": "Buch",

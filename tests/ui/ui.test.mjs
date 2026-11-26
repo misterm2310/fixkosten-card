@@ -680,7 +680,7 @@ if (shots) await a.screenshot({ path: path.join(shots, "6-app-anmeldung.png") })
 // ⚠️ 1.0.3-beta.2: „Abbuchung fehlt?“ – fester Tag + 5 Tage ohne Haken = orange (nur testbar ab dem 6. des Monats)
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
 if (new Date().getDate() >= 6) {
-  await p.evaluate(() => { const x = fake.data.posten.find((q) => q.id === "p6"); x.day = new Date().getDate() - 5; delete fake.data.paid.p6; cb(JSON.parse(JSON.stringify(fake.data))); });
+  await p.evaluate(() => { const x = fake.data.posten.find((q) => q.id === "p6"); x.day = new Date().getDate() - 5; delete fake.data.paid.p6; for (const q of fake.data.posten) if (q.id !== "p6" && q.day) fake.data.paid[q.id] = { paid: true, ts: Date.now() }; /* nur p6 darf fehlen – sonst je nach Datum noch andere (z. B. am 26.) */ cb(JSON.parse(JSON.stringify(fake.data))); });
   await p.waitForTimeout(80);
   check("Abbuchung fehlt: oranger Hinweis oben, auch wenn die Gruppe zu ist", await sr(`const b = h.querySelector('.latehint'); return !!b && /Abbuchung fehlt\?/.test(b.textContent) && /Autoversicherung/.test(b.textContent) && !!h.querySelector('[data-v="g:g15"] .latecnt');`), await sr(`return h.querySelector('.latehint')?.textContent || '-';`));
   await sr(`h.querySelector('.latehint').click();`);
@@ -766,8 +766,13 @@ if (new Date().getDate() >= 6) {
   check("Bearbeiten: Fixkosten aufgeklappt mit Gruppen-Liste und Haken-Knopf", await sr(`return h.querySelectorAll('[data-grip="gruppe"]').length === 2 && !!h.querySelector('[data-a="resetpart"][data-v="paid"]');`));
   await shot("29-bearbeiten-fixkosten.png");
   const dlg = (dl) => dl.accept(); p.on("dialog", dlg);
+  await p.evaluate(() => { window._lastConfirm = ""; window.confirm = (t) => { window._lastConfirm = t; return true; }; });
+  await p.evaluate(() => { const id = fake.data.posten[0].id; fake.data.month_price = { [id]: 1 }; fake.data.skip = { [id]: Date.now() }; });
   await sr(`h.querySelector('[data-a="resetpart"][data-v="paid"]').click();`);
   await p.waitForTimeout(150);
+  // ↩️ 1.0.4-beta.1: der Fixkosten-Knopf räumt auch Sonderpreise + Aussetzen weg und sagt das vorher
+  check("Haken zurücksetzen (Fixkosten): Abfrage nennt Sonderpreise", await p.evaluate(() => /Sonderpreise/.test(window._lastConfirm)));
+  check("Haken zurücksetzen (Fixkosten): Sonderpreise und Aussetzen weg", await p.evaluate(() => !Object.keys(fake.data.month_price || {}).length && !Object.keys(fake.data.skip || {}).length));
   await sr(`h.querySelector('[data-v="e:einnahme"]').click();`);
   await p.waitForTimeout(60);
   await sr(`h.querySelector('[data-a="resetpart"][data-v="received"]').click();`);

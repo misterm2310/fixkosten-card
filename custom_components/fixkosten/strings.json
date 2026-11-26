@@ -101,7 +101,7 @@
     },
     "haken_zuruecksetzen": {
       "name": "Reset checks",
-      "description": "Remove all checks of this month.",
+      "description": "Remove all checks of this month, plus special prices and “skip this month”.",
       "fields": {
         "buch": {
           "name": "Book",

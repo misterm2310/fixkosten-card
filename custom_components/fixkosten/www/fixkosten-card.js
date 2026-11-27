@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.4-beta.2";
+const FK_VERSION = "1.0.4-beta.3";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -41,6 +41,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.4-beta.3", "🤫 <b>Nach „Fixkosten-Haken zurücksetzen“ ist Ruhe:</b> Posten, deren Tag schon vor dem Zurücksetzen war, melden diesen Monat kein „⚠️ Abbuchung fehlt?“ mehr – kein roter Hinweis oben, kein roter Rahmen, auch nicht im Sensor. Ab dem 1. warnt wieder alles wie gewohnt. Die Abfrage vor dem Zurücksetzen sagt es dazu."],
   ["1.0.4-beta.2", "⭐ <b>Stern-Knopf in den Credits:</b> Gefällt dir die Karte? Unter 🙏 Credits führt „⭐ Gib uns einen Stern“ direkt zu GitHub · 📦 <b>Download-Zähler:</b> Jede neue Version hängt jetzt als fertige ZIP-Datei am Release, HACS lädt diese ZIP – so zählt GitHub endlich mit, wie oft die Fixkosten geladen werden (Schild oben im README). Es wird nichts getrackt und nichts von dir übertragen."],
   ["1.0.4-beta.1", "↩️ <b>„Fixkosten-Haken zurücksetzen“ macht jetzt einen frischen Monat:</b> Der Knopf unter „Bearbeiten“ nimmt nicht nur die Haken weg, sondern auch alle <b>Sonderpreise</b> („nur diesen Monat“) und alle <b>„⏭️ Diesen Monat aussetzen“</b> – genau wie der Monatswechsel. Danach gilt überall wieder der gespeicherte Preis. Die Abfrage vorher sagt es dazu. Der Einnahmen-Knopf bleibt, wie er war."],
   ["1.0.3", "🎉 <b>Offizielle Version 1.0.3:</b> Alles aus 6 Betas ist jetzt fest drin – danke fürs Testen! · ⏭️ <b>Diesen Monat aussetzen:</b> Betrag antippen → Posten zählt diesen Monat nirgends mit, nächsten Monat von selbst wieder da · ⚠️ <b>Nach 5 Tagen noch offen? Warnen</b> – für Fixkosten mit festem Tag und für Ausgaben, mit rotem Rahmen und Hinweis oben (abschaltbar in ⚙️) · 🔀 <b>Umbuchen</b> von Topf zu Topf oder aufs Konto · 🐷 Topf-Zahl antippen = direkt in der Zeile ändern · 📈 <b>Dein Konto im Monat:</b> Kontostand-Kurve Tag für Tag in der Statistik · 📂 „Bearbeiten“ zum Zuklappen, Gruppen bei den Fixkosten, ↩️ Haken zurücksetzen getrennt für Fixkosten und Einnahmen · 🧹 Weniger ⓘ (Erklärungen in ⚙️) · 🔄 Offline-App schickt den Postausgang im Hintergrund nach"],
@@ -493,7 +494,8 @@ function lateBookings(d, now = Date.now()) {
 function lateItems(d, now = new Date()) {
   if (d.settings?.late_on === false) return [];
   const today = now.getDate(), last = fkLastDay(now);
-  return d.posten.filter((p) => p.day && countsThisMonth(d, p) && !d.paid?.[p.id]?.paid && today >= Math.min(Number(p.day), last) + FK_LATE_DAYS)
+  const rd = d.month === monthKey(now) ? Number(d.reset_day) || 0 : 0; // ↩️ von Hand zurückgesetzt: Tage bis dahin warnen diesen Monat nicht (Marco)
+  return d.posten.filter((p) => p.day && countsThisMonth(d, p) && !d.paid?.[p.id]?.paid && Math.min(Number(p.day), last) > rd && today >= Math.min(Number(p.day), last) + FK_LATE_DAYS)
     .map((p) => ({ id: p.id, name: p.name, day: Number(p.day), amount: pamt(d, p), group: p.group }));
 }
 function summary(d) {
@@ -557,7 +559,7 @@ function applyLocal(d, op) {
   } else if (t === "received") {
     d.received = d.received || {};
     if (!op.month || op.month === d.month) d.received[op.id] = { paid: !!op.value, ts: op.ts };
-  } else if (t === "reset_checks") { if (op.scope !== "received") { d.paid = {}; d.month_price = {}; d.skip = {}; } if (op.scope !== "paid") d.received = {}; } // ↩️ scope: nur Fixkosten (mit Sonderpreisen + Aussetzen) / nur Einnahmen
+  } else if (t === "reset_checks") { if (op.scope !== "received") { d.paid = {}; d.month_price = {}; d.skip = {}; d.reset_day = new Date().getDate(); } if (op.scope !== "paid") d.received = {}; } // ↩️ scope: nur Fixkosten (mit Sonderpreisen + Aussetzen) / nur Einnahmen
   else if (t === "konto") {
     if ("balance" in op) { d.konto.balance = parseMoney(op.balance); d.konto.updated = op.ts; }
   } else if (t === "booking_add") {
@@ -2075,7 +2077,7 @@ class FixkostenCard extends HTMLElement {
     }
     else if (a === "sdir") { this._standDir = el.dataset.v === "get" ? "get" : "pay"; redraw(); setTimeout(() => this.shadowRoot.querySelector('form[data-a="standadd"] input[name="name"]')?.focus(), 30); }
     else if (a === "potamt") { this._potEdit = id; this._open = null; redraw(); setTimeout(() => { const i = this.shadowRoot.querySelector("form.potinline input"); i?.focus(); i?.select?.(); }, 30); } // ✏️ Topf-Zahl direkt ändern
-    else if (a === "resetpart") { const paid = el.dataset.v === "paid"; if (fkConfirm(paid ? "Alle Fixkosten-Haken dieses Monats entfernen?\n\nAuch alle Sonderpreise („nur diesen Monat“) und „Diesen Monat aussetzen“ gehen weg – danach gilt wieder der gespeicherte Preis." : "Alle Einnahmen-Haken dieses Monats entfernen?")) this._send({ type: "reset_checks", scope: paid ? "paid" : "received" }); } // ↩️ nur dieser Abschnitt
+    else if (a === "resetpart") { const paid = el.dataset.v === "paid"; if (fkConfirm(paid ? "Alle Fixkosten-Haken dieses Monats entfernen?\n\nAuch alle Sonderpreise („nur diesen Monat“) und „Diesen Monat aussetzen“ gehen weg – danach gilt wieder der gespeicherte Preis.\n\nBis Monatsende kommt für Posten bis heute kein „Abbuchung fehlt?“ mehr." : "Alle Einnahmen-Haken dieses Monats entfernen?")) this._send({ type: "reset_checks", scope: paid ? "paid" : "received" }); } // ↩️ nur dieser Abschnitt
     else if (a === "lateopen") { if (el.dataset.v) this._openSec.add("g:" + el.dataset.v); else this._openSec.delete("ausgaben_zu"); redraw(); setTimeout(() => this.shadowRoot.querySelector(".item.late")?.scrollIntoView({ block: "center", behavior: "smooth" }), 40); } // ⚠️ Gruppe aufklappen
     else if (a === "setlate") this._send({ type: "settings", settings: { late_on: el.checked } });
     else if (a === "sec") { const k = el.dataset.v; this._openSec.has(k) ? this._openSec.delete(k) : this._openSec.add(k); redraw(); }

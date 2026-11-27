@@ -116,6 +116,7 @@ def _empty() -> dict[str, Any]:
         "received": {},
         "month_price": {},  # 💶 Preis nur für diesen Monat (Posten-id → Betrag), am Monatsanfang wieder weg
         "skip": {},  # ⏭️ diesen Monat ausgesetzt (Posten-id → Zeitstempel), am Monatsanfang wieder weg
+        "reset_day": 0,  # ↩️ Tag, an dem die Fixkosten-Haken von Hand zurückgesetzt wurden (0 = nicht), am Monatsanfang wieder 0
         "bookings": [],
         "days": {},  # 📈 Kontostand je Tag (JJJJ-MM-TT → Betrag) für die Kontostand-Kurve, die letzten MAX_DAYS Tage
         "history": [],
@@ -203,6 +204,7 @@ class FixkostenManager:
             self.data["received"] = {}
         self.data["month_price"] = {}  # 💶 Sonderpreise gelten nur einen Monat – danach wieder der gespeicherte Preis
         self.data["skip"] = {}  # ⏭️ „Diesen Monat aussetzen“ gilt auch nur einen Monat
+        self.data["reset_day"] = 0  # ↩️ neuer Monat = wieder alle Warnungen
         self.data["month"] = now_key
         cutoff = (dt_util.utcnow() - timedelta(days=MAX_BOOKINGS_DAYS)).timestamp() * 1000
         self.data["bookings"] = [b for b in self.data["bookings"] if b.get("ts", 0) >= cutoff or not b.get("cleared")]
@@ -349,6 +351,8 @@ class FixkostenManager:
             day = p.get("day")
             if not day or not self._counts_this_month(p) or d["paid"].get(p["id"], {}).get("paid"):
                 continue
+            if min(int(day), last_day) <= int(d.get("reset_day") or 0):
+                continue  # ↩️ Tag lag vor dem Zurücksetzen – frischer Monat ab da, keine Warnung (Marco)
             if today >= min(int(day), last_day) + LATE_DAYS:
                 out.append({"id": p["id"], "name": p["name"], "day": int(day), "amount": round(self.amount_of(p), 2)})
         return out
@@ -637,6 +641,7 @@ class FixkostenManager:
                 d["paid"] = {}
                 d["month_price"] = {}  # 💶 wie am Monatsanfang: Sonderpreise weg, wieder der gespeicherte Preis (Marco)
                 d["skip"] = {}  # ⏭️ „Diesen Monat aussetzen“ auch weg
+                d["reset_day"] = dt_util.now().day  # ↩️ ab heute frisch: Posten bis heute warnen diesen Monat nicht mehr
             if scope != "paid":
                 d["received"] = {}
         elif t == "konto":

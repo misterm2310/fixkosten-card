@@ -698,6 +698,13 @@ if (new Date().getDate() >= 6) {
   await p.waitForTimeout(150);
   await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._force = true; c._render(); });
   check("Abbuchung fehlt: ausgeschaltet = kein Hinweis", await sr(`return !h.querySelector('.latehint');`));
+  // ↩️ 1.0.4-beta.3: nach „Fixkosten-Haken zurücksetzen“ (reset_day = heute) diesen Monat keine Warnung für Tage bis heute
+  await p.evaluate(() => { const n = new Date(); fake.data.settings.late_on = true; fake.data.month = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}`; fake.data.reset_day = n.getDate(); cb(JSON.parse(JSON.stringify(fake.data))); });
+  await p.waitForTimeout(80);
+  check("Nach Zurücksetzen: kein „Abbuchung fehlt?“ und kein roter Rahmen", await sr(`return !h.querySelector('.latehint') && !h.querySelector('.item.late');`), await sr(`return h.querySelector('.latehint')?.textContent || '-';`));
+  await p.evaluate(() => { fake.data.reset_day = 0; cb(JSON.parse(JSON.stringify(fake.data))); });
+  await p.waitForTimeout(80);
+  check("Ohne Zurücksetzen: Hinweis wieder da", await sr(`return /Abbuchung fehlt\?/.test(h.querySelector('.latehint')?.textContent || '');`));
   await p.evaluate(() => { fake.data.settings.late_on = true; const x = fake.data.posten.find((q) => q.id === "p6"); delete x.day; cb(JSON.parse(JSON.stringify(fake.data))); });
   await p.waitForTimeout(80);
 }

@@ -17,7 +17,7 @@ One click opens it right in your Home Assistant: [![Open in HACS](https://my.hom
 ## ✨ What does it do?
 
 - 💰 **Available** = balance − open fixed costs − payments (card, PayPal, cash …) not yet debited.
-- 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day – ⚠️ **debit missing?** If an item is still not ticked 5 days after its day – or an expense has been “not yet debited” for 5 days – it gets a red frame and a hint appears at the top (switch in ⚙️ → Calculation & warning → “Still open after 5 days? Warn”). Paused items shown greyed out. Different price just this month? Tap the amount. Not debited at all this month? Tap the amount → ⏭️ “Skip this month” (no warning, back next month).
+- 📋 **Fixed costs in groups** like "from the 1st" and "from the 15th" – collapsible, check them off when debited. Optional fixed day – ⚠️ **debit missing?** If an item is still not ticked 5 days after its day – or an expense has been “not yet debited” for 5 days – it gets a red frame and a hint appears at the top (switch in ⚙️ → Calculation & warning → “Still open after 5 days? Warn”). After “Reset fixed-cost ticks” items whose day was up to that day stay quiet until the end of the month. Paused items shown greyed out. Different price just this month? Tap the amount. Not debited at all this month? Tap the amount → ⏭️ “Skip this month” (no warning, back next month).
 - ⠿ **Reorder everything** by dragging (items also into another group), ↩️ **undo** after deleting.
 - 💳 **Card payments** via quick buttons ("bakery 5.75") – subtracted immediately.
 - 🧮 **Calculator** at the top of the card, result straight into a payment or the balance, keyboard works on a PC. 💡 Button to keep the screen on.

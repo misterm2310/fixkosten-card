@@ -662,3 +662,22 @@ async def test_diesen_monat_aussetzen(hass, setup, freezer):
     # Löschen räumt mit auf
     m.apply([{"type": "posten_skip", "id": "b", "value": True}, {"type": "posten_delete", "id": "b"}])
     assert m.data["skip"] == {}
+
+
+async def test_nach_zuruecksetzen_keine_warnung(hass, setup, freezer):
+    """↩️ 1.0.4-beta.3: Nach „Fixkosten-Haken zurücksetzen“ warnen Posten bis zum Reset-Tag diesen Monat nicht mehr (heute 10.11.)."""
+    m = mgr(hass)
+    m.apply([
+        {"type": "posten_save", "item": {"id": "a", "name": "Strom", "amount": 65, "day": 5}},
+        {"type": "posten_save", "item": {"id": "b", "name": "Handy", "amount": 20, "day": 15}},
+    ])
+    assert [x["name"] for x in m.summary()["late"]] == ["Strom"]
+    m.apply([{"type": "reset_checks", "scope": "received"}])
+    assert [x["name"] for x in m.summary()["late"]] == ["Strom"]  # 💵 Einnahmen-Knopf ändert nichts
+    m.apply([{"type": "reset_checks", "scope": "paid"}])
+    assert m.data["reset_day"] == 10 and m.summary()["late"] == []
+    freezer.move_to(datetime(2026, 11, 25, 12, 0, tzinfo=dt_util.get_time_zone(TZ)))
+    assert [x["name"] for x in m.summary()["late"]] == ["Handy"]  # 15. lag nach dem Zurücksetzen → warnt normal
+    freezer.move_to(datetime(2026, 12, 10, 12, 0, tzinfo=dt_util.get_time_zone(TZ)))
+    m._check_month()
+    assert m.data["reset_day"] == 0 and [x["name"] for x in m.summary()["late"]] == ["Strom"]  # 📅 neuer Monat = wieder alle Warnungen

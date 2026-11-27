@@ -680,7 +680,7 @@ if (shots) await a.screenshot({ path: path.join(shots, "6-app-anmeldung.png") })
 // ⚠️ 1.0.3-beta.2: „Abbuchung fehlt?“ – fester Tag + 5 Tage ohne Haken = orange (nur testbar ab dem 6. des Monats)
 await p.evaluate(() => { const c = document.querySelector('#c1'); c._view = "home"; c._sheet = null; c._open = null; c._openSec.clear(); c._force = true; c._render(); });
 if (new Date().getDate() >= 6) {
-  await p.evaluate(() => { const x = fake.data.posten.find((q) => q.id === "p6"); x.day = new Date().getDate() - 5; delete fake.data.paid.p6; cb(JSON.parse(JSON.stringify(fake.data))); });
+  await p.evaluate(() => { const x = fake.data.posten.find((q) => q.id === "p6"); x.day = new Date().getDate() - 5; delete fake.data.paid.p6; for (const q of fake.data.posten) if (q.id !== "p6" && q.day) fake.data.paid[q.id] = { paid: true, ts: Date.now() }; /* nur p6 darf fehlen – sonst je nach Datum noch andere (z. B. am 26.) */ cb(JSON.parse(JSON.stringify(fake.data))); });
   await p.waitForTimeout(80);
   check("Abbuchung fehlt: oranger Hinweis oben, auch wenn die Gruppe zu ist", await sr(`const b = h.querySelector('.latehint'); return !!b && /Abbuchung fehlt\?/.test(b.textContent) && /Autoversicherung/.test(b.textContent) && !!h.querySelector('[data-v="g:g15"] .latecnt');`), await sr(`return h.querySelector('.latehint')?.textContent || '-';`));
   await sr(`h.querySelector('.latehint').click();`);

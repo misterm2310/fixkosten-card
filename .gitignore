@@ -7,3 +7,4 @@ node_modules/
 # 🔒 Eigene Finanz-Dateien NIE ins Repo
 *.csv
 !beispiel-fixkosten.csv
+tests/ui/package-lock.json

@@ -6,7 +6,7 @@
 
 **Wie viel Geld ist diesen Monat wirklich noch übrig?** Genau das zeigt dir die Karte: groß, auf einen Blick, im Dashboard, in der Seitenleiste und als eigene Handy-App, die auch ohne Netz geht.
 
-Ein Klick öffnet es direkt in deinem Home Assistant: [![In HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=misterm2310&repository=fixkosten-card&category=integration) [![Integration hinzufügen](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=fixkosten)
+Ein Klick öffnet es direkt in deinem Home Assistant: [![In HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=misterm2310&repository=fixkosten-card&category=integration) [![Integration hinzufügen](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=fixkosten) [![Downloads](https://img.shields.io/github/downloads/misterm2310/fixkosten-card/total?label=Downloads)](https://github.com/misterm2310/fixkosten-card/releases)
 
 ![Vorschau – Fixkosten (nur ausgedachte Beispielzahlen)](docs/screenshot.png)
 
@@ -261,6 +261,10 @@ Jedes Buch hat **eigene** Fixkosten, Töpfe, Kontostand, PIN, Rückblick und Sen
 ---
 
 ## 💙 Gefällt dir die Fixkosten-Karte?
+
+⭐ **Gefällt dir die Karte? Gib uns einen Stern:** Auf [GitHub](https://github.com/misterm2310/fixkosten-card) oben rechts auf „⭐ Star“ tippen (kostenloses GitHub-Konto nötig) – so sehe ich, wie vielen die Fixkosten-Karte gefällt, und andere finden sie leichter. Den Knopf gibt es auch unter ⚙️ → Credits.
+
+📊 **Download-Zähler:** Das Schild „Downloads“ oben zählt, wie oft die fertige ZIP-Datei der Releases (Betas und offizielle Versionen zusammen) geladen wurde. Das zählt nur GitHub, von dir wird nichts übertragen.
 
 Sie ist und bleibt **kostenlos**. Wenn du magst, kannst du mir ganz freiwillig eine kleine Spende per PayPal schicken: [paypal.me/MarcoStrickmann](https://paypal.me/MarcoStrickmann). Den Link gibt es auch unter ⚙️ → Credits. Danke! 🙏
 

@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.4-beta.1";
+const FK_VERSION = "1.0.4-beta.2";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -41,6 +41,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.4-beta.2", "⭐ <b>Stern-Knopf in den Credits:</b> Gefällt dir die Karte? Unter 🙏 Credits führt „⭐ Gib uns einen Stern“ direkt zu GitHub · 📦 <b>Download-Zähler:</b> Jede neue Version hängt jetzt als fertige ZIP-Datei am Release, HACS lädt diese ZIP – so zählt GitHub endlich mit, wie oft die Fixkosten geladen werden (Schild oben im README). Es wird nichts getrackt und nichts von dir übertragen."],
   ["1.0.4-beta.1", "↩️ <b>„Fixkosten-Haken zurücksetzen“ macht jetzt einen frischen Monat:</b> Der Knopf unter „Bearbeiten“ nimmt nicht nur die Haken weg, sondern auch alle <b>Sonderpreise</b> („nur diesen Monat“) und alle <b>„⏭️ Diesen Monat aussetzen“</b> – genau wie der Monatswechsel. Danach gilt überall wieder der gespeicherte Preis. Die Abfrage vorher sagt es dazu. Der Einnahmen-Knopf bleibt, wie er war."],
   ["1.0.3", "🎉 <b>Offizielle Version 1.0.3:</b> Alles aus 6 Betas ist jetzt fest drin – danke fürs Testen! · ⏭️ <b>Diesen Monat aussetzen:</b> Betrag antippen → Posten zählt diesen Monat nirgends mit, nächsten Monat von selbst wieder da · ⚠️ <b>Nach 5 Tagen noch offen? Warnen</b> – für Fixkosten mit festem Tag und für Ausgaben, mit rotem Rahmen und Hinweis oben (abschaltbar in ⚙️) · 🔀 <b>Umbuchen</b> von Topf zu Topf oder aufs Konto · 🐷 Topf-Zahl antippen = direkt in der Zeile ändern · 📈 <b>Dein Konto im Monat:</b> Kontostand-Kurve Tag für Tag in der Statistik · 📂 „Bearbeiten“ zum Zuklappen, Gruppen bei den Fixkosten, ↩️ Haken zurücksetzen getrennt für Fixkosten und Einnahmen · 🧹 Weniger ⓘ (Erklärungen in ⚙️) · 🔄 Offline-App schickt den Postausgang im Hintergrund nach"],
   ["1.0.3-beta.6", "⏭️ <b>Diesen Monat aussetzen:</b> Wird ein Posten diesen Monat nicht abgebucht? Hinten auf den Betrag tippen → <b>„Diesen Monat aussetzen“</b>. Er zählt dann nirgends mit, auch keine „Abbuchung fehlt?“-Warnung. Nächsten Monat ist er von selbst wieder da. Versehen? Gleiche Stelle → „Doch abbuchen“."],
@@ -839,6 +840,7 @@ a.btn.paypal { background:#0070ba; border-color:#0070ba; color:#fff; }
 a.elcbtn { color:var(--primary-text-color); background:var(--secondary-background-color, rgba(127,127,127,.12)); border-radius:12px; padding:10px 14px; text-decoration:none; font-weight:500; }
 a.elcbtn.pp { display:inline-flex; align-items:center; gap:8px; background:#0070BA; color:#fff; border:2px solid #003087; font-weight:700; }
 .elcbtn.pp svg { width:20px; height:20px; flex:none; }
+a.elcbtn.star { background:#fbc02d; color:#3e2723; border:2px solid #f57f17; font-weight:700; }
 .elcsmall { opacity:.7; font-size:.9em; }
 a { color:var(--pc); }
 /* 🧮 Taschenrechner */
@@ -1729,6 +1731,10 @@ class FixkostenCard extends HTMLElement {
       <p>${t("Gemacht von <b>Mister-M</b> – mit Hilfe von Claude 🤖", "Made by <b>Mister-M</b> – with help from Claude 🤖")}</p>
       <p>${t("Ich versuche, Updates und Fehler-Korrekturen zeitnah zu erledigen.", "I try to ship updates and fixes promptly.")}</p>
       <p class="elcsmall">📅 ${t("Neue offizielle Versionen kommen immer sonntags. An den anderen Tagen gibt es nur Test-Versionen (Beta) – die siehst du in HACS unter „Beta-Versionen anzeigen“.", "New official versions always come out on Sundays. On the other days there are only test versions (beta) – you see them in HACS under “Show beta versions”.")}</p>
+      <div class="elcbtns">
+        <a class="elcbtn star" href="${REPO}" target="_blank" rel="noopener">⭐ ${t("Gefällt dir die Karte? Gib uns einen Stern", "Like the card? Give us a star")}</a>
+      </div>
+      <p class="elcsmall">${t("Auf GitHub oben rechts auf „⭐ Star“ tippen (braucht ein kostenloses GitHub-Konto) – so sehe ich, wie vielen die Karte gefällt, und andere finden sie leichter. Beim Antippen öffnet sich GitHub im Browser; vorher geht nichts ins Internet.", "On GitHub, tap “⭐ Star” at the top right (needs a free GitHub account) – that shows me how many people like the card and helps others find it. Tapping opens GitHub in your browser; nothing goes to the internet before that.")}</p>
       <div class="elcbtns">
         <a class="elcbtn" href="${REPO}" target="_blank" rel="noopener">🐙 GitHub</a>
         <a class="elcbtn" href="${REPO}/discussions" target="_blank" rel="noopener">💡 ${t("Idee oder Wunsch", "Idea or request")}</a>

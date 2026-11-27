@@ -6,7 +6,7 @@
 
 **How much money is really left this month?** The card shows exactly that: big and at a glance, in your dashboard, in the sidebar and as a phone app that also works offline.
 
-One click opens it right in your Home Assistant: [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=misterm2310&repository=fixkosten-card&category=integration) [![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=fixkosten)
+One click opens it right in your Home Assistant: [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=misterm2310&repository=fixkosten-card&category=integration) [![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=fixkosten) [![Downloads](https://img.shields.io/github/downloads/misterm2310/fixkosten-card/total?label=Downloads)](https://github.com/misterm2310/fixkosten-card/releases)
 
 ![Preview – made-up example values only](docs/screenshot.png)
 
@@ -100,6 +100,10 @@ Actions: `fixkosten.abhaken`, `kontostand_setzen`, `buchung_hinzufuegen`, `topf_
 ---
 
 ## 💙 Like it?
+
+⭐ **Like the card? Give us a star:** on [GitHub](https://github.com/misterm2310/fixkosten-card), tap “⭐ Star” at the top right (free GitHub account needed) – that shows me how many people like the Fixkosten card and helps others find it. The button is also under ⚙️ → Credits.
+
+📊 **Download counter:** the “Downloads” badge at the top counts how often the ready-made ZIP file of the releases (betas and official versions together) was downloaded. Only GitHub counts this, nothing about you is sent.
 
 It is and stays **free**. If you like, you can send me a small donation via PayPal – completely voluntary: [paypal.me/MarcoStrickmann](https://paypal.me/MarcoStrickmann). The link is also under ⚙️ → Credits. Thank you! 🙏
 

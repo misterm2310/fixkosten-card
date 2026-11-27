@@ -6,7 +6,7 @@
 // - Jede Änderung (Haken, Ausgabe, Kontostand …) wird als kleine „Änderung“ verschickt.
 // - Klappt das Verschicken nicht (kein Netz), landet die Änderung im Postausgang und wird später nachgeschickt.
 //   Bis dahin rechnet die Karte selbst so, als wäre sie schon angekommen.
-const FK_VERSION = "1.0.4-beta.3";
+const FK_VERSION = "1.0.4-beta.4";
 
 const PAY = {
   ueberweisung: ["Überweisung", "ü"], dauerauftrag: ["Dauerauftrag", "d"], lastschrift: ["Lastschrift", "l"],
@@ -16,6 +16,12 @@ const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", 
 const QKEY = "fixkosten_queue";
 const PAYPAL = "https://paypal.me/MarcoStrickmann";
 const REPO = "https://github.com/misterm2310/fixkosten-card";
+// 📥 Download-Zahl für die Credits: liegt als kleine Datei in der Release-ZIP (vom Release geschrieben).
+// Wird nur EINMAL vom eigenen Home Assistant geladen – kein Aufruf an GitHub. Fehlt sie: keine Zeile.
+let FK_DL = null, fkDlLoad = null;
+const fkLoadDownloads = () => fkDlLoad ||= fetch(`/fixkosten/files/downloads.json?v=${FK_VERSION}`, { cache: "no-cache" })
+  .then((r) => (r.ok ? r.json() : null)).then((j) => { const n = Number(j?.downloads); FK_DL = n > 0 ? n : 0; }).catch(() => { FK_DL = 0; });
+const fkDlText = () => (FK_DL > 0 ? `📥 ${FK_LANG === "en" ? `about ${FK_DL.toLocaleString("en")} downloads (as of last release)` : `rund ${FK_DL.toLocaleString("de-DE")} Downloads (Stand letztes Release)`}` : "");
 
 // 📖 Anleitung – einfach erklärt, Kapitel zum Aufklappen
 const FK_GUIDE = [
@@ -41,6 +47,7 @@ const FK_GUIDE = [
 ];
 // 🆕 Was ist neu – das Neueste oben (wie bei der Einkaufsliste)
 const FK_NEWS = [
+  ["1.0.4-beta.4", "📥 <b>Download-Zahl in den Credits:</b> Unter 🙏 Credits steht jetzt „rund N Downloads (Stand letztes Release)“. Die Zahl schreibt GitHub beim Release in eine kleine Datei, die mit in die ZIP kommt – die Karte liest sie nur bei dir zu Hause, es geht nichts ins Internet. Zwischen zwei Versionen bleibt die Zahl darum gleich."],
   ["1.0.4-beta.3", "🤫 <b>Nach „Fixkosten-Haken zurücksetzen“ ist Ruhe:</b> Posten, deren Tag schon vor dem Zurücksetzen war, melden diesen Monat kein „⚠️ Abbuchung fehlt?“ mehr – kein roter Hinweis oben, kein roter Rahmen, auch nicht im Sensor. Ab dem 1. warnt wieder alles wie gewohnt. Die Abfrage vor dem Zurücksetzen sagt es dazu."],
   ["1.0.4-beta.2", "⭐ <b>Stern-Knopf in den Credits:</b> Gefällt dir die Karte? Unter 🙏 Credits führt „⭐ Gib uns einen Stern“ direkt zu GitHub · 📦 <b>Download-Zähler:</b> Jede neue Version hängt jetzt als fertige ZIP-Datei am Release, HACS lädt diese ZIP – so zählt GitHub endlich mit, wie oft die Fixkosten geladen werden (Schild oben im README). Es wird nichts getrackt und nichts von dir übertragen."],
   ["1.0.4-beta.1", "↩️ <b>„Fixkosten-Haken zurücksetzen“ macht jetzt einen frischen Monat:</b> Der Knopf unter „Bearbeiten“ nimmt nicht nur die Haken weg, sondern auch alle <b>Sonderpreise</b> („nur diesen Monat“) und alle <b>„⏭️ Diesen Monat aussetzen“</b> – genau wie der Monatswechsel. Danach gilt überall wieder der gespeicherte Preis. Die Abfrage vorher sagt es dazu. Der Einnahmen-Knopf bleibt, wie er war."],
@@ -1727,11 +1734,14 @@ class FixkostenCard extends HTMLElement {
   // 🙏 Credits – genau wie bei der Einkaufsliste (Logo, Version, Knöpfe, PayPal), in ⚙️ und in der Anleitung
   _creditsHtml() {
     const t = (de, en) => (FK_LANG === "en" ? en : de);
+    // 📥 Download-Zahl einmal nachladen und dann in die schon gezeichneten Credits eintragen
+    if (FK_DL === null) fkLoadDownloads().then(() => (this.shadowRoot || this).querySelectorAll("[data-fkdl]").forEach((el) => { el.textContent = fkDlText(); el.hidden = !(FK_DL > 0); }));
     return `<div class="elcredits" translate="no">
       <div class="ellogo"><img src="/fixkosten/files/mister-m.webp?v=${FK_VERSION}" alt="Mister-M" loading="lazy"></div>
       <p class="elcv"><b>Fixkosten</b> v${FK_VERSION}</p>
       <p>${t("Gemacht von <b>Mister-M</b> – mit Hilfe von Claude 🤖", "Made by <b>Mister-M</b> – with help from Claude 🤖")}</p>
       <p>${t("Ich versuche, Updates und Fehler-Korrekturen zeitnah zu erledigen.", "I try to ship updates and fixes promptly.")}</p>
+      <p class="elcsmall" data-fkdl ${FK_DL > 0 ? "" : "hidden"}>${fkDlText()}</p>
       <p class="elcsmall">📅 ${t("Neue offizielle Versionen kommen immer sonntags. An den anderen Tagen gibt es nur Test-Versionen (Beta) – die siehst du in HACS unter „Beta-Versionen anzeigen“.", "New official versions always come out on Sundays. On the other days there are only test versions (beta) – you see them in HACS under “Show beta versions”.")}</p>
       <div class="elcbtns">
         <a class="elcbtn star" href="${REPO}" target="_blank" rel="noopener">⭐ ${t("Gefällt dir die Karte? Gib uns einen Stern", "Like the card? Give us a star")}</a>

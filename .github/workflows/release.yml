@@ -34,6 +34,23 @@ jobs:
       # Darin liegt direkt der Inhalt von custom_components/fixkosten/ (manifest.json ganz oben) –
       # HACS packt die ZIP genau so nach config/custom_components/fixkosten/ aus.
       # Jeder HACS-Download dieser Datei zählt bei GitHub mit → Download-Schild im README.
+      # 📥 Download-Zahl für die Credits: Summe aller ZIP-Downloads aller Releases (Stand jetzt).
+      # Die Datei kommt NUR in die ZIP (nicht ins Repo). Die Karte liest sie offline –
+      # kein Live-Aufruf an GitHub beim Nutzer. Klappt die Abfrage nicht, gibt es einfach keine Datei.
+      - name: Download-Zahl in die ZIP legen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          N=$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" --paginate \
+                -q '.[].assets[] | select(.name | endswith(".zip")) | .download_count' 2>/dev/null \
+              | awk '{s+=$1} END {print s+0}') || N=""
+          if [ -n "$N" ]; then
+            printf '{"downloads": %s, "stand": "%s"}\n' "$N" "$(date -u +%F)" > custom_components/fixkosten/www/downloads.json
+            cat custom_components/fixkosten/www/downloads.json
+          else
+            echo "Download-Zahl nicht abrufbar – Credits zeigen dann einfach keine Zeile."
+          fi
+
       - name: ZIP für HACS packen
         run: |
           cd custom_components/fixkosten

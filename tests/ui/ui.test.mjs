@@ -27,6 +27,8 @@ const p = await b.newPage({ viewport: { width: 560, height: 1100 }, deviceScaleF
 const errs = [];
 p.on("pageerror", (e) => errs.push(String(e)));
 p.on("console", (m) => { if (m.type() === "error" || /Symbol fehlt/.test(m.text())) errs.push(m.text()); });
+// 📥 Download-Zahl wie aus der Release-ZIP (im Repo steht nur ein Platzhalter mit 0)
+await p.route("**/fixkosten/files/downloads.json*", (r) => r.fulfill({ json: { downloads: 1234, stand: "2026-11-27" } }));
 await p.goto(`http://localhost:${port}/`);
 await p.waitForFunction(() => window.__ready);
 await p.waitForTimeout(200);
@@ -406,6 +408,9 @@ check("Meine Konten zugeklappt", await sr(`return !!h.querySelector('[data-a="se
 // 📖 Anleitung wie bei der Einkaufsliste
 await sr(`h.querySelector('.foot [data-v="guide"]').click();`);
 check("Anleitung: Kästen, Was ist neu zuerst, Credits wie Einkaufsliste (Logo, ⭐ Stern + 4 Knöpfe, PayPal)", await sr(`const s = h.querySelectorAll('details.elg-sec'); return s.length >= 14 && /Was ist neu/.test(s[0].textContent) && !!h.querySelector('.elcredits a.elcbtn.pp') && h.querySelectorAll('.elcredits a.elcbtn').length === 5 && /fixkosten-card$/.test(h.querySelector('.elcredits a.elcbtn.star')?.href || '') && /mister-m\.webp/.test(h.querySelector('.elcredits .ellogo img')?.getAttribute('src') || '');`));
+await p.waitForTimeout(150);
+check("Credits: 📥 rund 1.234 Downloads (Stand letztes Release)", await sr(`const e = h.querySelector('.elcredits [data-fkdl]'); return !!e && !e.hidden && e.textContent.includes("rund 1.234 Downloads (Stand letztes Release)");`));
+if (shots) await sr(`h.querySelector(".elcredits").closest("details").open = true;`), await p.locator("#c1 .elcredits").first().screenshot({ path: path.join(shots, "17-credits-downloads.png") });
 await sr(`const q = h.querySelector('.elg-q'); q.value = "fingerabdruck"; q.dispatchEvent(new Event('input'));`);
 check("Anleitung: Suche filtert", await sr(`const v = [...h.querySelectorAll('details.elg-sec')].filter((x) => !x.hidden); return v.length >= 1 && v.length < 5 && v.every((x) => x.open);`));
 await sr(`const q = h.querySelector('.elg-q'); q.value = ""; q.dispatchEvent(new Event('input')); h.querySelector('details.elg-sec').open = true;`);
